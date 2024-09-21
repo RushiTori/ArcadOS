@@ -44,7 +44,6 @@ fix_cs:
 	; Jump at the start of the second cylinder to attempt to enable
 	jmp BOOT_START_ADDR + SECTOR_SIZE
 
-
 times (495 - ($ - $$)) db 0
 
 ArcadOSMark:

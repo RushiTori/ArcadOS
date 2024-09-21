@@ -217,3 +217,5 @@ enable_a20_keyboard_controller:
 	test al, 1
 	jz .wait_io2
 	ret
+
+times (512 - ($ - $$)) db 0

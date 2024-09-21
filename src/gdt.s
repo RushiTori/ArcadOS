@@ -10,3 +10,5 @@ boot_sector_3_start:
 gdt:
 	dq GDT_ENTRY(0, 0, 0, 0)
 	dq GDT_ENTRY(0x00400000, 0x003FFFFF, 0x9A, 0xC)
+
+times (512 - ($ - $$)) db 0
