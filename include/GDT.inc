@@ -30,5 +30,6 @@
 												(((flag) & 0xF) << 52)      | \
 												(((base) & 0xFF000000) << 32))
 
+%define GDT_LIMIT_BYTE_TO_GRANULAR(limit)		((limit >> 12) + ((limit & 0xFFFFFF) > 0))
 
 %endif ; GDT_INC

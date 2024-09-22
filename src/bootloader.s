@@ -31,7 +31,7 @@ fix_cs:
 
 	; Read all the sectors on the first cylinder
 	mov ah, DRIVE_SERVICE_READ_SECTORS
-	mov al, 1;SECTOR_PER_CYLINDER - 1
+	mov al, SECTOR_PER_CYLINDER - 1
 	mov cx, 2
 	xor dh, dh
 	mov dl, byte[drive_number]
