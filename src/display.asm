@@ -173,6 +173,7 @@ draw_rect_line_ex:
 	jmp .end
 
 	.simplify_call:
+		call draw_rect
 
 	.end:
 	ret
