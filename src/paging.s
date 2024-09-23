@@ -2,10 +2,10 @@ bits 32
 
 %include "boot.inc"
 
-%define PLM4T_ADDR                  0x00800000
-%define PAGE_DIRECTORY_POINTER_ADDR 0x00801000
-%define PAGE_DIRECTORY_ADDR         0x00802000
-%define PAGE_TABLE_ADDR             0x00803000
+%define PLM4T_ADDR                  0x00000000
+%define PAGE_DIRECTORY_POINTER_ADDR 0x00001000
+%define PAGE_DIRECTORY_ADDR         0x00002000
+%define PAGE_TABLE_ADDR             0x00003000
 
 ORG BOOT_SECTOR(3)
 
@@ -47,13 +47,26 @@ paging_start:
 
 	lgdt [gdt64.ptr]
 
-	jmp gdt64.code:BOOT_SECTOR(4)
+	mov ax, gdt64.data
+	mov ds, ax
+	mov es, ax
+	mov fs, ax
+	mov gs, ax
 
+	mov ax, gdt64.stack
+	mov ss, ax
+
+	mov eax, 0x0FFFF0
+	mov esp, eax
+
+	jmp gdt64.code64:BOOT_SECTOR(4)
 gdt64:
 	.null: equ ($ - gdt64)
 		dq GDT_ENTRY(0, 0, 0, 0)
-	.code: equ ($ - gdt64)
-		dq GDT_ENTRY(0x00000000, 0x007FFFFF, ARCADOS_ACCESS_BYTE(true, true, false, true, false), GDT_FLAG(false, true, true)) ;CODE
+	.code32: equ ($ - gdt64)
+		dq GDT_ENTRY(0x00000000, 0x002FFFFF, ARCADOS_ACCESS_BYTE(true, true, false, true, false), GDT_FLAG(false, true, false)) ;CODE
+	.code64: equ ($ - gdt64)
+		dq GDT_ENTRY(0x00300000, 0x002FFFFF, ARCADOS_ACCESS_BYTE(true, true, false, true, false), GDT_FLAG(false, false, true)) ;CODE
 	.screen: equ ($ - gdt64)
 		dq GDT_ENTRY(0x000A0000, 320 * 200, ARCADOS_ACCESS_BYTE(true, false, false, true, false), GDT_FLAG(false, true, false)) ;SCREENDATA
 	.data: equ ($ - gdt64)
@@ -62,15 +75,15 @@ gdt64:
 		dq GDT_ENTRY(0x00A00000, 0x001FFFFF, ARCADOS_ACCESS_BYTE(true, false, false, false, false), GDT_FLAG(false, true, false)) ;RODATA
 	.bss: equ ($ - gdt64)
 		dq GDT_ENTRY(0x00C00000, 0x001FFFFF, ARCADOS_ACCESS_BYTE(true, false, false, true, false), GDT_FLAG(false, true, false)) ;BSS
+	.stack: equ ($ - gdt64)
+		dq GDT_ENTRY(0x00E00000, 0x000FFFFF, ARCADOS_ACCESS_BYTE(true, false, false, true, false), GDT_FLAG(false, true, false)) ;BSS
 	.tss: equ ($ - gdt64)
-		dq GDT_ENTRY(0x00E00000, 0x0000FFFF, ARCADOS_ACCESS_BYTE(false, true, false, false, true), GDT_FLAG(false, false, false)) ;TSS
+		dq GDT_ENTRY(0x00F00000, 0x0000FFFF, ARCADOS_ACCESS_BYTE(false, true, false, false, true), GDT_FLAG(false, false, false)) ;TSS
 	.ptr:
         dw $ - gdt64 - 1
         dq gdt64
 
 PAD_SECTOR(SECTOR_SIZE)
-
-; org BOOT_SECTOR(4)
 
 ;bits 64
 ;long_mode_test:
@@ -79,3 +92,4 @@ PAD_SECTOR(SECTOR_SIZE)
 ;	mov rax, 0x0D0D0D0D0D0D0D0D
 ;	rep stosq
 ;	jmp $
+;

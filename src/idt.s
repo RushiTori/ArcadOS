@@ -6,14 +6,21 @@ bits 64
 org BOOT_SECTOR(4)
 
 IDT_Setup: ;0x8400
+	mov rsp, 0x7c00
+	mov rbp, rsp
+	mov rcx, 960
+	mov rdi, 0xA0000
+	mov rax, 0X0808080808080808
+	rep stosq
 	cli
 .setSegments:
-	mov ax, 0x18
-	mov ds, ax
-	mov es, ax
-	mov fs, ax
-	mov gs, ax
-	mov ss, ax
+	;mov ax, 0x18
+	;mov ds, ax
+	;mov es, ax
+	;mov fs, ax
+	;mov gs, ax
+	;mov ss, ax
+	;jmp $
 .setIDT: 
 	mov rdi, divByZero
 	mov rsi, 0x08
@@ -63,7 +70,7 @@ divByZero: ;TRAP 0x00
 	cli
 	mov rcx, 640
 	mov rdi, 0xA0000
-	mov rax, 0x0C0C0C0C0C0C0C0C
+	mov rax, 0X0C0C0C0C0C0C0C0C
 	rep stosq
 	jmp $
 
@@ -71,7 +78,7 @@ debug: ;TRAP 0x01
 	cli
 	mov rcx, 640
 	mov rdi, 0xA0000
-	mov rax, 0x0C0C0C0C0C0C0C0C
+	mov rax, 0X0C0C0C0C0C0C0C0C
 	rep stosq
 	jmp $
 
@@ -79,7 +86,7 @@ NMI: ;TRAP 0x02
 	cli
 	mov rcx, 640
 	mov rdi, 0xA0000
-	mov rax, 0x0C0C0C0C0C0C0C0C
+	mov rax, 0X0C0C0C0C0C0C0C0C
 	rep stosq
 	jmp $
 
@@ -87,7 +94,7 @@ breakpoint: ;TRAP 0x03
 	cli
 	mov rcx, 640
 	mov rdi, 0xA0000
-	mov rax, 0x0C0C0C0C0C0C0C0C
+	mov rax, 0X0C0C0C0C0C0C0C0C
 	rep stosq
 	jmp $
 
@@ -95,7 +102,7 @@ overflow: ;TRAP 0x04
 	cli
 	mov rcx, 640
 	mov rdi, 0xa0000
-	mov rax, 0x0c0c0c0c0c0c0c0c
+	mov rax, 0X0C0C0C0C0C0C0C0C
 	rep stosq
 	jmp $
 
@@ -103,7 +110,7 @@ boundRangeExceeded: ;TRAP 0x05
 	cli
 	mov rcx, 640
 	mov rdi, 0xa0000
-	mov rax, 0x0c0c0c0c0c0c0c0c
+	mov rax, 0X0C0C0C0C0C0C0C0C
 	rep stosq
 	jmp $
 
@@ -111,7 +118,7 @@ invalidOpcode: ;TRAP 0x06
 	cli
 	mov rcx, 640
 	mov rdi, 0xa0000
-	mov rax, 0x0c0c0c0c0c0c0c0c
+	mov rax, 0X0C0C0C0C0C0C0C0C
 	rep stosq
 	jmp $
 	
@@ -119,7 +126,8 @@ deviceNotAvailable: ;TRAP 0x07
 	cli
 	mov rcx, 640
 	mov rdi, 0xa0000
-	mov rax, 0x0c0c0c0c0c0c0c0c
+	mov rax, 0X0C0C0C0C0C0C0C0C
 	rep stosq
 	jmp $
-times 512 - ($ - $$) db 0
+
+PAD_SECTOR(SECTOR_SIZE)
