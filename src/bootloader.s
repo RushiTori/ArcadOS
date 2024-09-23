@@ -2,7 +2,7 @@ bits 16
 
 %include "boot.inc"
 
-org BOOT_START_ADDR
+org BOOT_SECTOR(0)
 
 boot_sector_1_start:
 	cli
@@ -20,17 +20,17 @@ fix_cs:
 	mov fs, ax
 	mov gs, ax
 
-	; Init stack frame at BOOT_START_ADDR
-	mov sp, BOOT_START_ADDR
-	mov bp, BOOT_START_ADDR
+	; Init stack frame at BOOT_SECTOR(0)
+	mov sp, BOOT_SECTOR(0)
+	mov bp, BOOT_SECTOR(0)
 
 	; Reset the disk
 	mov dl, byte[drive_number]
-	mov ah, DRIVE_SERVICE_RESET_DISK
-	int INT_DRIVE_SERVICES
+	mov ah, 0x00
+	int 0x13
 
-	; Read all the sectors on the first cylinder
-	mov ah, DRIVE_SERVICE_READ_SECTORS
+	; Read all the sectors of the first cylinder
+	mov ah, 0x02
 	mov al, SECTOR_PER_CYLINDER - 1
 	mov cx, 2
 	xor dh, dh
@@ -38,13 +38,13 @@ fix_cs:
 	xor bx, bx
 	mov es, bx
 	mov ds, bx
-	mov bx, BOOT_START_ADDR + SECTOR_SIZE
-	int INT_DRIVE_SERVICES
+	mov bx, BOOT_SECTOR(1)
+	int 0x13
 
-	; Jump at the start of the second cylinder to attempt to enable
-	jmp BOOT_START_ADDR + SECTOR_SIZE
+	; Jump at the start of the second sector to attempt to enable lineA20
+	jmp BOOT_SECTOR(1)
 
-times (495 - ($ - $$)) db 0
+PAD_SECTOR(SECTOR_SIZE - 14 - 1 - 2)
 
 ArcadOSMark:
 	db "Chirp chirp !", 0
@@ -52,4 +52,4 @@ ArcadOSMark:
 drive_number:
 	db 0
 
-dw 0xAA55
+dw MAGIC_BOOT_NUMBER

@@ -2,28 +2,23 @@ bits 16
 
 %include "boot.inc"
 
-org BOOT_START_ADDR + SECTOR_SIZE
+org BOOT_SECTOR(1)
 
 boot_sector_2_start:
+	; Try enabling lineA20 if not already enabled
 	call enable_a20
 
-	jc .skip_on_msg
-
-	mov di, A20_on_msg
+	; If it failed, output the fail message and stop the boot
+	jnc .skip_fail_msg
+	mov di, A20_fail_msg
 	call print_str
-	jmp .skip_off_msg
-	.skip_on_msg:
-
-	mov di, A20_off_msg
-	call print_str
-	.skip_off_msg:
+	jmp $
+	.skip_fail_msg:
 	
-	jmp BOOT_START_ADDR + (SECTOR_SIZE * 2)
+	; Here the lineA20 is enabled and we can jump to enable 32bits protected mode
+	jmp BOOT_SECTOR(2)
 
-A20_on_msg:
-	db "Line A20 has been set !", 10, 13, 0
-
-A20_off_msg:
+A20_fail_msg:
 	db "Line A20 has failed !", 10, 13, 0
 
 print_str:
@@ -35,9 +30,9 @@ print_str:
 		cmp al, 0
 		je .end_print_loop
 
-		mov ah, VIDEO_SERVICE_PUT_CHAR
+		mov ah, 0x0E
 		xor bx, bx
-		int INT_VIDEO_SERVICES
+		int 0x10
 
 		inc di
 		jmp .print_loop
@@ -218,4 +213,4 @@ enable_a20_keyboard_controller:
 	jz .wait_io2
 	ret
 
-times (512 - ($ - $$)) db 0
+PAD_SECTOR(SECTOR_SIZE)
