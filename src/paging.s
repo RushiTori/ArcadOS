@@ -54,6 +54,8 @@ gdt64:
 		dq GDT_ENTRY(0, 0, 0, 0)
 	.code: equ ($ - gdt64)
 		dq GDT_ENTRY(0x00000000, 0x007FFFFF, ARCADOS_ACCESS_BYTE(true, true, false, true, false), GDT_FLAG(false, true, true))
+	.screen: equ ($ - gdt64)
+		dq GDT_ENTRY(0x000A0000, 320 * 200, ARCADOS_ACCESS_BYTE(true, false, false, true, false), GDT_FLAG(false, true, false))
 	.data: equ ($ - gdt64)
 		dq GDT_ENTRY(0x00800000, 0x001FFFFF, ARCADOS_ACCESS_BYTE(true, false, false, true, false), GDT_FLAG(false, true, false))
 	.rodata: equ ($ - gdt64)
