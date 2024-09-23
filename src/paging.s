@@ -53,17 +53,17 @@ gdt64:
 	.null: equ ($ - gdt64)
 		dq GDT_ENTRY(0, 0, 0, 0)
 	.code: equ ($ - gdt64)
-		dq GDT_ENTRY(0x00000000, 0x007FFFFF, ARCADOS_ACCESS_BYTE(true, true, false, true, false), GDT_FLAG(false, true, true))
+		dq GDT_ENTRY(0x00000000, 0x007FFFFF, ARCADOS_ACCESS_BYTE(true, true, false, true, false), GDT_FLAG(false, true, true)) ;CODE
 	.screen: equ ($ - gdt64)
-		dq GDT_ENTRY(0x000A0000, 320 * 200, ARCADOS_ACCESS_BYTE(true, false, false, true, false), GDT_FLAG(false, true, false))
+		dq GDT_ENTRY(0x000A0000, 320 * 200, ARCADOS_ACCESS_BYTE(true, false, false, true, false), GDT_FLAG(false, true, false)) ;SCREENDATA
 	.data: equ ($ - gdt64)
-		dq GDT_ENTRY(0x00800000, 0x001FFFFF, ARCADOS_ACCESS_BYTE(true, false, false, true, false), GDT_FLAG(false, true, false))
+		dq GDT_ENTRY(0x00800000, 0x001FFFFF, ARCADOS_ACCESS_BYTE(true, false, false, true, false), GDT_FLAG(false, true, false)) ;DATA
 	.rodata: equ ($ - gdt64)
-		dq GDT_ENTRY(0x00A00000, 0x001FFFFF, ARCADOS_ACCESS_BYTE(true, false, false, false, false), GDT_FLAG(false, true, false))
+		dq GDT_ENTRY(0x00A00000, 0x001FFFFF, ARCADOS_ACCESS_BYTE(true, false, false, false, false), GDT_FLAG(false, true, false)) ;RODATA
 	.bss: equ ($ - gdt64)
-		dq GDT_ENTRY(0x00C00000, 0x001FFFFF, ARCADOS_ACCESS_BYTE(true, false, false, true, false), GDT_FLAG(false, true, false))
+		dq GDT_ENTRY(0x00C00000, 0x001FFFFF, ARCADOS_ACCESS_BYTE(true, false, false, true, false), GDT_FLAG(false, true, false)) ;BSS
 	.tss: equ ($ - gdt64)
-		dq GDT_ENTRY(0x00E00000, 0x0000FFFF, ARCADOS_ACCESS_BYTE(false, true, false, false, true), GDT_FLAG(false, false, false))
+		dq GDT_ENTRY(0x00E00000, 0x0000FFFF, ARCADOS_ACCESS_BYTE(false, true, false, false, true), GDT_FLAG(false, false, false)) ;TSS
 	.ptr:
         dw $ - gdt64 - 1
         dq gdt64
@@ -72,10 +72,10 @@ PAD_SECTOR(SECTOR_SIZE)
 
 ; org BOOT_SECTOR(4)
 
-bits 64
-long_mode_test:
-	mov rcx, 640
-	mov rdi, 0xA0000
-	mov rax, 0x0D0D0D0D0D0D0D0D
-	rep stosq
-	jmp $
+;bits 64
+;long_mode_test:
+;	mov rcx, 640
+;	mov rdi, 0xA0000
+;	mov rax, 0x0D0D0D0D0D0D0D0D
+;	rep stosq
+;	jmp $
