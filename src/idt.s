@@ -21,8 +21,8 @@ IDT_Setup: ;0x8400
 	mov rcx, 0
 	mov r8, TRAP_DIVBYZERO
 	call setGate
-	mov word[IDTR_START + IDTDescriptor.byteSize + r8], 0x10 
-	mov qword[IDTR_START + IDTDescriptor.ptr + r8], IDT_START
+	mov word[IDTR_START + IDTDescriptor.byteSize], 0x10 
+	mov qword[IDTR_START + IDTDescriptor.ptr], IDT_START
 
 	jmp $
 
@@ -39,17 +39,24 @@ IDT_Setup: ;0x8400
 ;r8 = idx
 setGate:
 	imul r8, IDTGateDescriptor_size
-	mov word[IDT_START + IDTGateDescriptor.offset_0 + r8], di ;set first offset
-	mov word[IDT_START + IDTGateDescriptor.seg_sel + r8], si ;set segment selector
-	mov byte[IDT_START + IDTGateDescriptor.IST + r8], ;no ist implem
-	shl cl, 5 ;shift dpl so that it's actually formatted correctly
-	or dl, cl ;into dl, which is our gate type
-	or dl, 0b10000000 ;add present bit
-	mov byte[IDT_START + IDTGateDescriptor.gate_type_dpl + r8], dl ;
+	mov word[IDT_START + r8 + IDTGateDescriptor.offset_0], di
 	shr rdi, 16
-	mov word[IDT_START + IDTGateDescriptor.offset_1 + r8], di ;offset 1
+	mov word[IDT_START + r8 + IDTGateDescriptor.offset_1], di
 	shr rdi, 16
-	mov dword[IDT_START + IDTGateDescriptor.offset_2 + r8], edi ;offset 2
+	mov dword[IDT_START + r8 + IDTGateDescriptor.offset_2], edi
+
+	mov byte[IDT_START + r8 + IDTGateDescriptor.IST], 0
+	mov word[IDT_START + r8 + IDTGateDescriptor.seg_sel], si
+
+	and dl, 0xf
+	and cl, 0x3
+	shl cl, 5
+	or dl, cl
+	or dl, 0x80
+
+	mov byte[IDT_START + r8 + IDTGateDescriptor.gate_type_dpl], dl
+
+	mov dword[IDT_START + r8 + IDTGateDescriptor.reserved], 0
 	ret
 
 divByZero: ;TRAP 0x00
@@ -116,4 +123,3 @@ deviceNotAvailable: ;TRAP 0x07
 	rep stosq
 	jmp $
 times 512 - ($ - $$) db 0
-
