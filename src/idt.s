@@ -6,8 +6,22 @@ bits 64
 org BOOT_SECTOR(4)
 
 IDT_Setup: ;0x8400
+	mov rsp, 0x7c00
+	mov rbp, rsp
+	mov rcx, 960
+	mov rdi, 0xA0000
+	mov rax, 0X0808080808080808
+	rep stosq
 	cli
-	;xor rax, rax
+.setSegments:
+	;mov ax, 0x18
+	;mov ds, ax
+	;mov es, ax
+	;mov fs, ax
+	;mov gs, ax
+	;mov ss, ax
+	;jmp $
+	xor rax, rax
 .setIDT:
 	mov rdi, divByZero
 	mov rsi, 0x10
@@ -15,12 +29,15 @@ IDT_Setup: ;0x8400
 	mov rcx, 0
 	mov r8, rax
 	call setGate
-	;inc rax
-	;cmp rax, 256
-	;jne .setIDT
+	inc rax
+	cmp rax, 256
+	jne .setIDT
 
-	mov word[IDTR_START + IDTDescriptor.byteSize], 15
+	mov word[IDTR_START + IDTDescriptor.byteSize], 256 * 8 - 1
 	mov qword[IDTR_START + IDTDescriptor.ptr], IDT_START
+
+
+	;jmp $
 
 	lidt [IDTR_START]
 	sti
