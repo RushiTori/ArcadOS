@@ -4,42 +4,57 @@ bits 64
 
 ; For now I assume the display engine starts at sector 16 (0-indexed)
 ; to give enough space for every setup steps we might need to do beforehand
-org BOOT_START_ADDR + (SECTOR_SIZE * 16)
+org BOOT_SECTOR(16)
 
 current_color:
 	db 0
 
 ; args : u8 color
 set_color:
-	mov ax, di
-	and ax, 0xFF
-	mov byte[current_color], al
+	mov byte[current_color], dil
+	ret
+
+; args : 
+clear_screen:
+	movzx rax, byte[current_color]
+
+	mov rax, rdi
+	shl rax, 8
+	or rax, rdi
+
+	mov rax, rdi
+	shl rax, 16
+	or rax, rdi
+
+	mov rax, rdi
+	shl rax, 32
+	or rax, rdi
+
+	mov rcx, (SCREEN_WIDTH * SCREEN_HEIGHT) / 8
+	mov rdi, VGA_MEMORY_ADDR
+	rep stosq
 	ret
 
 ; args : u16 x, u16 y
-; return : al (true if the pixel was put false otherwise)
+; return : rax (true if the pixel was put false otherwise)
 put_pixel:
-	xor al, al
+	xor rax, rax
 
 	cmp di, SCREEN_WIDTH
 	jae .end
 	cmp si, SCREEN_HEIGHT
 	jae .end
 
-	push rdx
-	push rcx
-
-	movzx rax, si
-	mov cx, SCREEN_WIDTH
-	mul cx
+	mov rax, SCREEN_WIDTH
+	imul ax, si
 	add ax, di
 
-	pop rcx
-	pop rdx
-	
-	mov cl, byte[current_color]
-	mov byte[VGA_MEMORY_ADDR + rax], cl
-	mov al, true
+	push rbx
+	mov bl, byte[current_color]
+	mov byte[VGA_MEMORY_ADDR + rax], bl
+	pop rbx
+
+	mov rax, true
 	.end:
 	ret
 
@@ -103,7 +118,6 @@ draw_square_line_ex:
 
 ; args : u16 x, u16 y, u16 w, u16 h, u16 thickness
 draw_rect_line_ex:
-	; WIP
 	cmp r8w, 0
 	je .end
 	
@@ -178,9 +192,121 @@ draw_rect_line_ex:
 	.end:
 	ret
 
+; Bresenham's mid-point algorithm
+; Sources : 
+;   - Bresenham's Line Algorithm - Demystified Step by Step : https://www.youtube.com/watch?v=CceepU1vIKo 
 ; args : u16 x0, u16 y0, u16 x1, u16 y1
 draw_line:
-	; WIP
+	mov r8w, dx
+	sub r8w, di
+	cmp di, dx
+	jle .skip_abs_x
+	imul r8w, -1
+	.skip_abs_x:
+
+	mov r9w, cx
+	sub r9w, si
+	cmp si, cx
+	jle .skip_abs_y
+	imul r9w, -1
+	.skip_abs_y:
+	
+	cmp r8w, r9w
+	jge draw_lineH
+	jl draw_lineV
+
+	; ret : the ret is handled by both draw_lineH and draw_lineV
+
+; args : u16 x0, u16 y0, u16 x1, u16 y1
+draw_lineH:
+	cmp di, dx
+	je .end ; if x0 == x1 there is no line to draw
+	jl .skip_swap_end_points ; if the line already points right, no need to swap the end points
+	xchg di, dx ; swaps x0 and x1
+	xchg si, cx ; swaps y0 and y1
+	.skip_swap_end_points:
+	
+	mov r8w, dx
+	sub r8w, di ; delta_x = x1 - x0
+
+	mov r9w, cx
+	sub r9w, si ; delta_y = y1 - y0
+
+	mov r10w, 1 ; dir = 1
+	cmp si, cx
+	jle .skip_correct_dir ; if the line already points down, no need to correct the dir or delta_y
+	mov r10w, -1
+	imul r9w, r10w
+	.skip_correct_dir:
+
+	shl r9w, 1 ; delta_y *= 2
+
+	mov r11w, r9w
+	sub r11w, r8w ; p = delta_y * 2 - delta_x
+	
+	shl r8w, 1 ; delta_x *= 2
+
+	.draw_loop:
+		call put_pixel
+
+		cmp r11w, 0
+		jl .skip_update_y
+		add si, r10w ; y += dir
+		sub r11w, r8w ; p -= delta_x * 2
+		.skip_update_y:
+		add r11w, r9w ; p += delta_y * 2
+		
+		inc di
+		cmp di, dx
+		jne .draw_loop
+
+	.end:
+	ret
+
+; args : u16 x0, u16 y0, u16 x1, u16 y1
+draw_lineV:
+	cmp si, cx
+	je .end
+	jl .skip_swap_end_points
+	xchg si, cx
+	xchg di, dx
+	.skip_swap_end_points:
+
+	mov r8w, dx
+	sub r8w, di
+
+	mov r9w, cx
+	sub r9w, si
+
+	mov r10w, 1
+	cmp di, dx
+	jle .skip_correct_dir
+	mov r10w, -1
+	imul r8w, r10w
+	.skip_correct_dir:
+
+	shl r8w, 1
+
+	mov r11w, r8w
+	sub r11w, r9w
+	
+	shl r9w, 1
+
+	.draw_loop:
+		call put_pixel
+
+		cmp r11w, 0
+		jl .skip_update_x
+		add di, r10w
+		sub r11w, r9w
+		.skip_update_x:
+		add r11w, r8w
+		
+		inc si
+		cmp si, cx
+		jne .draw_loop
+
+	.end:
 	ret
 
 ; args : u16 x, u16 y, u16 radius

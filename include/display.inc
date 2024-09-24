@@ -1,7 +1,6 @@
 %ifndef DISPLAY_INC
 %define DISPLAY_INC
 
-%include "standard.inc"
 %include "boot.inc"
 
 %define SCREEN_WIDTH    320
@@ -12,8 +11,11 @@
 ; args : u8 color
 extern set_color
 
+; args : 
+extern clear_screen
+
 ; args : u16 x, u16 y
-; return : al (true if the pixel was put false otherwise)
+; return : rax (true if the pixel was put false otherwise)
 extern put_pixel
 
 ; args : u16 x, u16 y, u16 size
