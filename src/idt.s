@@ -33,6 +33,13 @@ IDT_Setup: ;0x8400
 	cmp rax, 256
 	jne .setIDT
 
+	mov rdi, pageFault
+	mov rsi, 0x10
+	mov rdx, GATE_TYPE_TRAP_64
+	mov rcx, 0
+	mov r8, 0x0E
+	call setGate
+
 	mov word[IDTR_START + IDTDescriptor.byteSize], 256 * 8 - 1
 	mov qword[IDTR_START + IDTDescriptor.ptr], IDT_START
 
@@ -41,9 +48,10 @@ IDT_Setup: ;0x8400
 
 	lidt [IDTR_START]
 	sti
-	mov rax, 0
-	div rax
-	jmp $
+	;mov rax, 0
+	;div rax
+	;mov byte[0x0], 10
+	hlt
 
 ;rdi = offset
 ;rsi = segment selector
@@ -133,6 +141,16 @@ deviceNotAvailable: ;TRAP 0x07
 	mov rcx, 640
 	mov rdi, 0xa0000
 	mov rax, 0X0C0C0C0C0C0C0C0C
+	rep stosq
+	jmp $
+
+generalProtectionFault: ;TRAP 0x0D
+	jmp $
+pageFault:				;TRAP 0x0E
+	cli
+	mov rcx, 1500
+	mov rdi, 0xa0000
+	mov rax, 0x0202020202020202
 	rep stosq
 	jmp $
 

@@ -1,40 +1,33 @@
 bits 32
 
 %include "boot.inc"
-
-%define PLM4T_ADDR                  0x00000000
-%define PAGE_DIRECTORY_POINTER_ADDR 0x00001000
-%define PAGE_DIRECTORY_ADDR         0x00002000
-%define PAGE_TABLE_ADDR             0x00003000
-
-%define PAGE_COUNT 512 * 64
-%define DIRECTORY_ENTRY_COUNT PAGE_COUNT / 512
+%include "paging.inc"
 
 ORG BOOT_SECTOR(3)
 
 paging_start:
-	mov edi, PLM4T_ADDR
+	mov edi, SYSTEM_PLM4T_ADDR
 	mov cr3, edi
 	xor eax, eax
 	mov ecx, 4096
 	rep stosd
 	mov edi, cr3
 
-	mov dword[edi], PAGE_DIRECTORY_POINTER_ADDR | 0x03
+	mov dword[edi], SYSTEM_PAGE_DIRECTORY_POINTER_ADDR | 0x03
 	add edi, 0x1000
-	mov dword[edi], PAGE_DIRECTORY_ADDR | 0x03
+	mov dword[edi], SYSTEM_PAGE_DIRECTORY_ADDR | 0x03
 	add edi, 0x1000
 
-	mov ebx, PAGE_TABLE_ADDR | 0x03
-	mov ecx, DIRECTORY_ENTRY_COUNT
+	mov ebx, SYSTEM_PAGE_TABLE_ADDR | 0x03
+	mov ecx, PAGE_DIRECTORY_ENTRY_COUNT
 .setDirectoryEntryLoop:
 	mov dword[edi], ebx
 	add ebx, 0x1000
 	add edi, 8
 	loop .setDirectoryEntryLoop
 
-	mov edi, PAGE_TABLE_ADDR
-	mov ebx, 0x0 | 0x03
+	mov edi, SYSTEM_PAGE_TABLE_ADDR + ((SYSTEM_PAGE_ADDRESSING_START / 0x1000) * 8)
+	mov ebx, SYSTEM_PAGE_ADDRESSING_START | 0x03
 	mov ecx, PAGE_COUNT
 .setEntry:
 	mov dword[edi], ebx
@@ -66,7 +59,7 @@ paging_start:
 	mov ax, gdt64.stack
 	mov ss, ax
 
-	mov eax, 0x0FFFF0
+	mov eax, 0x0EFFFF0
 	mov esp, eax
 
 	jmp gdt64.code64:BOOT_SECTOR(4)
