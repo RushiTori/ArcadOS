@@ -7,6 +7,9 @@ bits 32
 %define PAGE_DIRECTORY_ADDR         0x00002000
 %define PAGE_TABLE_ADDR             0x00003000
 
+%define PAGE_COUNT 512 * 64
+%define DIRECTORY_ENTRY_COUNT PAGE_COUNT / 512
+
 ORG BOOT_SECTOR(3)
 
 paging_start:
@@ -21,11 +24,18 @@ paging_start:
 	add edi, 0x1000
 	mov dword[edi], PAGE_DIRECTORY_ADDR | 0x03
 	add edi, 0x1000
-	mov dword[edi], PAGE_TABLE_ADDR | 0x03
-	add edi, 0x1000
 
-	mov ebx, 0x3
-	mov ecx, 512
+	mov ebx, PAGE_TABLE_ADDR | 0x03
+	mov ecx, DIRECTORY_ENTRY_COUNT
+.setDirectoryEntryLoop:
+	mov dword[edi], ebx
+	add ebx, 0x1000
+	add edi, 8
+	loop .setDirectoryEntryLoop
+
+	mov edi, PAGE_TABLE_ADDR
+	mov ebx, 0x0 | 0x03
+	mov ecx, PAGE_COUNT
 .setEntry:
 	mov dword[edi], ebx
 	add ebx, 0x1000
