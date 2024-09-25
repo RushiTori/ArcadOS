@@ -2,4 +2,4 @@
 .ccls-cache/
 objs/
 .clang-format
-ArcadOS.bin
+ArcadOS.*

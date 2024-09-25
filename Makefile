@@ -1,9 +1,9 @@
 COMP:=nasm
 COMP_FLAGS:=-f elf64
 LINK:=ld
-LINK_FLAGS:=-Ttext=0x7C00 --oformat binary
+LINK_FLAGS:=-Tlinkerscript.ld
 
-NAME:=ArcadOS.bin
+NAME:=ArcadOS
 
 INC_DIR:=include
 SRC_DIR:=src
@@ -20,7 +20,18 @@ DEP_FILES:=$(SRC_FILES:$(SRC_DIR)/%.asm=$(OBJ_DIR)/%.dep)
 build:$(NAME)
 
 $(NAME):$(BOOT_OBJ_FILES)
-	$(LINK) $(LINK_FLAGS) $^ -o $@
+	$(LINK) $(LINK_FLAGS) $^ -o $@.elf
+
+	touch $@.text
+	objcopy --dump-section .text=$@.text     $@.elf
+
+	touch $@.data
+	objcopy --dump-section .data=$@.data     $@.elf
+
+	touch $@.rodata
+	objcopy --dump-section .rodata=$@.rodata $@.elf
+
+	cat $@.text $@.data $@.rodata > $@.img
 
 -include $(BOOT_DEP_FILES)
 $(OBJ_DIR)/%.o:$(SRC_DIR)/%.s | $(OBJ_DIR)
@@ -31,7 +42,7 @@ $(OBJ_DIR):
 	mkdir -p $@
 
 start:
-	qemu-system-x86_64 -drive file=$(NAME),format=raw
+	qemu-system-x86_64 -drive file=$(NAME).img,format=raw
 
 restart: build start
 

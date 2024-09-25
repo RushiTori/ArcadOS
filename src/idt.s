@@ -10,9 +10,25 @@ IDT_Setup: ;0x8400
 	mov rsp, 0x7c00
 	mov rbp, rsp
 
+	;mov rdi, 0x0B
+	;call set_color
+	;call clear_screen
+
 	mov rdi, 0x0B
 	call set_color
-	call clear_screen
+
+	;mov rdi, 160 - 40
+	;mov rsi, 100 - 30
+	;mov rdx, 80
+	;mov rcx, 60
+	;mov r8, 5
+	;call draw_rect_line_ex
+
+	mov rdi, 160 + 40
+	mov rsi, 100 - 30
+	mov rdx, 160 - 40
+	mov rcx, 100 + 30
+	call draw_line
 
 	mov rcx, 960
 	mov rdi, 0xA0000

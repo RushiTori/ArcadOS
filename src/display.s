@@ -6,9 +6,11 @@ bits 64
 ; to give enough space for every setup steps we might need to do beforehand
 ;org BOOT_SECTOR(16)
 
-section .text
+section .data
 current_color:
 	db 0x0B
+
+section .text
 
 ; args : u8 color
 set_color:
@@ -308,4 +310,4 @@ draw_circle_line:
 	; WIP
 	ret
 
-;PAD_SECTOR(SECTOR_SIZE * 2)
+PAD_SECTOR(SECTOR_SIZE * 2)
