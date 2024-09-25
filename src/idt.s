@@ -2,12 +2,18 @@ bits 64
 
 %include "idt.inc"
 %include "boot.inc"
+%include "display.inc"
 
-org BOOT_SECTOR(4)
+section .text
 
 IDT_Setup: ;0x8400
 	mov rsp, 0x7c00
 	mov rbp, rsp
+
+	mov rdi, 0x0B
+	call set_color
+	call clear_screen
+
 	mov rcx, 960
 	mov rdi, 0xA0000
 	mov rax, 0X0808080808080808

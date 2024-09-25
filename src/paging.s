@@ -3,7 +3,7 @@ bits 32
 %include "boot.inc"
 %include "paging.inc"
 
-ORG BOOT_SECTOR(3)
+section .text
 
 paging_start:
 	mov edi, SYSTEM_PLM4T_ADDR

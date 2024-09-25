@@ -2,7 +2,7 @@ bits 16
 
 %include "boot.inc"
 
-org BOOT_SECTOR(0)
+section .text
 
 boot_sector_1_start:
 	cli
@@ -42,7 +42,7 @@ fix_cs:
 	int 0x13
 
 	; Jump at the start of the second sector to attempt to enable lineA20
-	jmp BOOT_SECTOR(1)
+	jmp boot_sector_2_start
 
 PAD_SECTOR(SECTOR_SIZE - 14 - 1 - 2)
 

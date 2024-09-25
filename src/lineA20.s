@@ -2,7 +2,7 @@ bits 16
 
 %include "boot.inc"
 
-org BOOT_SECTOR(1)
+section .text
 
 boot_sector_2_start:
 	; Try enabling lineA20 if not already enabled
@@ -16,7 +16,7 @@ boot_sector_2_start:
 	.skip_fail_msg:
 	
 	; Here the lineA20 is enabled and we can jump to enable 32bits protected mode
-	jmp BOOT_SECTOR(2)
+	jmp boot_sector_3_start
 
 A20_fail_msg:
 	db "Line A20 has failed !", 10, 13, 0
