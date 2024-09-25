@@ -2,7 +2,7 @@ bits 16
 
 %include "boot.inc"
 
-org BOOT_SECTOR(2)
+section .text
 
 boot_sector_3_start:
 	; change the vga mode to 320x200 8bpp graphics
@@ -30,7 +30,8 @@ prepare_segment_registers32:
 	
 	mov ax, gdt32.stack
 	mov ss, ax
-	jmp BOOT_SECTOR(3)
+
+	jmp paging_start
 
 gdt32:
 	.null: equ ($ - gdt32)

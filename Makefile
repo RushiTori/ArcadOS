@@ -1,7 +1,7 @@
 COMP:=nasm
-COMP_FLAGS:=-f bin
-LINK:=cat
-LINK_FLAGS:=
+COMP_FLAGS:=-f elf64
+LINK:=ld
+LINK_FLAGS:=-Ttext=0x7C00 --oformat binary
 
 NAME:=ArcadOS.bin
 
@@ -9,7 +9,7 @@ INC_DIR:=include
 SRC_DIR:=src
 OBJ_DIR:=objs
 
-BOOT_SRC_FILES:=$(SRC_DIR)/bootloader.s $(SRC_DIR)/lineA20.s $(SRC_DIR)/gdt.s $(SRC_DIR)/paging.s $(SRC_DIR)/idt.s
+BOOT_SRC_FILES:=$(SRC_DIR)/bootloader.s $(SRC_DIR)/lineA20.s $(SRC_DIR)/gdt.s $(SRC_DIR)/paging.s $(SRC_DIR)/idt.s $(SRC_DIR)/display.s
 BOOT_OBJ_FILES:=$(BOOT_SRC_FILES:$(SRC_DIR)/%.s=$(OBJ_DIR)/%.o)
 BOOT_DEP_FILES:=$(BOOT_SRC_FILES:$(SRC_DIR)/%.s=$(OBJ_DIR)/%.d)
 
@@ -20,7 +20,7 @@ DEP_FILES:=$(SRC_FILES:$(SRC_DIR)/%.asm=$(OBJ_DIR)/%.dep)
 build:$(NAME)
 
 $(NAME):$(BOOT_OBJ_FILES)
-	$(LINK) $(LINK_FLAGS) $^ > $@
+	$(LINK) $(LINK_FLAGS) $^ -o $@
 
 -include $(BOOT_DEP_FILES)
 $(OBJ_DIR)/%.o:$(SRC_DIR)/%.s | $(OBJ_DIR)
@@ -39,7 +39,7 @@ clean:
 	rm -rf $(OBJ_DIR)
 
 cleanAll: clean
-	rm -rf $(NAME)
+	rm -rf $(NAME).*
 
 rebuild: cleanAll build
 

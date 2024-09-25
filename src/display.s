@@ -4,10 +4,11 @@ bits 64
 
 ; For now I assume the display engine starts at sector 16 (0-indexed)
 ; to give enough space for every setup steps we might need to do beforehand
-org BOOT_SECTOR(16)
+;org BOOT_SECTOR(16)
 
+section .text
 current_color:
-	db 0
+	db 0x0B
 
 ; args : u8 color
 set_color:
@@ -16,23 +17,11 @@ set_color:
 
 ; args : 
 clear_screen:
-	movzx rax, byte[current_color]
+	mov al, byte[current_color]
 
-	mov rax, rdi
-	shl rax, 8
-	or rax, rdi
-
-	mov rax, rdi
-	shl rax, 16
-	or rax, rdi
-
-	mov rax, rdi
-	shl rax, 32
-	or rax, rdi
-
-	mov rcx, (SCREEN_WIDTH * SCREEN_HEIGHT) / 8
+	mov rcx, (SCREEN_WIDTH * SCREEN_HEIGHT)
 	mov rdi, VGA_MEMORY_ADDR
-	rep stosq
+	rep stosb
 	ret
 
 ; args : u16 x, u16 y
@@ -318,3 +307,5 @@ draw_circle:
 draw_circle_line:
 	; WIP
 	ret
+
+;PAD_SECTOR(SECTOR_SIZE * 2)

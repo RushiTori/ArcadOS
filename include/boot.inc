@@ -38,4 +38,10 @@
 
 %define GDT_LIMIT_BYTE_TO_GRANULAR(limit)		((limit >> 12) + ((limit & 0xFFFFFF) > 0))
 
+
+extern boot_sector_1_start
+extern boot_sector_2_start
+extern boot_sector_3_start
+extern paging_start
+
 %endif ; BOOT_INC
