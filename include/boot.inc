@@ -43,5 +43,6 @@ extern boot_sector_1_start
 extern boot_sector_2_start
 extern boot_sector_3_start
 extern paging_start
+extern IDT_Setup
 
 %endif ; BOOT_INC

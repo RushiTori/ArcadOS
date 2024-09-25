@@ -10,55 +10,31 @@ IDT_Setup: ;0x8400
 	mov rsp, 0x7c00
 	mov rbp, rsp
 
-	;mov rdi, 0x0B
-	;call set_color
-	;call clear_screen
-
 	mov rdi, 0x0B
 	call set_color
-
-	;mov rdi, 160 - 40
-	;mov rsi, 100 - 30
-	;mov rdx, 80
-	;mov rcx, 60
-	;mov r8, 5
-	;call draw_rect_line_ex
-
-	mov rdi, 160 + 40
-	mov rsi, 100 - 30
-	mov rdx, 160 - 40
-	mov rcx, 100 + 30
-	call draw_line
+	call clear_screen
 
 	mov rcx, 960
 	mov rdi, 0xA0000
 	mov rax, 0X0808080808080808
 	rep stosq
 	cli
-.setSegments:
-	;mov ax, 0x18
-	;mov ds, ax
-	;mov es, ax
-	;mov fs, ax
-	;mov gs, ax
-	;mov ss, ax
-	;jmp $
+
 	xor rax, rax
-.setIDT:
-	mov rdi, divByZero
-	mov rsi, 0x10
-	mov rdx, GATE_TYPE_TRAP_64
-	mov rcx, 0
-	mov r8, rax
-	call setGate
-	inc rax
-	cmp rax, 256
-	jne .setIDT
+	xor rcx, rcx
+	.setIDTloop:
+		mov rdi, divByZero
+		mov rsi, 0x10
+		mov rdx, GATE_TYPE_TRAP_64
+		mov r8, rax
+		call setGate
+		inc rax
+		cmp rax, 256
+		jne .setIDTloop
 
 	mov rdi, pageFault
 	mov rsi, 0x10
 	mov rdx, GATE_TYPE_TRAP_64
-	mov rcx, 0
 	mov r8, 0x0E
 	call setGate
 
@@ -170,10 +146,13 @@ generalProtectionFault: ;TRAP 0x0D
 	jmp $
 pageFault:				;TRAP 0x0E
 	cli
-	mov rcx, 1500
+	mov rcx, (320 * 8) / 8
 	mov rdi, 0xa0000
 	mov rax, 0x0202020202020202
 	rep stosq
+	mov rdi, 0
+	mov rsi, 0
+	call put_pixel
 	jmp $
 
 PAD_SECTOR(SECTOR_SIZE)

@@ -85,7 +85,7 @@ bits 64
 	mov eax, 0x0EFFFF0
 	mov esp, eax
 
-	jmp BOOT_SECTOR(4)
+	jmp IDT_Setup
 gdt64:
 	.null: equ ($ - gdt64)
 		dq GDT_ENTRY(0, 0, 0, 0)
