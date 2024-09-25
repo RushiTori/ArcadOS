@@ -25,6 +25,8 @@ prepare_segment_registers32:
 	mov ebp, 0x00AFFFFF
 	
 	mov ax, gdt32.bss
+	mov ds, ax
+	mov es, ax
 	
 	mov ax, gdt32.stack
 	mov ss, ax

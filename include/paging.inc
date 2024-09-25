@@ -1,22 +1,25 @@
 %ifndef PAGING_INC
 %define PAGING_INC
 
-%define PAGE_TABLE_SIZE						0x00001000
-%define PAGE_TABLE_ENTRY_COUNT				PAGE_TABLE_SIZE / 8
-%define PAGE_DIRECTORY_SIZE					0x00001000
-%define PAGE_DIRECTORY_ENTRY_COUNT			PAGE_DIRECTORY_SIZE / 8
-%define PAGE_DIRECTORY_POINTER_SIZE			0x00001000
-%define PAGE_DIRECTORY_POINTER_ENTRY_COUNT	PAGE_DIRECTORY_POINTER_SIZE / 8
-%define PAGE_PLM4T_SIZE						0x00001000
-%define PAGE_PLM4T_ENTRY_COUNT				PAGE_PLM4T_SIZE / 8
+%define PAGE_SIZE							0x00001000
 
-%define SYSTEM_PLM4T_ADDR					0x00001000 ;index of start of PLM4T
-%define SYSTEM_PAGE_DIRECTORY_POINTER_ADDR	0x00002000 ;index of start of the page directory pointer
-%define SYSTEM_PAGE_DIRECTORY_ADDR			0x00003000 ;index of start of the page directory
-%define SYSTEM_PAGE_TABLE_ADDR				0x00004000 ;index of the start of page tables
+%define PAGE_TABLE_ENTRY_COUNT				512
+%define PAGE_DIRECTORY_ENTRY_COUNT			512
+%define PAGE_DIRECTORY_POINTER_ENTRY_COUNT	512
+%define PAGE_PLM4T_ENTRY_COUNT				512
+
+%define BSS_32BIT_PROTECTED_ADDR			0x00800000 ;physical address that serves as base for the offsets described under
+%define SYSTEM_PLM4T_ADDR					0x00002000 ;index of start of PLM4T
+%define SYSTEM_PAGE_DIRECTORY_POINTER_ADDR	0x00003000 ;index of start of the page directory pointer
+%define SYSTEM_PAGE_DIRECTORY_ADDR			0x00004000 ;index of start of the page directory
+%define SYSTEM_PAGE_TABLE_ADDR				0x00005000 ;index of the start of page tables
 
 %define SYSTEM_PAGE_ADDRESSING_START		0x00001000						;first addressable memory
-%define PAGE_COUNT							PAGE_TABLE_SIZE * 65			;number of page table entries to set
-%define DIRECTORY_ENTRY_COUNT				PAGE_COUNT / PAGE_TABLE_SIZE	;number of page directory entries to set
+%define SYSTEM_PAGE_SKIP					(SYSTEM_PAGE_ADDRESSING_START / PAGE_SIZE) ;number of page table entries to skip in order to keep the memory addressing start correct
+%define PAGE_COUNT							PAGE_TABLE_ENTRY_COUNT * 64			;number of page table entries to set
+%define ALLOC_DIRECTORY_ENTRY_COUNT			PAGE_COUNT / PAGE_TABLE_ENTRY_COUNT	;number of page directory entries to set
+
+%define GDTR64_LOCATION						0x00001000
+%define GDT64_LOCATION						GDTR64_LOCATION + 10 ;in segment data
 
 %endif ;PAGING_INC

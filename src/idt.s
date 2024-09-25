@@ -50,7 +50,7 @@ IDT_Setup: ;0x8400
 	sti
 	;mov rax, 0
 	;div rax
-	;mov byte[0x0], 10
+	mov byte[0x0], 10
 	hlt
 
 ;rdi = offset

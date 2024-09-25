@@ -6,29 +6,31 @@ bits 32
 ORG BOOT_SECTOR(3)
 
 paging_start:
-	mov edi, SYSTEM_PLM4T_ADDR
+	mov edi, BSS_32BIT_PROTECTED_ADDR + SYSTEM_PLM4T_ADDR
 	mov cr3, edi
 	xor eax, eax
+
 	mov ecx, 4096
+	mov edi, SYSTEM_PLM4T_ADDR
 	rep stosd
-	mov edi, cr3
 
-	mov dword[edi], SYSTEM_PAGE_DIRECTORY_POINTER_ADDR | 0x03
-	add edi, 0x1000
-	mov dword[edi], SYSTEM_PAGE_DIRECTORY_ADDR | 0x03
-	add edi, 0x1000
+	mov edi,  SYSTEM_PLM4T_ADDR
+	mov dword[edi], BSS_32BIT_PROTECTED_ADDR + SYSTEM_PAGE_DIRECTORY_POINTER_ADDR | 0x03
+	mov edi, SYSTEM_PAGE_DIRECTORY_POINTER_ADDR
+	mov dword[edi], BSS_32BIT_PROTECTED_ADDR + SYSTEM_PAGE_DIRECTORY_ADDR | 0x03
 
-	mov ebx, SYSTEM_PAGE_TABLE_ADDR | 0x03
-	mov ecx, PAGE_DIRECTORY_ENTRY_COUNT
+	mov edi, SYSTEM_PAGE_DIRECTORY_ADDR
+	mov ebx, BSS_32BIT_PROTECTED_ADDR + SYSTEM_PAGE_TABLE_ADDR | 0x03
+	mov ecx, ALLOC_DIRECTORY_ENTRY_COUNT
 .setDirectoryEntryLoop:
 	mov dword[edi], ebx
 	add ebx, 0x1000
 	add edi, 8
 	loop .setDirectoryEntryLoop
 
-	mov edi, SYSTEM_PAGE_TABLE_ADDR + ((SYSTEM_PAGE_ADDRESSING_START / 0x1000) * 8)
-	mov ebx, SYSTEM_PAGE_ADDRESSING_START | 0x03
-	mov ecx, PAGE_COUNT
+	mov edi, SYSTEM_PAGE_TABLE_ADDR + (SYSTEM_PAGE_SKIP * 8)
+	mov ebx, SYSTEM_PAGE_ADDRESSING_START | 0x03 ;we can use physical memory address 0x00, we don't care about that
+	mov ecx, PAGE_COUNT - (SYSTEM_PAGE_SKIP * 8)
 .setEntry:
 	mov dword[edi], ebx
 	add ebx, 0x1000
@@ -48,8 +50,29 @@ paging_start:
 	or eax, 1 << 31
 	mov cr0, eax
 
-	lgdt [gdt64.ptr]
+	mov ax, 0x08 ;code segment in gdt 32 bits
+	mov ds, ax
 
+	movzx ecx, word[gdt64.ptr]
+	mov esi, gdt64
+	mov edi, GDT64_LOCATION
+	inc ecx
+	rep movsb
+
+	movzx ecx, word[gdt64.ptr]
+
+	mov ax, 0x18
+	mov ds, ax
+
+	mov word[GDTR64_LOCATION], cx
+	mov dword[GDTR64_LOCATION + 2], BSS_32BIT_PROTECTED_ADDR + GDT64_LOCATION
+
+
+	lgdt [GDTR64_LOCATION]
+
+	jmp gdt64.code64:.setCS
+bits 64
+.setCS:
 	mov ax, gdt64.data
 	mov ds, ax
 	mov es, ax
@@ -62,7 +85,7 @@ paging_start:
 	mov eax, 0x0EFFFF0
 	mov esp, eax
 
-	jmp gdt64.code64:BOOT_SECTOR(4)
+	jmp BOOT_SECTOR(4)
 gdt64:
 	.null: equ ($ - gdt64)
 		dq GDT_ENTRY(0, 0, 0, 0)
