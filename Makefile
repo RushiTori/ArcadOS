@@ -9,7 +9,7 @@ INC_DIR:=include
 SRC_DIR:=src
 OBJ_DIR:=objs
 
-BOOT_SRC_FILES:=$(SRC_DIR)/bootloader.s $(SRC_DIR)/lineA20.s $(SRC_DIR)/gdt.s $(SRC_DIR)/paging.s $(SRC_DIR)/idt.s $(SRC_DIR)/display.s
+BOOT_SRC_FILES:=$(SRC_DIR)/bootloader.s $(SRC_DIR)/lineA20.s $(SRC_DIR)/gdt.s $(SRC_DIR)/paging.s $(SRC_DIR)/idt.s $(SRC_DIR)/display.s $(SRC_DIR)/string64.s $(SRC_DIR)/memory_mover.s
 BOOT_OBJ_FILES:=$(BOOT_SRC_FILES:$(SRC_DIR)/%.s=$(OBJ_DIR)/%.o)
 BOOT_DEP_FILES:=$(BOOT_SRC_FILES:$(SRC_DIR)/%.s=$(OBJ_DIR)/%.d)
 

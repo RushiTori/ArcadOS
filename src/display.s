@@ -2,23 +2,22 @@ bits 64
 
 %include "display.inc"
 
-; For now I assume the display engine starts at sector 16 (0-indexed)
-; to give enough space for every setup steps we might need to do beforehand
-;org BOOT_SECTOR(16)
-
 section .data
 current_color:
+static current_color:data
 	db 0x0B
 
 section .text
 
 ; args : u8 color
 set_color:
+global set_color:function
 	mov byte[current_color], dil
 	ret
 
 ; args : 
 clear_screen:
+global clear_screen:function
 	mov al, byte[current_color]
 
 	mov rcx, (SCREEN_WIDTH * SCREEN_HEIGHT)
@@ -29,6 +28,7 @@ clear_screen:
 ; args : u16 x, u16 y
 ; return : rax (true if the pixel was put false otherwise)
 put_pixel:
+global put_pixel:function
 	xor rax, rax
 
 	cmp di, SCREEN_WIDTH
@@ -51,6 +51,7 @@ put_pixel:
 
 ; args : u16 x, u16 y, u16 len
 put_pixel_row:
+global put_pixel_row:function
 	.draw_loop:
 		cmp dx, 0
 		je .end
@@ -66,12 +67,14 @@ put_pixel_row:
 
 ; args : u16 x, u16 y, u16 size
 draw_square:
+global draw_square:function
 	mov cx, dx
 	call draw_rect
 	ret
 
 ; args : u16 x, u16 y, u16 w, u16 h
 draw_rect:
+global draw_rect:function
 	mov r10w, di
 	mov r11w, dx
 	.draw_loop:
@@ -90,18 +93,21 @@ draw_rect:
 
 ; args : u16 x, u16 y, u16 size
 draw_square_line:
+global draw_square_line:function
 	mov cx, dx
 	call draw_rect_line
 	ret
 
 ; args : u16 x, u16 y, u16 w, u16 h
 draw_rect_line:
+global draw_rect_line:function
 	mov r8w, 1
 	call draw_rect_line_ex
 	ret
 
 ; args : u16 x, u16 y, u16 size, u16 thickness
 draw_square_line_ex:
+global draw_square_line_ex:function
 	mov r8w, cx
 	mov cx, dx
 	call draw_rect_line_ex
@@ -109,6 +115,7 @@ draw_square_line_ex:
 
 ; args : u16 x, u16 y, u16 w, u16 h, u16 thickness
 draw_rect_line_ex:
+global draw_rect_line_ex:function
 	cmp r8w, 0
 	je .end
 	
@@ -188,6 +195,7 @@ draw_rect_line_ex:
 ;   - Bresenham's Line Algorithm - Demystified Step by Step : https://www.youtube.com/watch?v=CceepU1vIKo 
 ; args : u16 x0, u16 y0, u16 x1, u16 y1
 draw_line:
+global draw_line:function
 	mov r8w, dx
 	sub r8w, di
 	cmp di, dx
@@ -210,6 +218,7 @@ draw_line:
 
 ; args : u16 x0, u16 y0, u16 x1, u16 y1
 draw_lineH:
+static draw_lineH:function
 	cmp di, dx
 	je .end ; if x0 == x1 there is no line to draw
 	jl .skip_swap_end_points ; if the line already points right, no need to swap the end points
@@ -256,6 +265,7 @@ draw_lineH:
 
 ; args : u16 x0, u16 y0, u16 x1, u16 y1
 draw_lineV:
+static draw_lineV:function
 	cmp si, cx
 	je .end
 	jl .skip_swap_end_points
@@ -302,11 +312,13 @@ draw_lineV:
 
 ; args : u16 x, u16 y, u16 radius
 draw_circle:
+global draw_circle:function
 	; WIP
 	ret
 
 ; args : u16 x, u16 y, u16 radius
 draw_circle_line:
+global draw_circle_line:function
 	; WIP
 	ret
 
