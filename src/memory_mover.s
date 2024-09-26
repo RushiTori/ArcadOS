@@ -4,17 +4,6 @@ bits 64
 
 memory_mover_start:
 global memory_mover_start:function
-	mov rdi, CODE_MEMORY_START
-	xor rsi, rsi
-	mov rdx, CODE_MEMORY_SIZE
-	call memset64
-
-	mov rdi, CODE_MEMORY_START
-	mov rsi, 0x7C00
-	mov rdx, memory_mover_end - 0x7C00
-	call memcpy64
-
-	
 	mov rdi, DATA_MEMORY_START
 	xor rsi, rsi
 	mov rdx, DATA_MEMORY_SIZE
