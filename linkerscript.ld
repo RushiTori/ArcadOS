@@ -7,13 +7,14 @@ SECTIONS
 
 .text : { *(.text) }
 
-. = 0x10000;
-.rodata : { *(.rodata) }
-
-. = 0x20000;
+. = 0x1000000;
 .data : { *(.data) }
 
-. = 0x30000;
+. = 0x2000000;
 .bss : { *(.bss) }
+
+. = 0x3000000;
+.rodata : { *(.rodata) }
+
 
 }

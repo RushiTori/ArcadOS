@@ -22,14 +22,19 @@ build:$(NAME)
 $(NAME):$(BOOT_OBJ_FILES)
 	$(LINK) $(LINK_FLAGS) $^ -o $@.elf
 
+	rm -f $@.text
 	touch $@.text
 	objcopy --dump-section .text=$@.text     $@.elf
 
+	rm -f $@.data
 	touch $@.data
 	objcopy --dump-section .data=$@.data     $@.elf
+	stat -c %s $@.data | xargs printf "0: %08X" | xxd -r >> $@.text
 
+	rm -f $@.rodata
 	touch $@.rodata
 	objcopy --dump-section .rodata=$@.rodata $@.elf
+	stat -c %s $@.rodata | xargs printf "0: %08X" | xxd -r >> $@.text
 
 	cat $@.text $@.data $@.rodata > $@.img
 
