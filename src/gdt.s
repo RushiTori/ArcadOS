@@ -1,6 +1,7 @@
 bits 16
 
 %include "boot.inc"
+%include "pic.inc"
 
 section .text
 
@@ -30,6 +31,10 @@ prepare_segment_registers32:
 	
 	mov ax, gdt32.stack
 	mov ss, ax
+
+	mov edi, 0x20
+	mov esi, 0x30
+	call remap_pic32
 
 	jmp paging_start
 
