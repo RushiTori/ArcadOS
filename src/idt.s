@@ -71,6 +71,12 @@ setGate:
 	mov dword[IDT_START + r8 + IDTGateDescriptor.reserved], 0
 	ret
 
+;rdi = idx
+nullify_IDT_gate:
+	imul rdi, IDTGateDescriptor_size
+	mov qword[IDT_START + rdi], 0
+	mov qword[IDT_START + rdi + 8], 0
+
 interrupt_func0x00:
 	cli
 	mov rdi, 0x00
@@ -2470,13 +2476,6 @@ interrupt_func0xEF:
 	mov rdx, 8
 	call draw_square
 	jmp $
-
-
-
-
-
-
-
 
 interrupt_func0xF0:
 	cli
