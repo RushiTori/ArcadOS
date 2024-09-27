@@ -5,6 +5,11 @@ bits 64
 %include "display.inc"
 %include "pic.inc"
 
+section .data
+
+keyPressed:
+	dw 0
+
 section .text
 
 IDT_Setup: ;0x8400
@@ -33,7 +38,7 @@ IDT_Setup: ;0x8400
 		cmp rax, 256
 		jne .setIDTloop
 
-	mov rdi, 0xFD
+	mov rdi, 0xFC
 	mov rsi, 0xFF
 	call mask_pic64
 
@@ -405,8 +410,24 @@ interrupt_func0x1F:
 	call draw_square
 	jmp $
 
-interrupt_func0x20:
-	
+interrupt_func0x20: ;IRQ0 aka system timer
+	push rax	;just in case because i don't know what registers are modified
+	push rbx
+	push rcx
+	push rdx
+	push rdi
+	push rsi
+	push r8
+	push r9
+	push r10
+	push r11
+	push r12
+	push r13
+	push r14
+	push r15
+	push rbp
+	mov rbp, rsp
+
 	mov rdi, 0x20
 	call set_color
 	mov rdi, 0x0 * 8
@@ -416,6 +437,23 @@ interrupt_func0x20:
 
 	mov rdi, 0 ;IRQ0
 	call sendEOI_pic64
+
+	mov rsp, rbp
+	pop rbp
+	pop r15
+	pop r14
+	pop r13
+	pop r12
+	pop r11
+	pop r10
+	pop r9
+	pop r8
+	pop rsi
+	pop rdi
+	pop rdx
+	pop rcx
+	pop rbx
+	pop rax
 	iretq
 
 interrupt_func0x21:	;IRQ1 aka keyboard IRQ
@@ -442,6 +480,9 @@ interrupt_func0x21:	;IRQ1 aka keyboard IRQ
 	mov rsi, 0x2 * 8
 	mov rdx, 8
 	call draw_square
+
+	in al, 0x60
+
 
 	mov rdi, 1 ;IRQ1
 	call sendEOI_pic64	;tell the PIC we finished handling the interrupt
