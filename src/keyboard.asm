@@ -3,7 +3,7 @@ bits 64
 %include "keyboard.inc"
 %include "pic.inc"
 
-section .bss:
+section .bss
 scancode: resd 1
 global scancode:data
 
