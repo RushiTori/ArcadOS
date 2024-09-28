@@ -22,8 +22,8 @@ boot_sector_3_start:
 bits 32
 
 prepare_segment_registers32:
-	mov esp, 0x00AFFFFF
-	mov ebp, 0x00AFFFFF
+	mov esp, 0x000FFFF0
+	mov ebp, 0x000FFFF0
 	
 	mov ax, gdt32.bss
 	mov ds, ax

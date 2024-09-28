@@ -4,11 +4,12 @@ bits 64
 %include "boot.inc"
 %include "display.inc"
 %include "pic.inc"
+%include "keyboard.inc"
 
 section .data
 
-keyPressed:
-	dw 0
+square:
+	db 0
 
 section .text
 
@@ -54,6 +55,34 @@ IDT_Setup: ;0x8400
 	;mov byte[0x0], 10
 waitForInterrupt:
 	hlt
+	mov eax, [scancode]
+	cmp eax, 0
+	je waitForInterrupt
+
+	mov dword[scancode], 0
+
+	cmp eax, 0x5A
+	jne .checkReleased
+
+	mov rdi, 0x0A
+	call set_color
+	mov rdi, 0x0 * 8
+	mov rsi, 0x0 * 8
+	mov rdx, 8
+	call draw_square
+
+	jmp waitForInterrupt
+.checkReleased:
+	cmp eax, 0xF05A
+	jne waitForInterrupt
+
+	mov rdi, 0x02
+	call set_color
+	mov rdi, 0x0 * 8
+	mov rsi, 0x0 * 8
+	mov rdx, 8
+	call draw_square
+
 	jmp waitForInterrupt
 
 ;rdi = offset
@@ -481,8 +510,7 @@ interrupt_func0x21:	;IRQ1 aka keyboard IRQ
 	mov rdx, 8
 	call draw_square
 
-	in al, 0x60
-
+	call keyboardRead
 
 	mov rdi, 1 ;IRQ1
 	call sendEOI_pic64	;tell the PIC we finished handling the interrupt
