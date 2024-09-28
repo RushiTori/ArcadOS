@@ -1,11 +1,12 @@
 bits 64
 
-%include "display.inc"
+%include "engine/display.inc"
 
 section .data
+
 current_color:
 static current_color:data
-	db 0x0B
+	db 0x1F
 
 section .text
 
@@ -26,11 +27,8 @@ global clear_screen:function
 	ret
 
 ; args : u16 x, u16 y
-; return : rax (true if the pixel was put false otherwise)
 put_pixel:
 global put_pixel:function
-	xor rax, rax
-
 	cmp di, SCREEN_WIDTH
 	jae .end
 	cmp si, SCREEN_HEIGHT
@@ -44,8 +42,6 @@ global put_pixel:function
 	mov bl, byte[current_color]
 	mov byte[VGA_MEMORY_ADDR + rax], bl
 	pop rbx
-
-	mov rax, true
 	.end:
 	ret
 
@@ -321,5 +317,3 @@ draw_circle_line:
 global draw_circle_line:function
 	; WIP
 	ret
-
-PAD_SECTOR(SECTOR_SIZE * 2)

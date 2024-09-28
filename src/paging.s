@@ -71,6 +71,7 @@ paging_start:
 	lgdt [GDTR64_LOCATION]
 
 	jmp gdt64.code64:.setCS
+
 bits 64
 .setCS:
 	mov ax, gdt64.data

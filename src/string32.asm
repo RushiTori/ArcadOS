@@ -2,6 +2,8 @@ bits 32
 
 %include "string32.inc"
 
+section .text
+
 memcpy32:
 	cld
 	.loop32:

@@ -1,5 +1,5 @@
 COMP:=nasm
-COMP_FLAGS:=-f elf64
+COMP_FLAGS:=-f elf64 -g -F dwarf
 LINK:=ld
 LINK_FLAGS:=-Tlinkerscript.ld
 
@@ -9,7 +9,16 @@ INC_DIR:=include
 SRC_DIR:=src
 OBJ_DIR:=objs
 
-BOOT_SRC_FILES:=$(SRC_DIR)/bootloader.s $(SRC_DIR)/lineA20.s $(SRC_DIR)/gdt.s $(SRC_DIR)/paging.s $(SRC_DIR)/idt.s $(SRC_DIR)/display.s $(SRC_DIR)/string64.s $(SRC_DIR)/memory_mover.s $(SRC_DIR)/pic.s
+BOOT_SRC_FILES:=$(SRC_DIR)/bootloader.s \
+				 $(SRC_DIR)/lineA20.s \
+				 $(SRC_DIR)/gdt.s \
+				 $(SRC_DIR)/paging.s \
+				 $(SRC_DIR)/idt.s \
+				 $(SRC_DIR)/engine/font.s \
+				 $(SRC_DIR)/engine/display.s \
+				 $(SRC_DIR)/string64.s \
+				 $(SRC_DIR)/pic.s \
+				 $(SRC_DIR)/memory_mover.s
 BOOT_OBJ_FILES:=$(BOOT_SRC_FILES:$(SRC_DIR)/%.s=$(OBJ_DIR)/%.o)
 BOOT_DEP_FILES:=$(BOOT_SRC_FILES:$(SRC_DIR)/%.s=$(OBJ_DIR)/%.d)
 
@@ -29,17 +38,18 @@ $(NAME):$(BOOT_OBJ_FILES)
 	rm -f $@.data
 	touch $@.data
 	objcopy --dump-section .data=$@.data     $@.elf
-	stat -c %s $@.data | xargs printf "0: %08X" | xxd -r >> $@.text
+	stat -c %s $@.data | xargs printf "0x%08X" | xxd -r >> $@.text
 
 	rm -f $@.rodata
 	touch $@.rodata
 	objcopy --dump-section .rodata=$@.rodata $@.elf
-	stat -c %s $@.rodata | xargs printf "0: %08X" | xxd -r >> $@.text
+	stat -c %s $@.rodata | xargs printf "0x%08X" | xxd -r >> $@.text
 
 	cat $@.text $@.data $@.rodata > $@.img
 
 -include $(BOOT_DEP_FILES)
 $(OBJ_DIR)/%.o:$(SRC_DIR)/%.s | $(OBJ_DIR)
+	mkdir -p $(dir $@)
 	$(COMP) $(COMP_FLAGS) -i $(INC_DIR)/ $< -M -MF $(@:.o=.d)
 	$(COMP) $(COMP_FLAGS) -i $(INC_DIR)/ $< -o $@
 

@@ -2,13 +2,20 @@ bits 64
 
 %include "idt.inc"
 %include "boot.inc"
-%include "display.inc"
+%include "engine/display.inc"
 %include "pic.inc"
+extern memory_mover_start
 
-section .data
+section .rodata
 
+text_test:
+static text_test:data
+	db "Chirp chirp", 0xa, 0x9, "This seems to work !!", 0
+
+section .bss
 keyPressed:
-	dw 0
+static keyPressed:data
+	resw 1
 
 section .text
 
@@ -17,9 +24,72 @@ IDT_Setup: ;0x8400
 	mov rsp, 0x7c00
 	mov rbp, rsp
 
-	mov rdi, 0x0B
+	call memory_mover_start
+
+	mov rdi, 0x00
 	call set_color
 	call clear_screen
+
+	xor r12, r12
+
+	.font_loop:
+		mov rdi, r12
+		and rdi, 0x0f
+		shl rdi, 3
+
+		mov rsi, r12
+		and rsi, 0xf0
+		shr rsi, 1
+
+		mov rdx, r12
+		call draw_glyph_background
+
+		mov rdx, r12
+		call draw_glyph_shadow
+
+		mov rdx, r12
+		call draw_glyph
+
+		inc r12
+		cmp r12, 256
+		jne .font_loop
+
+	mov rdi, 16 * 8
+	mov rsi, 0
+	mov rdx, text_test
+	call draw_text
+
+	add rsi, 16
+	mov rdx, text_test
+	call draw_text_shadow
+	mov rdx, text_test
+	call draw_text
+
+	add rsi, 16
+	mov rdx, text_test
+	call draw_text_background
+	mov rdx, text_test
+	call draw_text_shadow
+	mov rdx, text_test
+	call draw_text
+
+	mov rdi, 0x3F
+	mov rsi, rdi
+	add rsi, 24 * 3
+	mov rdx, rsi
+	add rdx, 24 * 3
+	call set_font_colors
+
+	mov rdi, 16 * 8
+	mov rsi, 16 * 3
+	mov rdx, text_test
+	call draw_text_background
+	mov rdx, text_test
+	call draw_text_shadow
+	mov rdx, text_test
+	call draw_text
+
+	jmp $
 
 	mov rcx, 960
 	mov rdi, 0xA0000

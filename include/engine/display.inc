@@ -1,12 +1,7 @@
 %ifndef DISPLAY_INC
 %define DISPLAY_INC
 
-%include "boot.inc"
-
-%define SCREEN_WIDTH    320
-%define SCREEN_HEIGHT   200
-%define VGA_MEMORY_ADDR 0xA0000
-%define VGA_MEMORY_SIZE (SCREEN_WIDTH * SCREEN_HEIGHT)
+%include "engine/font.inc"
 
 ; args : u8 color
 extern set_color
@@ -15,7 +10,6 @@ extern set_color
 extern clear_screen
 
 ; args : u16 x, u16 y
-; return : rax (true if the pixel was put false otherwise)
 extern put_pixel
 
 ; args : u16 x, u16 y, u16 size

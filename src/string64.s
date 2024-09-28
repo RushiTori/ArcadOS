@@ -2,6 +2,8 @@ bits 64
 
 %include "string64.inc"
 
+section .text
+
 ; args : u64 dest, u64 src, u64 n
 memcpy64:
 global memcpy64:function
