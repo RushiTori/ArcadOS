@@ -1,7 +1,7 @@
 bits 32
 
-%include "boot.inc"
-%include "paging.inc"
+%include "bootloader/boot.inc"
+%include "bootloader/paging.inc"
 
 section .text
 

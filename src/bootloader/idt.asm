@@ -1,7 +1,7 @@
 bits 64
 
-%include "idt.inc"
-%include "boot.inc"
+%include "bootloader/idt.inc"
+%include "bootloader/boot.inc"
 %include "engine/display.inc"
 %include "pic.inc"
 extern memory_mover_start
