@@ -15,6 +15,9 @@ section .text
 
 IDT_Setup: ;0x8400
 	cli
+
+	call keyboardSetScancodeTable
+
 	mov rsp, 0x7c00
 	mov rbp, rsp
 

@@ -99,13 +99,41 @@ initPS2:
 waitForResponse:
 	in al, PS2_STATUS
 	and al, (1 << 0)
-	je waitForResponse
+	jnz waitForResponse
 	ret
 
 waitForSending:
 	in al, PS2_STATUS
 	and al, (1 << 1)
-	je waitForSending
+	jnz waitForSending
+	ret
+
+;rdi: byte
+sendBytePS2:
+
+keyboardSetScancodeTable:
+global keyboardSetScancodeTable:function
+	call waitForSending
+
+	mov al, 0xF0
+	out PS2_DATA, al
+
+	call waitForSending
+
+	mov al, 2
+	out PS2_DATA, al
+
+	call waitForResponse
+
+	in al, PS2_DATA
+	cmp al, 0xFE
+	je keyboardSetScancodeTable
+
+	cmp al, 0xFF
+	je $
+	cmp al, 0x00
+	je $
+
 	ret
 
 ;rax: scancode with byte 1 being MSB, and byte 3 being LSB

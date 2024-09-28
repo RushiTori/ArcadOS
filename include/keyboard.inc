@@ -16,6 +16,7 @@
 
 extern keyboardRead
 extern keyboardFlushBuffer
+extern keyboardSetScancodeTable
 extern scancode
 
 %endif
