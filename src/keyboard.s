@@ -99,7 +99,7 @@ initPS2:
 waitForResponse:
 	in al, PS2_STATUS
 	and al, (1 << 0)
-	jnz waitForResponse
+	jz waitForResponse
 	ret
 
 waitForSending:
