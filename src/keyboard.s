@@ -1,5 +1,7 @@
 bits 64
+
 %include "keyboard.inc"
+%include "pic.inc"
 
 section .bss:
 scancode: resd 1
@@ -113,6 +115,10 @@ sendBytePS2:
 
 keyboardSetScancodeTable:
 global keyboardSetScancodeTable:function
+	mov rdi, 0xFF
+	mov rsi, 0xFF
+	call mask_pic64
+
 	call waitForSending
 
 	mov al, 0xF0
@@ -134,6 +140,9 @@ global keyboardSetScancodeTable:function
 	cmp al, 0x00
 	je $
 
+	mov rdi, 0xFD
+	mov rsi, 0xFD
+	call mask_pic64
 	ret
 
 ;rax: scancode with byte 1 being MSB, and byte 3 being LSB
