@@ -186,7 +186,7 @@ global draw_rect_line_ex:function
 	.end:
 	ret
 
-; Bresenham's mid-point algorithm
+; Bresenham's Line algorithm
 ; Sources : 
 ;   - Bresenham's Line Algorithm - Demystified Step by Step : https://www.youtube.com/watch?v=CceepU1vIKo 
 ; args : u16 x0, u16 y0, u16 x1, u16 y1
@@ -306,14 +306,215 @@ static draw_lineV:function
 	.end:
 	ret
 
+; Bresenham's Midpoint algorithm
+; Sources : 
+;   - The Midpoint Circle Algorithm Explained Step by Step : https://www.youtube.com/watch?v=hpiILbMkF9w
 ; args : u16 x, u16 y, u16 radius
 draw_circle:
 global draw_circle:function
 	; WIP
+	cmp dx, 0
+	je .fast_end
+
+	mov r8w, di ; cx
+	mov r9w, si ; cy
+	mov r10w, dx
+	neg r10w ; p = -r
+
+	xor di, di ; x = 0
+	mov si, r10w ; y = -r
+	.draw_loop:
+		cmp r10w, 0
+		jle .skip_inc_y
+
+		inc si ; y++
+		add r10w, si ; p += y*2
+		add r10w, si
+		.skip_inc_y:
+
+		add r10w, di ; p += x*2
+		add r10w, di
+
+		inc r10w ; p++
+
+		; Now we can put 4 rows of pixels
+
+		; putPixelRow(cx - x, cy + y, (cx + x) - (cx - x))
+		; putPixelRow(cx - x, cy + y, x + x)
+		mov dx, di
+		shl dx, 1
+		neg di
+		add di, r8w
+		add si, r9w
+		call put_pixel_row
+		sub di, r8w
+		sub si, r9w
+
+		; putPixelRow(cx - x, cy - y, (cx + x) - (cx - x))
+		; putPixelRow(cx - x, cy - y, x + x)
+		mov dx, di
+		shl dx, 1
+		neg di
+		add di, r8w
+		neg si
+		add si, r9w
+		call put_pixel_row
+		sub di, r8w
+		sub si, r9w
+		neg si
+
+		neg si
+		xchg di, si
+
+		; putPixelRow(cx - y, cy + x, (cx + y) - (cx - y))
+		; putPixelRow(cx - y, cy + x, y + y)
+		mov dx, di
+		shl dx, 1
+		neg di
+		add di, r8w
+		add si, r9w
+		call put_pixel_row
+		sub di, r8w
+		sub si, r9w
+
+		; putPixelRow(cx - y, cy - x, (cx + y) - (cx - y))
+		; putPixelRow(cx - y, cy - x, y + y)
+		mov dx, di
+		shl dx, 1
+		neg di
+		add di, r8w
+		neg si
+		add si, r9w
+		call put_pixel_row
+		sub di, r8w
+		sub si, r9w
+		neg si
+
+		xchg di, si
+		neg si
+
+		neg si
+		cmp di, si
+		jge .end ; if x >= -y : return
+
+		neg si
+		inc di ; x++
+		jmp .draw_loop
+
+	.end:
+	mov di, r8w ; recover cx
+	mov si, r9w ; recover cy
+	.fast_end:
 	ret
 
+; Bresenham's Midpoint algorithm
+; Sources : 
+;   - The Midpoint Circle Algorithm Explained Step by Step : https://www.youtube.com/watch?v=hpiILbMkF9w
 ; args : u16 x, u16 y, u16 radius
 draw_circle_line:
 global draw_circle_line:function
-	; WIP
+	cmp dx, 0
+	je .fast_end
+
+	mov r8w, di ; cx
+	mov r9w, si ; cy
+	mov r10w, dx
+	neg r10w ; p = -r
+
+	xor di, di ; x = 0
+	mov si, r10w ; y = -r
+	.draw_loop:
+		cmp r10w, 0
+		jle .skip_inc_y
+
+		inc si ; y++
+		add r10w, si ; p += y*2
+		add r10w, si
+		.skip_inc_y:
+
+		add r10w, di ; p += x*2
+		add r10w, di
+
+		inc r10w ; p++
+
+		; Now we can put 8 pixels
+
+		add di, r8w ; x + cx
+		add si, r9w ; y + cy
+
+		; putPixel(cx + x, cy + y)
+		call put_pixel
+
+		sub di, r8w ; x
+		neg di ; -x
+		add di, r8w ; -x + cx
+
+		; putPixel(cx - x, cy + y)
+		call put_pixel
+
+		sub si, r9w ; y
+		neg si ; -y
+		add si, r9w ; -y + cy
+
+		; putPixel(cx - x, cy - y)
+		call put_pixel
+
+		sub di, r8w ; -x
+		neg di ; x
+		add di, r8w ; x + cx
+
+		; putPixel(cx + x, cy - y)
+		call put_pixel
+
+		sub di, r8w ; x
+		sub si, r9w ; -y
+		neg si ; y
+
+		xchg di, si ; swap x and y
+
+		add di, r8w ; y + cx
+		add si, r9w ; x + cy
+
+		; putPixel(cx + y, cy + x)
+		call put_pixel
+
+		sub di, r8w ; y
+		neg di ; -y
+		add di, r8w ; -y + cx
+
+		; putPixel(cx - y, cy + x)
+		call put_pixel
+
+		sub si, r9w ; x
+		neg si ; -x
+		add si, r9w ; -x + cy
+
+		; putPixel(cx - y, cy - x)
+		call put_pixel
+
+		sub di, r8w ; -y
+		neg di ; y
+		add di, r8w ; y + cx
+
+		; putPixel(cx + y, cy - x)
+		call put_pixel
+
+		sub di, r8w ; y
+		sub si, r9w ; -x
+		neg si ; x
+
+		xchg di, si ; swap x and y again
+
+		neg si
+		cmp di, si
+		jge .end ; if x >= -y : return
+
+		neg si
+		inc di ; x++
+		jmp .draw_loop
+
+	.end:
+	mov di, r8w ; recover cx
+	mov si, r9w ; recover cy
+	.fast_end:
 	ret
