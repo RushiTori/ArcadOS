@@ -27,6 +27,25 @@ global main:function
 	mov rcx, 16
 	call draw_rect
 
+	mov rdi, 0x0D
+	call set_color
+
+	mov rdi, SCREEN_WIDTH / 2 ; 160
+	mov rsi, SCREEN_HEIGHT / 2 ; 100
+	mov rdx, 8 * 5 ; 40
+	call draw_circle
+
+	mov rdi, 0x0E
+	call set_color
+
+	mov rdi, SCREEN_WIDTH / 2 ; 160
+	mov rsi, SCREEN_HEIGHT / 2 ; 100
+	mov rdx, 8 * 5 ; 40
+	call draw_circle_line
+	mov rdx, 8 * 5 - 1 ; 40
+	call draw_circle_line
+	mov rdx, 8 * 5 - 2 ; 40
+	call draw_circle_line
 
 	xor r12, r12
 
