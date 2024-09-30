@@ -25,5 +25,7 @@
 extern remap_pic32
 extern sendEOI_pic64
 extern mask_pic64
+extern maskout_irq_pic64
+extern maskin_irq_pic64
 
 %endif

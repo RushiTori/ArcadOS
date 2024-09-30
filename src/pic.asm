@@ -84,6 +84,67 @@ global mask_pic64:function
 	out PIC2_DATA, al
 	ret
 
+;rdi: irq number
+maskout_irq_pic64:
+global maskout_irq_pic64:function
+	cmp rdi, 16
+	jae .error
+	cmp rdi, 8
+	jae .slaveHandle
+
+	mov cl, dil
+	mov ah, 1
+	shl ah, cl
+	in al, PIC1_DATA
+	or ah, al
+	mov al, ah
+	out PIC1_DATA, al
+
+	ret
+.slaveHandle:
+	sub rdi, 8
+	mov cl, dil
+	mov ah, 1
+	shl ah, cl
+	in al, PIC2_DATA
+	or ah, al
+	mov al, ah
+	out PIC1_DATA, al
+	ret
+.error:
+	ret
+;rdi: irq number
+maskin_irq_pic64:
+global maskin_irq_pic64:function
+	cmp rdi, 16
+	jae .error
+	cmp rdi, 8
+	jae .slaveHandle
+
+	mov cl, dil
+	mov ah, 1
+	shl ah, cl
+	not ah
+	in al, PIC1_DATA
+	and ah, al
+	mov al, ah
+	out PIC1_DATA, al
+
+	ret
+.slaveHandle:
+	sub rdi, 8
+	mov cl, dil
+	mov ah, 1
+	shl ah, cl
+	not ah
+	in al, PIC2_DATA
+	and ah, al
+	mov al, ah
+	out PIC1_DATA, al
+	ret
+.error:
+	ret
+
 remap_pic64:
 global remap_pic64:function
 	in al, PIC1_DATA
