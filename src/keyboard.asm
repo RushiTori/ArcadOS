@@ -109,8 +109,11 @@ keymap:
 	dq 0xE06B, 0xE0F06B	;LEFT:							90
 	dq 0xE074, 0xE0F074	;RIGHT:							91
 
-
 section .bss
+
+scancode_complete:
+global scancode_complete:data
+	resb 1
 
 scancode:
 global scancode:data
@@ -230,28 +233,28 @@ global keyboardSetScancodeTable:function
 keyboardRead:
 global keyboardRead:function
 	xor rax, rax
+	mov al, [scancode_complete]
+	cmp al, 0
+	je .skipResetScancode
+	mov qword[scancode], 0
+.skipResetScancode
 	in al, PS2_DATA
-	shl rax, 8
-	in al, PS2_STATUS
-	and al, (1 << 0)
-	je .fixShift
-	in al, PS2_DATA
-	shl rax, 8
-	in al, PS2_STATUS
-	and al, (1 << 0)
-	je .fixShift
-	in al, PS2_DATA
-	shl rax, 8
-	in al, PS2_STATUS
-	and al, (1 << 0)
-	je .fixShift
-	in al, PS2_DATA
-.end:
-	mov qword[scancode], rax
-	ret
-.fixShift:
-	shr rax, 8
+	cmp al, 0xFA
+	je .end
+	mov rcx, [scancode]
+	shl rcx, 8
+	or rax, rcx
+	mov [scancode], rax
+	cmp al, 0xE0
+	je .awaitNextKeyState
+	cmp al, 0xF0
+	je .awaitNextKeyState
+	mov byte[scancode_complete], 1
 	jmp .end
+.awaitNextKeyState:
+	mov byte[scancode_complete], 0
+.end:
+	ret
 
 ;rdi: scancode
 ;return rax: keycode

@@ -18,6 +18,7 @@ extern initPS2
 extern keyboardRead
 extern keyboardFlushBuffer
 extern keyboardSetScancodeTable
+extern scancode_complete
 extern scancode
 
 %define KEY_ESCAPE			0

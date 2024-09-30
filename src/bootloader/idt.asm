@@ -25,6 +25,7 @@ section .text
 IDT_Setup: ;0x8400
 	cli
 
+	call initPS2
 	call keyboardSetScancodeTable
 
 	mov rsp, 0x7c00
@@ -65,13 +66,12 @@ IDT_Setup: ;0x8400
 	;mov byte[0x0], 10
 waitForInterrupt:
 	hlt
-	mov eax, [scancode]
-	cmp eax, 0
+	mov al, [scancode_complete]
+	cmp al, 0
 	je waitForInterrupt
 
-	mov dword[scancode], 0
-
-	cmp eax, 0x5A
+	mov rax, [scancode]
+	cmp rax, 0x5A
 	jne .checkReleased
 
 	mov rdi, 0x0A
