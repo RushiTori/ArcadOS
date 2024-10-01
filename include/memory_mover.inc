@@ -1,7 +1,7 @@
 %ifndef MEMORY_MOVER_INC
 %define MEMORY_MOVER_INC
 
-%include "string64.inc"
+%include "string.inc"
 
 ; The memory map for the .text sections
 %define CODE_MEMORY_START     0x0007C00
