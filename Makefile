@@ -57,7 +57,7 @@ $(NAME):$(OBJ_FILES)
 $(OBJ_DIR)/%.obj:$(SRC_DIR)/%.asm
 	@echo Compiling $< into $@
 	@mkdir -p $(dir $@)
-	@$(COMP) $(COMP_FLAGS) -i $(INC_DIR)/ $< -M -MF $(@:.obj=.dep)
+	@$(COMP) $(COMP_FLAGS) -i $(INC_DIR)/ $< -M -MF $(@:.obj=.dep) -MT $@
 	@$(COMP) $(COMP_FLAGS) -i $(INC_DIR)/ $< -o $@
 
 start:
