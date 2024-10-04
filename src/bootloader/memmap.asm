@@ -22,7 +22,7 @@ global memmap_start:function
 		mov ecx, 24
 		mov edx, 0x534D4150
 		int 0x15
-		;jc .error
+		jc .error
 		inc word[BUF_LEN_ADDR]
 		add di, MEM_ENTRY_SIZE
 		cmp ebx, 0
@@ -43,8 +43,14 @@ global memmap_start:function
 		jmp .loop
 	.endloop:
 	cli
+	jmp .infiniteloop
 .error:
-	jmp $
+	mov di, errorstring
+	call print_str
+	cli
+.infiniteloop:
+	hlt
+	jmp .infiniteloop
 
 ;si: entry index
 print_entry:
@@ -199,6 +205,8 @@ acpinvsstr:
 	db "ACPI NVS", 0
 badmemorystr:
 	db "bad memory", 0
+errorstring:
+	db "your computer does not support the bios interrupt INT 0x15, EAX=0xE820, so we cannot figure out where your memory is mapped properly, your computer is probably too old, sorry", 0
 
 hexprefix:
 	db "0x", 0
