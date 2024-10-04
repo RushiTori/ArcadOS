@@ -31,7 +31,7 @@ IDT_Setup: ;0x8400
 	mov rsp, 0x7c00
 	mov rbp, rsp
 
-	jmp main
+	;jmp main
 
 	mov rcx, 960
 	mov rdi, 0xA0000
@@ -70,31 +70,102 @@ waitForInterrupt:
 	cmp al, 0
 	je waitForInterrupt
 
+checkUp:
 	mov rax, [scancode]
-	cmp rax, 0x5A
+	cmp rax, 0x001D
+	jne .checkReleased
+
+	mov rdi, 0x0A
+	call set_color
+	mov rdi, 0x1 * 8
+	mov rsi, 0x0 * 8
+	mov rdx, 8
+	call draw_square
+
+	jmp checkDown
+.checkReleased:
+	cmp eax, 0xF01D
+	jne checkDown
+
+	mov rdi, 0x02
+	call set_color
+	mov rdi, 0x1 * 8
+	mov rsi, 0x0 * 8
+	mov rdx, 8
+	call draw_square
+
+checkDown:
+	mov rax, [scancode]
+	cmp rax, 0x001B
+	jne .checkReleased
+
+	mov rdi, 0x0A
+	call set_color
+	mov rdi, 0x1 * 8
+	mov rsi, 0x1 * 8
+	mov rdx, 8
+	call draw_square
+
+	jmp checkLeft
+.checkReleased:
+	cmp rax, 0xF01B
+	jne checkLeft
+
+	mov rdi, 0x02
+	call set_color
+	mov rdi, 0x1 * 8
+	mov rsi, 0x1 * 8
+	mov rdx, 8
+	call draw_square
+
+checkLeft:
+	mov rax, [scancode]
+	cmp rax, 0x001C
 	jne .checkReleased
 
 	mov rdi, 0x0A
 	call set_color
 	mov rdi, 0x0 * 8
-	mov rsi, 0x0 * 8
+	mov rsi, 0x1 * 8
+	mov rdx, 8
+	call draw_square
+
+	jmp checkRight
+.checkReleased:
+	cmp rax, 0xF01C
+	jne checkRight
+
+	mov rdi, 0x02
+	call set_color
+	mov rdi, 0x0 * 8
+	mov rsi, 0x1 * 8
+	mov rdx, 8
+	call draw_square
+
+checkRight:
+	mov rax, [scancode]
+	cmp rax, 0x0023
+	jne .checkReleased
+
+	mov rdi, 0x0A
+	call set_color
+	mov rdi, 0x2 * 8
+	mov rsi, 0x1 * 8
 	mov rdx, 8
 	call draw_square
 
 	jmp waitForInterrupt
 .checkReleased:
-	cmp eax, 0xF05A
+	cmp rax, 0xF023
 	jne waitForInterrupt
 
 	mov rdi, 0x02
 	call set_color
-	mov rdi, 0x0 * 8
-	mov rsi, 0x0 * 8
+	mov rdi, 0x2 * 8
+	mov rsi, 0x1 * 8
 	mov rdx, 8
 	call draw_square
-
 	jmp waitForInterrupt
-
 ;rdi = offset
 ;rsi = segment selector
 ;rdx = gate type

@@ -24,7 +24,7 @@ paging_start:
 	mov ecx, ALLOC_DIRECTORY_ENTRY_COUNT
 .setDirectoryEntryLoop:
 	mov dword[edi], ebx
-	add ebx, 0x1000
+	add ebx, PAGE_SIZE
 	add edi, 8
 	loop .setDirectoryEntryLoop
 
@@ -33,9 +33,27 @@ paging_start:
 	mov ecx, PAGE_COUNT - (SYSTEM_PAGE_SKIP * 8)
 .setEntry:
 	mov dword[edi], ebx
-	add ebx, 0x1000
+	add ebx, PAGE_SIZE
 	add edi, 8
 	loop .setEntry
+
+	;mov edi, SYSTEM_PAGE_TABLE_ADDR + (OLD_SCREEN_MEM_ADDR / PAGE_SIZE) * 8
+	;mov ebx, NEW_SCREEN_MEM_ADDR | 0x03
+	;mov ecx, 16
+;.remapScreenMemory:
+	;mov dword[edi], ebx
+	;add ebx, PAGE_SIZE
+	;add edi, 8
+	;loop .remapScreenMemory
+
+	;mov edi, SYSTEM_PAGE_TABLE_ADDR + (NEW_SCREEN_MEM_ADDR / PAGE_SIZE) * 8
+	;mov ebx, OLD_SCREEN_MEM_ADDR | 0x3
+	;mov ecx, 16
+;.remapNewScreenMemory:
+	;mov dword[edi], ebx
+	;add ebx, PAGE_SIZE
+	;add edi, 8
+	;loop .remapNewScreenMemory
 
 	mov eax, cr4
 	or eax, 1 << 5

@@ -1,6 +1,7 @@
 bits 16
 
 %include "bootloader/boot.inc"
+%include "bootloader/memmap.inc"
 
 section .text
 
@@ -42,7 +43,7 @@ fix_cs:
 	int 0x13
 
 	; Jump at the start of the second sector to attempt to enable lineA20
-	jmp boot_sector_2_start
+	jmp memmap_start
 
 PAD_SECTOR(SECTOR_SIZE - 14 - 1 - 2)
 

@@ -10,6 +10,7 @@ SRC_DIR:=src
 OBJ_DIR:=objs
 
 BOOTLOADER_SRC_FILES:=  $(SRC_DIR)/bootloader/bootloader.asm \
+						$(SRC_DIR)/bootloader/memmap.asm \
 						$(SRC_DIR)/bootloader/lineA20.asm \
 						$(SRC_DIR)/bootloader/gdt.asm \
 						$(SRC_DIR)/bootloader/paging.asm \

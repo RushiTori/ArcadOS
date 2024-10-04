@@ -23,4 +23,7 @@
 %define GDTR64_LOCATION						0x00001000
 %define GDT64_LOCATION						GDTR64_LOCATION + 10 ;in segment data
 
+%define OLD_SCREEN_MEM_ADDR					0xA0000
+%define NEW_SCREEN_MEM_ADDR					0x4000000
+
 %endif ;PAGING_INC
