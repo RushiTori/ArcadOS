@@ -1,6 +1,7 @@
 bits 64
 
 %include "main/main.inc"
+extern pit_ticks
 
 section .rodata
 
@@ -15,67 +16,53 @@ main:
 global main:function
 	; WIP
 	call memory_mover_start
-	mov rdi, 0x13
-	call set_color
-	call clear_screen
-
-	mov rdi, 0x12
-	call set_color
-	mov rdi, (SCREEN_WIDTH / 2) - ((ArcadOSTitleLen * 8) / 2) - 4
-	mov rsi, 0
-	mov rdx, (ArcadOSTitleLen * 8)
-	mov rcx, 16
-	call draw_rect
-
-	mov rdi, 0x0D
-	call set_color
-
-	mov rdi, SCREEN_WIDTH / 2 ; 160
-	mov rsi, SCREEN_HEIGHT / 2 ; 100
-	mov rdx, 8 * 5 ; 40
-	call draw_circle
-
-	mov rdi, 0x0E
-	call set_color
-
-	mov rdi, SCREEN_WIDTH / 2 ; 160
-	mov rsi, SCREEN_HEIGHT / 2 ; 100
-	mov rdx, 8 * 5 ; 40
-	call draw_circle_line
-	mov rdx, 8 * 5 - 1 ; 40
-	call draw_circle_line
-	mov rdx, 8 * 5 - 2 ; 40
-	call draw_circle_line
-
-	xor r12, r12
 
 	.draw_loop:
+	
+	mov rdi, qword[pit_ticks]
+	xor rsi, rsi
+	mov rdx, 10
+	call utoa
+	push rax
+	push rax
+	push rax
 
-	mov rdi, 0x20
-	add rdi, r12
-	call set_font_color
-	add rdi, 24 * 3
-	call set_font_shadow_color
-	add rdi, 24 * 3
-	call set_font_background_color
-
-	mov rdi, (SCREEN_WIDTH / 2) - ((ArcadOSTitleLen * 8) / 2)
-	mov rsi, 4
-	mov rdx, ArcadOSTitle
+	xor rdi, rdi
+	xor rsi, rsi
+	pop rdx
 	call draw_text_background
-	mov rdx, ArcadOSTitle
+	pop rdx
 	call draw_text_shadow
-	mov rdx, ArcadOSTitle
+	pop rdx
+	call draw_text
+	
+	mov rax, qword[pit_ticks]
+	mov rdi, 18
+	mov rdx, 0
+	div rdi
+
+	mov rdi, rax
+	xor rsi, rsi
+	mov rdx, 10
+	call utoa
+	push rax
+	push rax
+	push rax
+
+	xor rdi, rdi
+	mov rsi, 8
+	pop rdx
+	call draw_text_background
+	pop rdx
+	call draw_text_shadow
+	pop rdx
 	call draw_text
 
-	mov rcx, 0xFFFFFF * 3
-	.wait_loop:
-	loop .wait_loop
+	;mov rcx, 0xFFFFFF * 4 
+	;.wait_loop:
+	;loop .wait_loop
 
-	inc r12
-	cmp r12, 24
-	jl .skip_modulo
-	xor r12, r12
-	.skip_modulo:
+	call update_keyboard_handler
 
+	hlt
 	jmp .draw_loop

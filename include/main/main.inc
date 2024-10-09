@@ -3,6 +3,8 @@
 
 %include "memory_mover.inc"
 %include "engine/display.inc"
+%include "keyboard.inc"
+%include "pic.inc"
 
 extern main
 

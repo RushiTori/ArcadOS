@@ -3,9 +3,15 @@ bits 64
 %include "keyboard.inc"
 %include "pic.inc"
 
+%define KEY_STATE_PRESSED  1
+%define KEY_STATE_DOWN     2
+%define KEY_STATE_RELEASED 3
+%define KEY_STATE_UP       4
+
 section .rodata
 
 keymap:
+static keymap:data
 	; unused	row		column	
 	; b			bbb		bbbb
 	;
@@ -119,6 +125,14 @@ scancode:
 global scancode:data
 	resq 1
 
+IRQ_key_states:
+static IRQ_key_states:data
+	times KEY_COUNT resb 1
+
+key_states:
+static key_states:data
+	times KEY_COUNT resb 1
+
 section .text
 
 initPS2:
@@ -182,20 +196,32 @@ global initPS2:function
 	mov al, 0xFF
 	out PS2_COMMAND, al
 
+	.key_repeat_loop:
+		mov al, 0xF3
+		out PS2_DATA, al
+		call waitForSending
+		xor al, al
+		out PS2_DATA, al
+		call waitForResponse
+		in al, PS2_DATA
+		cmp al, 0xFE
+		je .key_repeat_loop
+
 	ret
 
 waitForResponse:
+static waitForResponse:function
 	in al, PS2_STATUS
-	and al, (1 << 0)
+	and al, PS2_STATUS_INPUT_BUFFER_FULL
 	jz waitForResponse
 	ret
 
 waitForSending:
+static waitForSending:function
 	in al, PS2_STATUS
-	and al, (1 << 1)
+	and al, PS2_STATUS_OUTPUT_BUFFER_FULL
 	jnz waitForSending
 	ret
-
 
 keyboardSetScancodeTable:
 global keyboardSetScancodeTable:function
@@ -233,55 +259,209 @@ global keyboardSetScancodeTable:function
 keyboardRead:
 global keyboardRead:function
 	xor rax, rax
-	mov al, [scancode_complete]
-	cmp al, 0
+
+	cmp byte[scancode_complete], false
 	je .skipResetScancode
-	mov qword[scancode], 0
-.skipResetScancode
+	mov qword[scancode], false
+	.skipResetScancode:
+
 	in al, PS2_DATA
 	cmp al, 0xFA
-	je .end
-	mov rcx, [scancode]
+	je .endRead
+
+	mov rcx, qword[scancode]
 	shl rcx, 8
 	or rax, rcx
-	mov [scancode], rax
+	mov qword[scancode], rax
+
 	cmp al, 0xE0
 	je .awaitNextKeyState
 	cmp al, 0xF0
 	je .awaitNextKeyState
-	mov byte[scancode_complete], 1
-	jmp .end
-.awaitNextKeyState:
-	mov byte[scancode_complete], 0
-.end:
+
+	mov byte[scancode_complete], true
+	call update_keyboard_handler_IRQ
+	jmp .endRead
+
+	.awaitNextKeyState:
+		mov byte[scancode_complete], false
+	.endRead:
+	
 	ret
 
 ;rdi: scancode
-;return rax: keycode
+;return al: keycode, ah: isReleased
 keyboardScancodeToKeycode:
-global keyboardScancodeToKeycode:function
+static keyboardScancodeToKeycode:function
 	xor rcx, rcx
-	.loop:
-		cmp rdi, [keymap + rcx]
-		jne .end
-		add rcx, 8
-		cmp rcx, (256 * 8)
+	.lookup_loop:
+		cmp rdi, qword[keymap + rcx * 8]
+		je .end
+		inc rcx
+		cmp rcx, 256
 		jae .end
-		jmp .loop
+		jmp .lookup_loop
 	.end:
 	mov rax, rcx
-	and rax, 8
-	shl rax, 5
-	shr rcx, 4
-	mov al, cl
+	shr rax, 1
+
+	and rcx, 1
+	mov ah, cl
+
 	ret
 
 keyboardFlushBuffer:
-global keyboardFlushBuffer:function
+static keyboardFlushBuffer:function
 	in al, PS2_STATUS
-	and al, (1 << 0)
+	and al, PS2_STATUS_INPUT_BUFFER_FULL
 	je .end
 	in al, PS2_DATA
 	jmp keyboardFlushBuffer
-.end:
+	.end:
+	ret
+
+update_keyboard_handler_IRQ:
+static update_keyboard_handler_IRQ:function
+	mov rdi, qword[scancode]
+	call keyboardScancodeToKeycode
+	cmp al, KEY_COUNT
+	jge .end
+
+	inc ah
+	movzx rdi, al
+	mov byte[IRQ_key_states + rdi], ah
+
+	.end:
+	ret
+
+update_keyboard_handler:
+global update_keyboard_handler:function
+	; WIP
+	mov rdi, 1
+	call maskout_irq_pic64
+
+	xor rdi, rdi
+	mov rcx, KEY_COUNT
+	.update_loop:
+		mov al, byte[IRQ_key_states + rdi]
+		cmp al, 0
+		je .continue_update_loop
+		dec al
+
+		cmp al, true
+		je .handleReleased
+		.handlePressed:
+			cmp byte[key_states + rdi], KEY_STATE_DOWN
+			jg .put_state_pressed
+
+			.put_state_down:
+			mov byte[key_states + rdi], KEY_STATE_DOWN
+			jmp .continue_update_loop
+
+			.put_state_pressed:
+			mov byte[key_states + rdi], KEY_STATE_PRESSED
+			jmp .continue_update_loop
+
+		.handleReleased:
+			cmp byte[key_states + rdi], KEY_STATE_DOWN
+			jg .put_state_pressed
+
+			.put_state_released:
+			mov byte[key_states + rdi], KEY_STATE_RELEASED
+			jmp .continue_update_loop
+
+			.put_state_up:
+			mov byte[key_states + rdi], KEY_STATE_UP
+		; Logic to translate
+		;	if (isPressed) {
+		;		if (state == InputState::Pressed)
+		;			state = InputState::Down;
+		;		else if (state == InputState::Released || state == InputState::Up)
+		;			state = InputState::Pressed;
+		;	} else {
+		;		if (state == InputState::Released)
+		;			state = InputState::Up;
+		;		else if (state == InputState::Pressed || state == InputState::Down)
+		;			state = InputState::Released;
+		;	}
+
+		.continue_update_loop:
+		mov byte[IRQ_key_states + rdi], 0
+		inc rdi
+		loop .update_loop
+
+	mov rdi, 1
+	call maskin_irq_pic64
+	ret
+
+; args : u8 keycode
+; returns : true if 'keycode' is pressed, otherwise false.
+is_key_pressed:
+global is_key_pressed:function
+	xor rax, rax
+	cmp dil, KEY_COUNT
+	jge .end
+
+	and rdi, 0xFF
+	mov dil, byte[key_states + rdi]
+
+	cmp dil, KEY_STATE_PRESSED
+	jne .end
+	inc rax
+
+	.end:
+	ret
+
+; args : u8 keycode
+; returns : true if 'keycode' is down, otherwise false.
+is_key_down:
+global is_key_down:function
+	xor rax, rax
+	cmp dil, KEY_COUNT
+	jge .end
+
+	and rdi, 0xFF
+	mov dil, byte[key_states + rdi]
+
+	cmp dil, KEY_STATE_DOWN
+	jne .end
+	inc rax
+
+	.end:
+	ret
+
+; args : u8 keycode
+; returns : true if 'keycode' is released, otherwise false.
+is_key_released:
+global is_key_released:function
+	xor rax, rax
+	cmp dil, KEY_COUNT
+	jge .end
+
+	and rdi, 0xFF
+	mov dil, byte[key_states + rdi]
+
+	cmp dil, KEY_STATE_RELEASED
+	jne .end
+	inc rax
+
+	.end:
+	ret
+
+; args : u8 keycode
+; returns : true if 'keycode' is up, otherwise false.
+is_key_up:
+global is_key_up:function
+	xor rax, rax
+	cmp dil, KEY_COUNT
+	jge .end
+
+	and rdi, 0xFF
+	mov dil, byte[key_states + rdi]
+
+	cmp dil, KEY_STATE_UP
+	jne .end
+	inc rax
+	
+	.end:
 	ret

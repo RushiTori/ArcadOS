@@ -195,9 +195,9 @@ global sendEOI_pic64:function
 	jae .handleSlaveIrq
 	out PIC1_COMMAND, al
 	ret
-.handleSlaveIrq:
-	out PIC2_COMMAND, al
-	ret
-.errorRet:
-	mov rax, -1
+	.handleSlaveIrq:
+		out PIC2_COMMAND, al
+		ret
+	.errorRet:
+		mov rax, -1
 	ret

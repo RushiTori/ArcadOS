@@ -117,7 +117,7 @@ print_entry:
 
 	mov di, badmemorystr
 	call print_str
-.endswitch
+.endswitch:
 
 	mov di, newlinestr
 	call print_str
