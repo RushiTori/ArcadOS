@@ -264,7 +264,7 @@ global main:function
 	call draw_text
 
 	call get_system_ticks
-	mov edi, dword[IRQ0_frequency]
+	mov rdi, IRQ0_FREQUENCY
 	mov rdx, 0
 	div rdi
 

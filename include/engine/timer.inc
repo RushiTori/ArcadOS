@@ -7,9 +7,10 @@
 %define MAX_TIMER_COUNT 256
 
 %define FRAME_TIME 0x00000010aaaaaaab ; 16.666666666744277 ms in 32.32 fixed point
-extern IRQ0_frequency
 
-; This initializes the PIT to fire an IRQ0 at roughly 6000 hz
+%define IRQ0_FREQUENCY 600
+
+; This initializes the PIT to fire an IRQ0 at roughly 600 hz
 extern init_PIT
 
 ; This is the IRQ0 function

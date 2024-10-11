@@ -37,7 +37,7 @@ static IRQ0_time_64:data
     	resd 1          ; Number of whole ms between IRQ0's
 
 IRQ0_frequency:         
-global IRQ0_frequency:data
+static IRQ0_frequency:data
 	resd 1          ; Actual frequency of PIT
 
 PIT_reload_value:       
@@ -69,7 +69,7 @@ global init_PIT:function
     mov qword[timers_state + 8 * 2], rax
     mov qword[timers_state + 8 * 3], rax
 
-    mov rbx, 600 ; hard-coded 6000 hz frequency
+    mov rbx, IRQ0_FREQUENCY
  
     ; Do some checking
  
@@ -197,6 +197,7 @@ global create_timer:function
         cmp qword[timers_state + rdi * 8], 0
         je .continue_search_loop
         bsf rax, qword[timers_state + rdi * 8]
+        ;btc qword[timers_state + rdi * 8], rax
         shr rdi, 3
         add rax, rdi
         
