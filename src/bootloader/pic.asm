@@ -1,6 +1,6 @@
-%include "pic.inc"
-
 bits 32
+
+%include "bootloader/pic.inc"
 
 ;edi: mask master
 ;esi: mask slave

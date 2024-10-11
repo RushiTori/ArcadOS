@@ -1,7 +1,7 @@
 bits 64
 
-%include "keyboard.inc"
-%include "pic.inc"
+%include "engine/keyboard.inc"
+%include "bootloader/pic.inc"
 
 %define KEY_STATE_PRESSED  1
 %define KEY_STATE_DOWN     2

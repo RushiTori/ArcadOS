@@ -2,21 +2,14 @@ bits 64
 
 %include "bootloader/idt.inc"
 %include "bootloader/boot.inc"
+%include "bootloader/pic.inc"
+
 %include "engine/display.inc"
-%include "pic.inc"
+
 %include "main/main.inc"
-%include "keyboard.inc"
-extern memory_mover_start
 
-section .bss
-
-pit_ticks:
-global pit_ticks:data
-	resq 1
-
-keyPressed:
-static keyPressed:data
-	resw 1
+%include "engine/keyboard.inc"
+%include "engine/timer.inc"
 
 section .text
 
@@ -416,7 +409,7 @@ interrupt_func0x1F:
 interrupt_func0x20: ;IRQ0 aka system timer
 	push rax
 
-	inc qword[pit_ticks]
+	call timerTick
 	mov al, PIC_EOI
 	out PIC1_COMMAND, al
 
