@@ -41,7 +41,6 @@ global memset:function
 	shr rax, 32
 	or rax, rsi
 	or rsi, rax
-	cld
 
 	mov rcx, rdx
 	shr rcx, 3
@@ -57,7 +56,6 @@ global memset:function
 memcpy:
 global memcpy:function
 	mov rax, rdi
-	cld
 
 	mov rcx, rdx
 	shr rcx, 3
@@ -77,7 +75,9 @@ global memmove:function
 	mov rax, rdi
 
 	add rdi, rdx
+	dec rdi
 	add rsi, rdx
+	dec rsi
 	std
 
 	mov rcx, rdx
@@ -87,6 +87,7 @@ global memmove:function
 	mov rcx, rdx
 	and rcx, 0b111
 	rep movsb
+	cld
 	ret
 
 ; args : u8* str
@@ -102,7 +103,7 @@ global strlen:function
 	.end:
 	ret
 
-; args : void* dest, void* src
+; args : u8* dest, u8* src
 ; return : dest
 strcat:
 global strcat:function
@@ -116,7 +117,6 @@ global strcat:function
 		jmp .skip_loop
 	.end_skip_loop:
 
-	cld
 	.cpy_loop:
 		lodsb
 		stosb
@@ -125,7 +125,7 @@ global strcat:function
 	mov rax, rcx
 	ret
 
-; args : void* dest, void* src, u64 n
+; args : u8* dest, u8* src, u64 n
 ; return : dest
 strncat:
 global strncat:function
@@ -139,7 +139,6 @@ global strncat:function
 		jmp .skip_loop
 	.end_skip_loop:
 
-	cld
 	.cpy_loop:
 		lodsb
 		stosb
@@ -154,11 +153,10 @@ global strncat:function
 	mov rax, rcx
 	ret
 
-; args : void* dest, void* src
+; args : u8* dest, u8* src
 ; return : dest
 strcpy:
-global strcpy:function
-	cld
+global strcpy:
 	mov rcx, rdi
 	.cpy_loop:
 		lodsb
