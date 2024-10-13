@@ -2,6 +2,7 @@ bits 32
 
 %include "bootloader/boot.inc"
 %include "bootloader/paging.inc"
+%include "bootloader/memmap.inc"
 
 section .text
 
@@ -28,14 +29,73 @@ paging_start:
 	add edi, 8
 	loop .setDirectoryEntryLoop
 
-	mov edi, SYSTEM_PAGE_TABLE_ADDR + (SYSTEM_PAGE_SKIP * 8)
-	mov ebx, SYSTEM_PAGE_ADDRESSING_START | 0x03 ;we can use physical memory address 0x00, we don't care about that
-	mov ecx, PAGE_COUNT - (SYSTEM_PAGE_SKIP * 8)
-.setEntry:
-	mov dword[edi], ebx
-	add ebx, PAGE_SIZE
-	add edi, 8
-	loop .setEntry
+	;mov edi, SYSTEM_PAGE_TABLE_ADDR + (SYSTEM_PAGE_SKIP * 8)
+	;mov ebx, SYSTEM_PAGE_ADDRESSING_START | 0x03 ;we can use physical memory address 0x00, we don't care about that
+	;mov ecx, PAGE_COUNT - (SYSTEM_PAGE_SKIP * 8)
+;.setEntry:
+;	mov dword[edi], ebx
+;	add ebx, PAGE_SIZE
+;	add edi, 8
+;	loop .setEntry
+
+	mov esi, SYSTEM_PAGE_TABLE_ADDR + ((SYSTEM_PAGE_SKIP) / PAGE_SIZE) * 8
+	mov edi, -24
+	mov ecx, TOTAL_PAGES_REQUIRED
+	.allocatePagesLoop:
+		add edi, 24
+
+		push ds
+		mov ax, 0x28
+		mov ds, ax
+
+		xor eax, eax
+		mov ax, word[SYSTEM_MEMORY_MAP_LEN]
+		cmp eax, edi
+		je .error
+
+		call get_mem_section_page_count
+		cmp eax, 0
+		je .allocatePagesLoop
+
+		sub ecx, eax
+		push ecx
+		mov ecx, eax
+
+		mov ebx, [SYSTEM_MEMORY_MAP + edi + memmap_entry.base]
+		and ebx, 0xfff
+		mov ebx, [SYSTEM_MEMORY_MAP + edi + memmap_entry.base]
+		jz .skipalignAddress
+			and ebx, ~(0xFFF)
+			add ebx, 0x1000
+		.skipalignAddress:
+		push edi
+		mov edi, esi
+		pop ds
+
+		.setPagesLoop:
+			cmp edi, (SYSTEM_PAGE_TABLE_ADDR + ((0x4000000 / 0x1000) * 8))
+			jne .skipHandleScreenMemory
+				push ebx
+				mov ebx, 0xA0000
+			.skipHandleScreenMemory:
+
+			mov [SYSTEM_PAGE_TABLE_ADDR + edi], ebx
+			
+			cmp ebx, 0xA0000
+			jne .skipRestorePhysicalAddress
+				cmp edi, (SYSTEM_PAGE_TABLE_ADDR + ((0xA0000 / 0x1000) * 8))
+				je .skipRestorePhysicalAddress
+				pop ebx
+			.skipRestorePhysicalAddress:
+
+			add ebx, 0x1000
+			add edi, 8
+			loop .setPagesLoop
+		pop edi
+		pop ecx
+		cmp ecx, 0
+		ja .allocatePagesLoop
+
 
 	;mov edi, SYSTEM_PAGE_TABLE_ADDR + (OLD_SCREEN_MEM_ADDR / PAGE_SIZE) * 8
 	;mov ebx, NEW_SCREEN_MEM_ADDR | 0x03
@@ -88,10 +148,77 @@ paging_start:
 
 	lgdt [GDTR64_LOCATION]
 
-	jmp gdt64.code64:.setCS
+	jmp gdt64.code64:setCS
+.error:
+	hlt
+	jmp .error
+;edi: index of the memory block
+;accesses the memory map stored at 0x1000
+;mem_index_to_physical_address:
+;	push ds
+;
+;	mov ecx, -1
+;	mov ax, 0x28 ;memmap segment
+;	mov ds, ax
+;	.lookuploop:
+;		inc ecx
+;		cmp ecx, [SYSTEM_MEMORY_MAP_LEN]
+;		jae .error
+;		mov eax, [SYSTEM_MEMORY_MAP + memmap_entry.memtype + (ecx * memmap_entry_size)]
+;		cmp eax, 1
+;		jne .lookuploop
+;		mov eax, [SYSTEM_MEMORY_MAP + memmap_entry.length]
+;		cmp eax, 0x1000
+;		jb .lookuploop
+;		mov eax, [SYSTEM_MEMORY_MAP + memmap_entry.length]
+;		xor edx, edx
+;		mov esi, 0x1000
+;		div esi
+;		mov esi, eax
+;		mov eax, [SYSTEM_MEMORY_MAP + memmap_entry.base]
+;		and eax, 0xfff
+;		mov eax, [SYSTEM_MEMORY_MAP + memmap_entry.base]
+;		jz .skipAlign:
+;			and eax, ~(0xfff)
+;			add eax, 0x1000
+;			dec esi
+;		.skipAlign:
+;			cmp edi, esi
+;			jae .lookuploop
+
+;rdi: memmap offset
+;returns: rax: page count for the given entry, if the entry doesn't start at a page aligned base, it will count the base, up to the next page alignment, as an invalid page boundary, and as such, will give one less, you need to align your base by force to actually allocate it
+get_mem_section_page_count:
+	push ds
+
+	mov ax, 0x28 ;memmap segment
+	mov ds, ax
+
+	mov eax, [SYSTEM_MEMORY_MAP + edi + memmap_entry.memtype]
+	cmp eax, 1
+	jne .error
+
+	mov eax, [SYSTEM_MEMORY_MAP + edi + memmap_entry.length]
+	mov edx, [SYSTEM_MEMORY_MAP + edi + memmap_entry.length + 4]
+	mov ecx, 0x1000
+	div ecx
+	mov edx, [SYSTEM_MEMORY_MAP + edi + memmap_entry.base]
+	and edx, 0x1000
+	jnz .forceAlign
+	cmp dword[SYSTEM_MEMORY_MAP + edi + memmap_entry.base], 0x1000
+	jae .end
+	cmp dword[SYSTEM_MEMORY_MAP + edi + memmap_entry.base + 4], 0
+	jne .end
+	.forceAlign:
+		dec eax
+	.error:
+		mov eax, 0
+	.end:
+	pop ds
+	ret
 
 bits 64
-.setCS:
+setCS:
 	mov ax, gdt64.data
 	mov ds, ax
 	mov es, ax
@@ -128,7 +255,7 @@ gdt64:
         dw $ - gdt64 - 1
         dq gdt64
 
-PAD_SECTOR(SECTOR_SIZE)
+PAD_SECTOR(SECTOR_SIZE * 2)
 
 ;bits 64
 ;long_mode_test:

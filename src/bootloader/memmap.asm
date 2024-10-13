@@ -1,7 +1,7 @@
 bits 16
 
+%include "bootloader/boot.inc"
 %include "bootloader/memmap.inc"
-
 
 low_mem_size:
 	dw 0
@@ -43,7 +43,8 @@ global memmap_start:function
 		jmp .loop
 	.endloop:
 	cli
-	jmp .infiniteloop
+	;jmp .infiniteloop
+	jmp boot_sector_2_start
 .error:
 	mov di, errorstring
 	call print_str
