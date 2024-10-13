@@ -1,25 +1,45 @@
 %ifndef KEYBOARD_INC
 %define KEYBOARD_INC
 
+%include "standard.inc"
+
 %define PS2_DATA	0x60
 %define PS2_STATUS	0x64
 %define PS2_COMMAND	0x64
 
-%define INPUT_BUFFER_FULL	(1 << 0)
-%define OUTPUT_BUFFER_FULL	(1 << 1)
-%define SYSTEM_FLAG			(1 << 2)
-%define COMMAND_DATA_FLAG	(1 << 3)
-%define UNK1				(1 << 4)
-%define UNK2				(1 << 5)
-%define TIMEOUT_FLAG		(1 << 6)
-%define PARITY_FLAG			(1 << 7)
+%define PS2_STATUS_INPUT_BUFFER_FULL	(1 << 0)
+%define PS2_STATUS_OUTPUT_BUFFER_FULL	(1 << 1)
+%define PS2_STATUS_SYSTEM_FLAG			(1 << 2)
+%define PS2_STATUS_COMMAND_DATA_FLAG	(1 << 3)
+%define PS2_STATUS_UNK1					(1 << 4)
+%define PS2_STATUS_UNK2					(1 << 5)
+%define PS2_STATUS_TIMEOUT_FLAG			(1 << 6)
+%define PS2_STATUS_PARITY_FLAG			(1 << 7)
 
 extern initPS2
-extern keyboardRead
-extern keyboardFlushBuffer
 extern keyboardSetScancodeTable
-extern scancode_complete
+extern keyboardRead
+
+extern update_keyboard_handler
+
+; args : u8 keycode
+; returns : true if 'keycode' is pressed, otherwise false.
+extern is_key_pressed
+
+; args : u8 keycode
+; returns : true if 'keycode' is down, otherwise false.
+extern is_key_down
+
+; args : u8 keycode
+; returns : true if 'keycode' is released, otherwise false.
+extern is_key_released
+
+; args : u8 keycode
+; returns : true if 'keycode' is up, otherwise false.
+extern is_key_up
+
 extern scancode
+extern scancode_complete
 
 %define KEY_ESCAPE			0
 %define KEY_F1				1
@@ -103,4 +123,6 @@ extern scancode
 %define KEY_LEFT			90
 %define KEY_RIGHT			91
 
-%endif
+%define KEY_COUNT			92
+
+%endif ; KEYBOARD_INC

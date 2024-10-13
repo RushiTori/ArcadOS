@@ -1,7 +1,7 @@
 bits 16
 
 %include "bootloader/boot.inc"
-%include "pic.inc"
+%include "bootloader/pic.inc"
 
 section .text
 

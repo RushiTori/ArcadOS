@@ -14,6 +14,7 @@ BOOTLOADER_SRC_FILES:=  $(SRC_DIR)/bootloader/bootloader.asm \
 						$(SRC_DIR)/bootloader/lineA20.asm \
 						$(SRC_DIR)/bootloader/gdt.asm \
 						$(SRC_DIR)/bootloader/paging.asm \
+						$(SRC_DIR)/bootloader/pic.asm \
 						$(SRC_DIR)/bootloader/idt.asm
 
 ENGINE_SRC_FILES:=$(wildcard $(SRC_DIR)/engine/*.asm)

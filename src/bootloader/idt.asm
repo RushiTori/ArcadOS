@@ -2,23 +2,14 @@ bits 64
 
 %include "bootloader/idt.inc"
 %include "bootloader/boot.inc"
+%include "bootloader/pic.inc"
+
 %include "engine/display.inc"
-%include "pic.inc"
+
 %include "main/main.inc"
-%include "keyboard.inc"
-extern memory_mover_start
 
-section .rodata
-
-text_test:
-static text_test:data
-	db "Chirp chirp", 0xa, 0x9, "This seems to work !!", 0
-
-section .bss
-
-keyPressed:
-static keyPressed:data
-	resw 1
+%include "engine/keyboard.inc"
+%include "engine/timer.inc"
 
 section .text
 
@@ -31,7 +22,6 @@ IDT_Setup: ;0x8400
 	mov rsp, 0x7c00
 	mov rbp, rsp
 
-	;jmp main
 
 	mov rcx, 960
 	mov rdi, 0xA0000
@@ -57,115 +47,11 @@ IDT_Setup: ;0x8400
 	mov word[IDTR_START + IDTDescriptor.byteSize], 256 * 8 - 1
 	mov qword[IDTR_START + IDTDescriptor.ptr], IDT_START
 
-	;jmp $
-
 	lidt [IDTR_START]
 	sti
-	;mov rax, 0
-	;div rax
-	;mov byte[0x0], 10
-waitForInterrupt:
-	hlt
-	mov al, [scancode_complete]
-	cmp al, 0
-	je waitForInterrupt
 
-checkUp:
-	mov rax, [scancode]
-	cmp rax, 0x001D
-	jne .checkReleased
+	jmp main
 
-	mov rdi, 0x0A
-	call set_color
-	mov rdi, 0x1 * 8
-	mov rsi, 0x0 * 8
-	mov rdx, 8
-	call draw_square
-
-	jmp checkDown
-.checkReleased:
-	cmp eax, 0xF01D
-	jne checkDown
-
-	mov rdi, 0x02
-	call set_color
-	mov rdi, 0x1 * 8
-	mov rsi, 0x0 * 8
-	mov rdx, 8
-	call draw_square
-
-checkDown:
-	mov rax, [scancode]
-	cmp rax, 0x001B
-	jne .checkReleased
-
-	mov rdi, 0x0A
-	call set_color
-	mov rdi, 0x1 * 8
-	mov rsi, 0x1 * 8
-	mov rdx, 8
-	call draw_square
-
-	jmp checkLeft
-.checkReleased:
-	cmp rax, 0xF01B
-	jne checkLeft
-
-	mov rdi, 0x02
-	call set_color
-	mov rdi, 0x1 * 8
-	mov rsi, 0x1 * 8
-	mov rdx, 8
-	call draw_square
-
-checkLeft:
-	mov rax, [scancode]
-	cmp rax, 0x001C
-	jne .checkReleased
-
-	mov rdi, 0x0A
-	call set_color
-	mov rdi, 0x0 * 8
-	mov rsi, 0x1 * 8
-	mov rdx, 8
-	call draw_square
-
-	jmp checkRight
-.checkReleased:
-	cmp rax, 0xF01C
-	jne checkRight
-
-	mov rdi, 0x02
-	call set_color
-	mov rdi, 0x0 * 8
-	mov rsi, 0x1 * 8
-	mov rdx, 8
-	call draw_square
-
-checkRight:
-	mov rax, [scancode]
-	cmp rax, 0x0023
-	jne .checkReleased
-
-	mov rdi, 0x0A
-	call set_color
-	mov rdi, 0x2 * 8
-	mov rsi, 0x1 * 8
-	mov rdx, 8
-	call draw_square
-
-	jmp waitForInterrupt
-.checkReleased:
-	cmp rax, 0xF023
-	jne waitForInterrupt
-
-	mov rdi, 0x02
-	call set_color
-	mov rdi, 0x2 * 8
-	mov rsi, 0x1 * 8
-	mov rdx, 8
-	call draw_square
-	jmp waitForInterrupt
 ;rdi = offset
 ;rsi = segment selector
 ;rdx = gate type
@@ -521,66 +407,17 @@ interrupt_func0x1F:
 	jmp $
 
 interrupt_func0x20: ;IRQ0 aka system timer
-	push rax	;just in case because i don't know what registers are modified
-	push rbx
-	push rcx
-	push rdx
-	push rdi
-	push rsi
-	push r8
-	push r9
-	push r10
-	push r11
-	push r12
-	push r13
-	push r14
-	push r15
-	push rbp
-	mov rbp, rsp
+	push rax
 
-	mov rdi, 0x20
-	call set_color
-	mov rdi, 0x0 * 8
-	mov rsi, 0x2 * 8
-	mov rdx, 8
-	call draw_square
+	call timerTick
+	mov al, PIC_EOI
+	out PIC1_COMMAND, al
 
-	mov rdi, 0 ;IRQ0
-	call sendEOI_pic64
-
-	mov rsp, rbp
-	pop rbp
-	pop r15
-	pop r14
-	pop r13
-	pop r12
-	pop r11
-	pop r10
-	pop r9
-	pop r8
-	pop rsi
-	pop rdi
-	pop rdx
-	pop rcx
-	pop rbx
 	pop rax
 	iretq
 
 interrupt_func0x21:	;IRQ1 aka keyboard IRQ
-	push rax	;just in case because i don't know what registers are modified
-	push rbx
-	push rcx
-	push rdx
-	push rdi
-	push rsi
-	push r8
-	push r9
-	push r10
-	push r11
-	push r12
-	push r13
-	push r14
-	push r15
+	push_all
 	push rbp
 	mov rbp, rsp
 
@@ -598,20 +435,7 @@ interrupt_func0x21:	;IRQ1 aka keyboard IRQ
 
 	mov rsp, rbp
 	pop rbp
-	pop r15
-	pop r14
-	pop r13
-	pop r12
-	pop r11
-	pop r10
-	pop r9
-	pop r8
-	pop rsi
-	pop rdi
-	pop rdx
-	pop rcx
-	pop rbx
-	pop rax
+	pop_all
 	iretq	;this is how we return from an interrupt in long mode
 
 interrupt_func0x22:
