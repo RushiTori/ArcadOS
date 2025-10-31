@@ -1,44 +1,41 @@
 %ifndef IDT_INC
 %define IDT_INC
 
-struc IDTDescriptor
+struc IDTDescriptor32
 	.byteSize: resw 1
-	.ptr: resq 1
+	.ptr: resd 1
 endstruc
 
-struc IDTGateDescriptor
+struc IDTGateDescriptor32
 	.offset_0: resw 1
 	.seg_sel: resw 1
-	.IST: resb 1
+    .reserved: resb 1
 	.gate_type_dpl: resb 1
 	.offset_1: resw 1
-	.offset_2: resd 1
-	.reserved: resd 1
 endstruc
 
-%define IDTR_START	0x010000
-%define IDT_START	0x020000
+%define IDTR_START	0x040000
+%define IDT_START	0x04000A
+
+%define GATE_P 0x8000
 
 %define GATE_TYPE_TASK 0x5
 %define GATE_TYPE_ISR_16 0x6
 %define GATE_TYPE_TRAP_16 0x7
 %define GATE_TYPE_ISR_32 0xE
 %define GATE_TYPE_TRAP_32 0xF
-%define GATE_TYPE_ISR_64 0xE
-%define GATE_TYPE_TRAP_64 0xF
 
-%define LGATE_DESCRIPTOR_LO(offset, segment, ist, type, dpl) ((offset) & 0xFFFF) \
+%define LGATE_DESCRIPTOR_LO32(offset, segment, type, dpl) ((offset) & 0xFFFF) \
 														| (((segment) & 0xFFFF) << 16) \
-														| (((ist) & 0x7) << 32) \
 														| (((type) & 0xF) << 40) \
 														| (((dpl) & 0x3) << 45) \
-														| (1 << 37) \
+														| (1 << 47) \
 
-%define LGATE_DESCRIPTOR_HI(offset) (((offset) & 0xFFFFFFFFFFFF0000) >> 16)
+%define LGATE_DESCRIPTOR_HI32(offset) ((((offset) & 0xFFFFFFFFFFFF0000) << 48) >> 16)
 
-%macro DEFINE_LGATE_DESCRIPTOR 5
-	dq LGATE_DESCRIPTOR_LO(%1, %2, %3, %4, %5)
-	dq LGATE_DESCRIPTOR_HI(%1)
+%macro DEFINE_LGATE_DESCRIPTOR32 5
+	dq LGATE_DESCRIPTOR_LO32(%1, %2, %3, %4, %5)
+	dq LGATE_DESCRIPTOR_HI32(%1)
 %endmacro
 
 %define TRAP_DIVBYZERO				0x00

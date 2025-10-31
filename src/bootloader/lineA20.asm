@@ -14,12 +14,14 @@ boot_sector_2_start:
 	call print_str
 	jmp $
 	.skip_fail_msg:
-	
+
 	; Here the lineA20 is enabled and we can jump to enable 32bits protected mode
 	jmp boot_sector_3_start
 
 A20_fail_msg:
 	db "Line A20 has failed !", 10, 13, 0
+A20_success_msg:
+	db "Line A20 has succeded !", 10, 13, 0
 
 print_str:
 	push bp
@@ -212,5 +214,3 @@ enable_a20_keyboard_controller:
 	test al, 1
 	jz .wait_io2
 	ret
-
-PAD_SECTOR(SECTOR_SIZE)

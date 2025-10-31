@@ -9,13 +9,15 @@ INC_DIR:=include
 SRC_DIR:=src
 OBJ_DIR:=objs
 
+MIN_FILE_SIZE:=33280
+
 BOOTLOADER_SRC_FILES:=  $(SRC_DIR)/bootloader/bootloader.asm \
 						$(SRC_DIR)/bootloader/memmap.asm \
 						$(SRC_DIR)/bootloader/lineA20.asm \
 						$(SRC_DIR)/bootloader/gdt.asm \
-						$(SRC_DIR)/bootloader/paging.asm \
 						$(SRC_DIR)/bootloader/pic.asm \
-						$(SRC_DIR)/bootloader/idt.asm
+						$(SRC_DIR)/bootloader/idt32.asm \
+						$(SRC_DIR)/bootloader/paging.asm \
 
 ENGINE_SRC_FILES:=$(wildcard $(SRC_DIR)/engine/*.asm)
 
@@ -54,6 +56,9 @@ $(NAME):$(OBJ_FILES)
 	@echo Linking $@.text $@.data and $@.rodata into $@.img
 	@cat $@.text $@.data $@.rodata > $@.img
 
+	@echo truncating $@.img to minimum of $(MIN_FILE_SIZE) bytes
+	@truncate $@.img --size=">$(MIN_FILE_SIZE)"
+
 -include $(DEP_FILES)
 $(OBJ_DIR)/%.obj:$(SRC_DIR)/%.asm
 	@echo Compiling $< into $@
@@ -61,13 +66,16 @@ $(OBJ_DIR)/%.obj:$(SRC_DIR)/%.asm
 	@$(COMP) $(COMP_FLAGS) -i $(INC_DIR)/ $< -M -MF $(@:.obj=.dep) -MT $@
 	@$(COMP) $(COMP_FLAGS) -i $(INC_DIR)/ $< -o $@
 
+burn:
+	sudo dd if=$(NAME).img of=/dev/sda
+
 start:
-	qemu-system-x86_64 -drive file=$(NAME).img,format=raw
+	qemu-system-x86_64 -drive file=$(NAME).img,format=raw -M accel=tcg,smm=off -d int -no-reboot -no-shutdown
 
 restart: build start
 
 debug:
-	qemu-system-x86_64 -drive file=$(NAME).img,format=raw -s -S
+	qemu-system-x86_64 -drive file=$(NAME).img,format=raw -M accel=tcg,smm=off -d int -no-reboot -no-shutdown -monitor stdio
 
 redebug: build debug
 

@@ -1,7 +1,7 @@
 bits 16
 
+%include "bootloader/boot.inc"
 %include "bootloader/memmap.inc"
-
 
 low_mem_size:
 	dw 0
@@ -22,7 +22,9 @@ global memmap_start:function
 		mov ecx, 24
 		mov edx, 0x534D4150
 		int 0x15
+
 		jc .error
+
 		inc word[BUF_LEN_ADDR]
 		add di, MEM_ENTRY_SIZE
 		cmp ebx, 0
@@ -43,7 +45,7 @@ global memmap_start:function
 		jmp .loop
 	.endloop:
 	cli
-	jmp .infiniteloop
+	jmp boot_sector_2_start
 .error:
 	mov di, errorstring
 	call print_str
@@ -83,7 +85,7 @@ print_entry:
 	mov di, typestr
 	call print_str
 	mov ax, [si + 16]
-	cmp ax, 1
+	cmp ax, MEMMAP_ID_USABLE
 	jne .skipusablemem
 
 	mov di, usablestr
@@ -91,7 +93,7 @@ print_entry:
 	jmp .endswitch
 .skipusablemem:
 
-	cmp ax, 2
+	cmp ax, MEMMAP_ID_RESERVED ;MEMMAP_ID_RESERVED
 	jne .skipreservedmem
 
 	mov di, reservedstr
@@ -99,7 +101,7 @@ print_entry:
 	jmp .endswitch
 .skipreservedmem:
 	
-	cmp ax, 3
+	cmp ax, MEMMAP_ID_ACPI_RECLAIMED
 	jne .skipACPIreclaimed
 
 	mov di, acpireclaimedstr
@@ -107,14 +109,14 @@ print_entry:
 	jmp .endswitch
 .skipACPIreclaimed:
 	
-	cmp ax, 4
+	cmp ax, MEMMAP_ID_ACPI_NVS
 	jne .skipACPINVS
 
 	mov di, acpinvsstr
 	call print_str
 	jmp .endswitch
 .skipACPINVS:
-
+	;else it must be bad memory
 	mov di, badmemorystr
 	call print_str
 .endswitch:

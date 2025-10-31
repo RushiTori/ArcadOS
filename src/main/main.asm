@@ -179,6 +179,7 @@ static draw_system_time:function
 
 main:
 global main:function
+
 	mov rax, cr0
 	and ax, 0xFFFB		;clear coprocessor emulation CR0.EM
 	or ax, 0x2			;set coprocessor monitoring  CR0.MP
