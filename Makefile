@@ -14,7 +14,7 @@ MIN_FILE_SIZE:=33280
 BOOTLOADER_SRC_FILES:=  $(SRC_DIR)/bootloader/bootloader.asm \
 						$(SRC_DIR)/bootloader/memmap.asm \
 						$(SRC_DIR)/bootloader/lineA20.asm \
-						$(SRC_DIR)/bootloader/gdt.asm \
+						$(SRC_DIR)/bootloader/gdt32.asm \
 						$(SRC_DIR)/bootloader/pic.asm \
 						$(SRC_DIR)/bootloader/idt32.asm \
 						$(SRC_DIR)/bootloader/paging.asm \
