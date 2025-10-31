@@ -189,6 +189,16 @@ global main:function
 	mov cr4, rax
 	; WIP
 	call memory_mover_start
+
+	mov rdi, 0x02
+	call set_color
+
+	call clear_screen
+
+	mov [0], rax
+
+	jmp $
+
 	mov rbx, fps
 	call init_PIT
 	call create_timer

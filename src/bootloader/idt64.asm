@@ -3,6 +3,8 @@ bits 64
 %include "bootloader/boot.inc"
 %include "bootloader/idt64.inc"
 
+%include "string.inc"
+
 %include "bootloader/pic.inc"
 
 %include "engine/display.inc"
@@ -12,7 +14,7 @@ bits 64
 %include "engine/keyboard.inc"
 %include "engine/timer.inc"
 
-%define STACK_START                   0x00020000
+%define STACK_START                   0x0009FFFF ;lotsa memory to grow down from here
 %define TEXT_ADDR_START               0xB8000
 
 
@@ -137,11 +139,6 @@ idt64_SetGate:
 	shr rdi, 1 ;preserve rdi value to avoid needing stack
 	ret
 
-
-idt64_cursor:
-static idt64_cursor:data
-	dq TEXT_ADDR_START
-
 ; String Literals
 idt64_hexdigits:
 static idt64_hexdigits:data
@@ -151,58 +148,58 @@ static idt64_bindigits:data
 	
 equal_msg:
 	static equal_msg:data
-		db " = "
+		db " = ", 0
 .end: 
-%define equal_msg_len (equal_msg.end - equal_msg)
+%define equal_msg_len (equal_msg.end - equal_msg - 1)
 
 ; Register Names
 %define REG_NAME_LEN 3
 
 reg_RIP_name:
 	static reg_RIP_name:data
-		db "RIP"
+		db "RIP", 0
 reg_RAX_name:
 	static reg_RAX_name:data
-		db "RAX"
+		db "RAX", 0
 reg_RBX_name:
 	static reg_RBX_name:data
-		db "RBX"
+		db "RBX", 0
 reg_RCX_name:
 	static reg_RCX_name:data
-		db "RCX"
+		db "RCX", 0
 reg_RDX_name:
 	static reg_RDX_name:data
-		db "RDX"
+		db "RDX", 0
 reg_RSI_name:
 	static reg_RSI_name:data
-		db "RSI"
+		db "RSI", 0
 reg_RDI_name:
 	static reg_RDI_name:data
-		db "RDI"
+		db "RDI", 0
 reg_RSP_name:
 	static reg_RSP_name:data
-		db "RSP"
+		db "RSP", 0
 reg_RBP_name:
 	static reg_RBP_name:data
-		db "RBP"
+		db "RBP", 0
 reg_CS_name:
 	static reg_CS_name:data
-		db " CS"
+		db " CS", 0
 reg_DS_name:
 	static reg_DS_name:data
-		db " DS"
+		db " DS", 0
 reg_SS_name:
 	static reg_SS_name:data
-		db " SS"
+		db " SS", 0
 reg_ES_name:
 	static reg_ES_name:data
-		db " ES"
+		db " ES", 0
 reg_FS_name:
 	static reg_FS_name:data
-		db " FS"
+		db " FS", 0
 reg_GS_name:
 	static reg_GS_name:data
-		db " GS"
+		db " GS", 0
 
 ; Register Banks
 reg_RIP_bank:
@@ -259,663 +256,327 @@ idt64_buffer:
 static idt64_buffer: data
 resb   IDT64_BUFFER_LEN
 
-; void idt64_putchar(char toPut);
-;
-; toPut: rdi
-idt64_putchar:
-static idt64_putchar: function
-	mov rsi, qword [idt64_cursor]
-
-	cmp rdi, 0xA ; '\n'
-	je  .crnl
-
-	mov rax, rdi ;dil doesn't exist in 32 bits so write to rax, and use al for the character
-	
-	mov byte [rsi],           al
-	;mov byte [rsi + 1],       TEXT_COLOR_WHITE
-	add rsi,                  TEXT_CHAR_DATA_WIDTH_IN_BYTES
-	mov qword [idt64_cursor], rsi
-	jmp .end
-	
-	.crnl:
-		mov rdx, 0
-		mov rax, rsi
-		sub rax, TEXT_ADDR_START
-		mov rcx, TEXT_WIDTH_IN_BYTES
-		div rcx
-		mov rax, rdx
-		sub rcx, rax
-
-		add rsi, rcx
-
-		mov qword[idt64_cursor], rsi
-		jmp .end
-	.end:
-	ret
-
-idt64_disable_cursor:
-static idt64_disable_cursor: function
-	mov dx, 0x3D4
-	mov al, 0x0A
-	out dx, al
-	mov dx, 0x3D5
-	mov al, 0x20
-	out dx, al
-	ret
-	
-;al: color code (bit 7 is blink, bit 4 - 6 are background color, bit 0 - 3 are foreground color)
-idt64_clrscrn:
-static idt64_clrscrn: function
-	shl ax, 8
-	
-	mov rcx, TEXT_WIDTH_IN_BYTES * 25
-	mov rdi, 0
-	.clearLoop:
-		mov word[TEXT_ADDR_START + rdi * 2], ax
-		inc rdi
-		loop .clearLoop
-	ret
-
-; void idt64_putnl(void);
-idt64_putnl:
-static idt64_putnl: function
-	mov rdi, 0xA
-	jmp idt64_putchar
-
-; void idt64_putnchar(char* toPut, uint32_t n);
-;
-; toPut: rdi
-; n:     rsi
-idt64_putnchar:
-static idt64_putnchar: function
-	mov rcx, rsi
-	mov rdx, rdi
-
-	.put_loop:
-		movzx  rdi, byte [rdx]
-		call idt64_putchar
-		inc  rdx
-		loop .put_loop
-
-	ret
-
-; void idt64_putchar_repeat(char toPut, uint32_t n);
-;
-; toPut: rdi
-; n:     rsi
-idt64_putchar_repeat:
-static idt64_putchar_repeat: function
-	mov rcx, rsi
-
-	.put_loop:
-		call idt64_putchar
-		loop .put_loop
-
-	ret
-
 ; void idt64_puthex(uint32_t toPut, uint32_t n);
 ;
-; toPut: rdi
-; rsi: n (if there are more characters to print than the value of n, it's UB)
-idt64_puthex:
-static idt64_puthex: function
-	mov rdx, idt64_buffer
+; x: rdi
+; y: rsi
+; toPut: rdx
+; n: rcx
+idt64_puthex_gfx:
+static idt64_puthex_gfx: function
+	mov byte [idt64_buffer],     '0'
+	mov byte [idt64_buffer + 1], 'x'
 
-	mov byte [rdx],     '0'
-	mov byte [rdx + 1], 'x'
-	
-	add rdx, 2
-	add rdx, rsi
-
-	mov rcx, rsi
 	.cvt_loop:
-		mov rax,  rdi
+		mov rax,  rdx
 		and rax, 0xF
 
 		mov al, byte [idt64_hexdigits + rax]
-		mov byte [idt64_buffer + rcx + 2 - 1], al
+		mov byte [idt64_buffer + rcx + 2 - 1], al ;add 2 for the prefix, remove 1 because rcx gets decremented only when the instruction loop is executed
 
-		shr  rdi, 4
+		shr  rdx, 4
 		loop .cvt_loop
 
-	mov  rdi, idt64_buffer
-	add  rsi, 2
-	call idt64_putnchar
+	;rdi already set
+	;rsi already set
+	mov  rdx, idt64_buffer
+	
+	call idt64_draw_text_and_shadow
+	
 	ret
 
 ; void idt64_putbin(uint32_t toPut);
 ;
-; toPut: rdi
-idt64_putbin:
-static idt64_putbin: function
-	mov rdx, idt64_buffer
+; x: rdi
+; y: rsi
+; toPut: rdx
+; n: rcx
+; ruins the value of rax, rcx, r8 and anything draw_text ruins
+idt64_putbin_gfx:
+static idt64_putbin_gfx: function
+	mov r8, idt64_buffer
 
 	mov byte [rdx],     '0'
 	mov byte [rdx + 1], 'b'
 	
-	add rdx, 2
-	add rdx, rsi
-
-	mov rcx, rsi
+	add r8, 2
+	add r8, rcx
 	.cvt_loop:
-		mov rax,  rdi
+		mov rax,  rdx
 		and rax, 0b1
 
 		mov al, byte [idt64_bindigits + rax]
-		mov byte [idt64_buffer + rcx + 2 - 1], al ;add 2 for the prefix, remove 1 because rcx gets decremented only when the instruction loop is executed
+		mov byte [idt64_buffer + r8 + 2 - 1], al ;add 2 for the prefix, remove 1 because rcx gets decremented only when the instruction loop is executed
 
-		shr  rdi, 1
+		shr  rdx, 1
 		loop .cvt_loop
 
-	mov  rdi, idt64_buffer
-	add  rsi, 2
-	call idt64_putnchar
+	;rdi already set
+	;rsi already set
+	mov  rdx, idt64_buffer
+	call idt64_draw_text_and_shadow
+	
 	ret
 
 
 ; void idt64_putreg(char* name, uint32_t* bank, uint32_t n);
 ;
-; name: rdi
-; bank: rsi
-; n:    rcx
-idt64_putreg:
-static idt64_putreg: function
-	push rsi ; Storing the arguments for later
-	push rcx
 
-	mov  rsi, REG_NAME_LEN ; Putting the reg name
-	call idt64_putnchar
+; x: rdi
+; y: rsi
+; name: rdx
+; bank: rcx
+idt64_putreg_gfx:
+static idt64_putreg_gfx: function
+	push rbp
+	mov rbp, rsp
+	sub rsp, 0x8 * 5
+	mov [rbp], rdi        ;x
+	mov [rbp - 0x8], rsi  ;y
+	mov [rbp - 0x10], rdx ;name
+	mov [rbp - 0x18], rcx ;bank
 
-	mov  rdi, equal_msg
-	mov  rsi, equal_msg_len
-	call idt64_putnchar     ; Putting the " = " string
-
-
-	pop rsi
-	pop rdi
-	mov rdi, qword [rdi]
 	
-	call idt64_puthex
+	call idt64_draw_text_and_shadow
 
-	; TODO: call puthex(*bank, n)
+	mov rdi, [rbp - 0x10]
+	call strlen
+	shl rax, 3 ;mul by 8 because 1 char is 8 pixels
+
+	mov rdi, [rbp - 0]
+	add rdi, rax
+	mov [rbp - 0], rdi
+	mov rsi, [rbp - 0x8]
+	mov rdx, equal_msg
+	call idt64_draw_text_and_shadow ; Putting the " = " string
+
+
+	mov rdi, equal_msg
+	call strlen
+	shl rax, 3 ;mul by 8 because 1 char is 8 pixels
+	
+	mov rdi, [rbp - 0]
+	add rdi, rax
+	;no need to store it back
+	mov rsi, [rbp - 0x8]
+	mov rdx, [rbp - 0x18]
+	mov rdx, [rdx]
+	mov rcx, 8 * 2 ;one byte is 2 hex digits, we want 8 bytes for 64 bits
+	call idt64_puthex_gfx
+
+	add rsp, 0x8 * 5
+	pop rbp
 	ret
 
 idt64_fault_string:
-	db "fault occured at "
+	db "fault occured", 0
+.end:	
+%define idt64_fault_string_len (idt64_fault_string.end - idt64_fault_string)
+
+idt64_occured_string:
+	db " occured", 0
 .end:	
 %define idt64_fault_string_len (idt64_fault_string.end - idt64_fault_string)
 idt64_allpurposereg_string:
-	db "    All-Purpose Regs    "
+	db "All-Purpose Regs", 0
 .end:	
 %define idt64_allpurposereg_string_len (idt64_allpurposereg_string.end - idt64_allpurposereg_string)
 idt64_segmentregs_string:
-	db "      Segment Regs      "
+	db "Segment Regs", 0
 .end:	
 %define idt64_segmentregs_string_len (idt64_segmentregs_string.end - idt64_segmentregs_string)
 idt64_signature_string:
-	db "      By RushiTori      "
+	db "By RushiTori", 0
 .end:	
 %define idt64_signature_string_len (idt64_signature_string.end - idt64_signature_string)
 idt64_errorcode_string:
-	db "Error Code: "
+	db "Error Code", 0
 .end:	
 %define idt64_errorcode_string_len (idt64_errorcode_string.end - idt64_errorcode_string)
 idt64_noerrorcode_string:
-	db "           No Error Code          "
+	db "No Error Code", 0
 .end:	
-%define idt64_noerrorcode_string_len (idt64_noerrorcode_string.end - idt64_noerrorcode_string)
+%define idt64_noerrorcode_string_len (idt64_noerrorcode_string.end - idt64_noerrorcode_string - 1) ;removing one for the null terminator
 
+;rdi: x
+;rsi: y
+;rdx: str
+idt64_draw_text_and_shadow:
+static idt64_draw_text_and_shadow:function
+	push rdi
+	push rsi
+	push rdx
+	call draw_text_shadow
+
+	pop rdx
+	pop rsi
+	pop rdi
+	call draw_text
+
+	ret
+	
 
 ;rdi: 1 = error code, 0 = no error code
-idt64_regdump:
-static idt64_regdump:function
+;rsi: exception string pointer
+idt64_regdump_gfx_mode:
+static idt64_regdump_gfx_mode:function
 	push rdi
-
-
-	call idt64_disable_cursor
-
-	mov al, 0x1F ;background blue, foreground white
-	call idt64_clrscrn
-
-	; Putting line 0
-	mov  rdi, '='
-	mov  rsi, IDT64_TRAP64_WIREFRAME_WIDTH
-	call idt64_putchar_repeat
-
-	call idt64_putnl
-
-	mov rdi, '|'
-	mov rsi, 2
-	call idt64_putchar_repeat
-
-	mov rdi, ' '
-	mov rsi, 4
-	call idt64_putchar_repeat
-
-	mov rdi, idt64_fault_string
-	mov rsi, idt64_fault_string_len
-	call idt64_putnchar
-
-	mov rdi, reg_RIP_name
-	mov rsi, reg_RIP_bank
-	mov rcx, 16
-	call idt64_putreg
-
-	mov rdi, ' '
-	mov rsi, 5
-	call idt64_putchar_repeat
-
-	mov rdi, '|'
-	mov rsi, 2
-	call idt64_putchar_repeat
-
-	call idt64_putnl
-
-
-	;putting line 1
-	mov rdi, '|'
-	mov rsi, 2
-	call idt64_putchar_repeat
-
-	mov  rdi, '='
-	mov  rsi, IDT64_TRAP64_WIREFRAME_WIDTH - 4
-	call idt64_putchar_repeat
-
-	mov rdi, '|'
-	mov rsi, 2
-	call idt64_putchar_repeat
-
-	call idt64_putnl
-
-
-	;putting line 2
-	mov rdi, '|'
-	mov rsi, 2
-	call idt64_putchar_repeat
-
-	mov rdi, idt64_allpurposereg_string
-	mov rsi, idt64_allpurposereg_string_len
-	call idt64_putnchar
-
-	mov rdi, '|'
-	mov rsi, 2
-	call idt64_putchar_repeat
-
-	mov rdi, idt64_segmentregs_string
-	mov rsi, idt64_segmentregs_string_len
-	call idt64_putnchar
-
-	mov rdi, '|'
-	mov rsi, 2
-	call idt64_putchar_repeat
-
-	call idt64_putnl
-
-
-	;putting line 3
-	mov rdi, '|'
-	mov rsi, 2
-	call idt64_putchar_repeat
-
-	mov rdi, ' '
-	mov rsi, (IDT64_TRAP64_WIREFRAME_WIDTH - 6)/2
-	call idt64_putchar_repeat
-
-	mov rdi, '|'
-	mov rsi, 2
-	call idt64_putchar_repeat
-
-	mov rdi, ' '
-	mov rsi, (IDT64_TRAP64_WIREFRAME_WIDTH - 6)/2
-	call idt64_putchar_repeat
-
-	mov rdi, '|'
-	mov rsi, 2
-	call idt64_putchar_repeat
-
-	call idt64_putnl
-
-
-	
-	;RAX and CS on line 4
-	mov rdi, '|'
-	mov rsi, 2
-	call idt64_putchar_repeat
-
-	mov rdi, reg_RAX_name
-	mov rsi, reg_RAX_bank
-	mov rcx, 16
-	call idt64_putreg
-
-	mov rdi, '|'
-	mov rsi, 2
-	call idt64_putchar_repeat
-
-	mov rdi, ' '
-	mov rsi, 6
-	call idt64_putchar_repeat
-
-	mov rdi, reg_CS_name
-	mov rsi, reg_CS_bank
-	mov rcx, 4
-	call idt64_putreg
-
-	mov rdi, ' '
-	mov rsi, 6
-	call idt64_putchar_repeat
-
-	mov rdi, '|'
-	mov rsi, 2
-	call idt64_putchar_repeat
-
-	call idt64_putnl
-
-
-
-	;RBX and DS on line 5
-	mov rdi, '|'
-	mov rsi, 2
-	call idt64_putchar_repeat
-
-	mov rdi, reg_RBX_name
-	mov rsi, reg_RBX_bank
-	mov rcx, 16
-	call idt64_putreg
-
-	mov rdi, '|'
-	mov rsi, 2
-	call idt64_putchar_repeat
-
-	mov rdi, ' '
-	mov rsi, 6
-	call idt64_putchar_repeat
-
-	mov rdi, reg_DS_name
-	mov rsi, reg_DS_bank
-	mov rcx, 4
-	call idt64_putreg
-
-	mov rdi, ' '
-	mov rsi, 6
-	call idt64_putchar_repeat
-
-	mov rdi, '|'
-	mov rsi, 2
-	call idt64_putchar_repeat
-
-	call idt64_putnl
-
-
-
-	;RCX and SS on line 6
-	mov rdi, '|'
-	mov rsi, 2
-	call idt64_putchar_repeat
-
-	mov rdi, reg_RCX_name
-	mov rsi, reg_RCX_bank
-	mov rcx, 16
-	call idt64_putreg
-
-	mov rdi, '|'
-	mov rsi, 2
-	call idt64_putchar_repeat
-
-	mov rdi, ' '
-	mov rsi, 6
-	call idt64_putchar_repeat
-
-	mov rdi, reg_SS_name
-	mov rsi, reg_SS_bank
-	mov rcx, 4
-	call idt64_putreg
-
-	mov rdi, ' '
-	mov rsi, 6
-	call idt64_putchar_repeat
-
-	mov rdi, '|'
-	mov rsi, 2
-	call idt64_putchar_repeat
-
-	call idt64_putnl
-
-
-
-	;RDX and ES on line 7
-	mov rdi, '|'
-	mov rsi, 2
-	call idt64_putchar_repeat
-
-	mov rdi, reg_RDX_name
-	mov rsi, reg_RDX_bank
-	mov rcx, 16
-	call idt64_putreg
-
-	mov rdi, '|'
-	mov rsi, 2
-	call idt64_putchar_repeat
-
-	mov rdi, ' '
-	mov rsi, 6
-	call idt64_putchar_repeat
-
-	mov rdi, reg_ES_name
-	mov rsi, reg_ES_bank
-	mov rcx, 4
-	call idt64_putreg
-
-	mov rdi, ' '
-	mov rsi, 6
-	call idt64_putchar_repeat
-
-	mov rdi, '|'
-	mov rsi, 2
-	call idt64_putchar_repeat
-
-	call idt64_putnl
-
-
-
-	;RSI and FS on line 8
-	mov rdi, '|'
-	mov rsi, 2
-	call idt64_putchar_repeat
-
-	mov rdi, reg_RSI_name
-	mov rsi, reg_RSI_bank
-	mov rcx, 16
-	call idt64_putreg
-
-	mov rdi, '|'
-	mov rsi, 2
-	call idt64_putchar_repeat
-
-	mov rdi, ' '
-	mov rsi, 6
-	call idt64_putchar_repeat
-
-	mov rdi, reg_FS_name
-	mov rsi, reg_FS_bank
-	mov rcx, 4
-	call idt64_putreg
-
-	mov rdi, ' '
-	mov rsi, 6
-	call idt64_putchar_repeat
-
-	mov rdi, '|'
-	mov rsi, 2
-	call idt64_putchar_repeat
-
-	call idt64_putnl
-
-
-
-	;RDI and GS on line 9
-	mov rdi, '|'
-	mov rsi, 2
-	call idt64_putchar_repeat
-
-	mov rdi, reg_RDI_name
-	mov rsi, reg_RDI_bank
-	mov rcx, 16
-	call idt64_putreg
-
-	mov rdi, '|'
-	mov rsi, 2
-	call idt64_putchar_repeat
-
-	mov rdi, ' '
-	mov rsi, 6
-	call idt64_putchar_repeat
-
-	mov rdi, reg_GS_name
-	mov rsi, reg_GS_bank
-	mov rcx, 4
-	call idt64_putreg
-
-	mov rdi, ' '
-	mov rsi, 6
-	call idt64_putchar_repeat
-
-	mov rdi, '|'
-	mov rsi, 2
-	call idt64_putchar_repeat
-
-	call idt64_putnl
-
-
-
-	;RSP on line 10
-	mov rdi, '|'
-	mov rsi, 2
-	call idt64_putchar_repeat
-
-	mov rdi, reg_RSP_name
-	mov rsi, reg_RSP_bank
-	mov rcx, 16
-	call idt64_putreg
-
-	mov rdi, '|'
-	mov rsi, 2
-	call idt64_putchar_repeat
-
-	mov rdi, ' '
-	mov rsi, (IDT64_TRAP64_WIREFRAME_WIDTH - 6)/2
-	call idt64_putchar_repeat
-
-	mov rdi, '|'
-	mov rsi, 2
-	call idt64_putchar_repeat
-
-	call idt64_putnl
-
-
-
-	;RBP on line 11
-	mov rdi, '|'
-	mov rsi, 2
-	call idt64_putchar_repeat
-
-	mov rdi, reg_RBP_name
-	mov rsi, reg_RBP_bank
-	mov rcx, 16
-	call idt64_putreg
-
-	mov rdi, '|'
-	mov rsi, 2
-	call idt64_putchar_repeat
-
-	mov rdi, idt64_signature_string
-	mov rsi, idt64_signature_string_len
-	call idt64_putnchar
-
-	mov rdi, '|'
-	mov rsi, 2
-	call idt64_putchar_repeat
-
-	call idt64_putnl
-
-
-	;putting line 12
-	mov rdi, '|'
-	mov rsi, 2
-	call idt64_putchar_repeat
-
-	mov  rdi, '='
-	mov  rsi, IDT64_TRAP64_WIREFRAME_WIDTH - 4
-	call idt64_putchar_repeat
-
-	mov rdi, '|'
-	mov rsi, 2
-	call idt64_putchar_repeat
-
-	call idt64_putnl
-
-
-	;putting line 13
-	mov rdi, '|'
-	mov rsi, 2
-	call idt64_putchar_repeat
-
-	mov rdi, idt64_errorcode_string
-	mov rsi, idt64_errorcode_string_len
-	call idt64_putnchar
-
-	mov rdi, ' '
-	mov rsi,  IDT64_TRAP64_WIREFRAME_WIDTH - 4 - idt64_errorcode_string_len
-	call idt64_putchar_repeat
-
-	mov rdi, '|'
-	mov rsi, 2
-	call idt64_putchar_repeat
-
-	call idt64_putnl
-
-
-	;putting line 14 (conditional for whether there is an error code or not too)
-	mov rdi, '|'
-	mov rsi, 2
-	call idt64_putchar_repeat
-
-	mov rdi, ' '
-	mov rsi, 8
-	call idt64_putchar_repeat
-
+	push rsi
+
+	mov rdi, 0x01
+	call set_color
+
+	call clear_screen
+
+	mov rdi, 0x0F
+	call set_color
+
+	mov rdi, 0
+	mov rsi, 0
+	pop rdx
+	cmp rdx, 0
+	mov rax, 0
+	je .skipPrintExceptionCode
+	push rdx
+	call idt64_draw_text_and_shadow
+
+	pop rdi
+	call strlen
+	shl rax, 3 ;multiply by 8
+	add rax, 8 ;add one character of spacing
+
+	.skipPrintExceptionCode:
+	mov rdi, rax
+	mov rsi, 0
+	mov rdx, idt64_fault_string
+	call idt64_draw_text_and_shadow
+
+	;putting an empty line for clarity
+
+	mov rdi, 0
+	mov rsi, 16
+	mov rdx, reg_RIP_name
+	mov rcx, reg_RIP_bank
+	call idt64_putreg_gfx
+
+	;putting an empty line for clarity
+
+	mov rdi, 0
+	mov rsi, 32
+	mov rdx, reg_RAX_name
+	mov rcx, reg_RAX_bank
+	call idt64_putreg_gfx
+
+	mov rdi, 0
+	mov rsi, 40
+	mov rdx, reg_RBX_name
+	mov rcx, reg_RBX_bank
+	call idt64_putreg_gfx
+
+	mov rdi, 0
+	mov rsi, 48
+	mov rdx, reg_RCX_name
+	mov rcx, reg_RCX_bank
+	call idt64_putreg_gfx
+
+	mov rdi, 0
+	mov rsi, 56
+	mov rdx, reg_RDX_name
+	mov rcx, reg_RDX_bank
+	call idt64_putreg_gfx
+
+	mov rdi, 0
+	mov rsi, 64
+	mov rdx, reg_RDI_name
+	mov rcx, reg_RDI_bank
+	call idt64_putreg_gfx
+
+	mov rdi, 0
+	mov rsi, 72
+	mov rdx, reg_RSI_name
+	mov rcx, reg_RSI_bank
+	call idt64_putreg_gfx
+
+	mov rdi, 0
+	mov rsi, 80
+	mov rdx, reg_RBP_name
+	mov rcx, reg_RBP_bank
+	call idt64_putreg_gfx
+
+	mov rdi, 0
+	mov rsi, 88
+	mov rdx, reg_RSP_name
+	mov rcx, reg_RSP_bank
+	call idt64_putreg_gfx
+
+	;putting an empty line for clarity
+
+	mov rdi, 0
+	mov rsi, 104
+	mov rdx, reg_CS_name
+	mov rcx, reg_CS_bank
+	call idt64_putreg_gfx
+
+	mov rdi, 0
+	mov rsi, 112
+	mov rdx, reg_DS_name
+	mov rcx, reg_DS_bank
+	call idt64_putreg_gfx
+
+	mov rdi, 0
+	mov rsi, 120
+	mov rdx, reg_SS_name
+	mov rcx, reg_SS_bank
+	call idt64_putreg_gfx
+
+	mov rdi, 0
+	mov rsi, 128
+	mov rdx, reg_ES_name
+	mov rcx, reg_ES_bank
+	call idt64_putreg_gfx
+
+	mov rdi, 0
+	mov rsi, 136
+	mov rdx, reg_FS_name
+	mov rcx, reg_FS_bank
+	call idt64_putreg_gfx
+
+	mov rdi, 0
+	mov rsi, 144
+	mov rdx, reg_GS_name
+	mov rcx, reg_GS_bank
+	call idt64_putreg_gfx
+
+	;putting empty line
 	pop rdi
 	cmp rdi, 0
 	je .noErrorCode
 
-		mov rdi, qword [Error_Code_bank]
-		mov rsi, 32
-		call idt64_putbin
+	.errorCode:
+		mov rdi, 0
+		mov rsi, 160
+		mov rdx, idt64_errorcode_string
+		mov rcx, Error_Code_bank
+		call idt64_putreg_gfx
 		jmp .endErrorCode
-
 	.noErrorCode:
+		mov rdi, 0
+		mov rsi, 160
+		mov rdx, idt64_errorcode_string
+		call draw_text
 
-		mov rdi, idt64_noerrorcode_string
-		mov rsi, idt64_noerrorcode_string_len
-		call idt64_putnchar
+		mov rdi, idt64_errorcode_string
+		call strlen
+
+		mov rdi, 0
+		add rdi, rax
+		mov rsi, 160
+		mov rdx, idt64_noerrorcode_string
+		call draw_text
 	.endErrorCode:
-
-	mov rdi, ' '
-	mov rsi, 8
-	call idt64_putchar_repeat
-
-	mov rdi, '|'
-	mov rsi, 2
-	call idt64_putchar_repeat
-
-	call idt64_putnl
-
-
-	;putting line 15
-	mov  rdi, '='
-	mov  rsi, IDT64_TRAP64_WIREFRAME_WIDTH
-	call idt64_putchar_repeat
-
+	
 	ret
+
 ; void idt64_trap64(void)
 idt64_trap64_error_code:
 static idt64_trap64_error_code:function
@@ -943,7 +604,7 @@ static idt64_trap64_error_code:function
 	mov qword [reg_RIP_bank], rax
 
 	mov rdi, true
-	call idt64_regdump
+	call idt64_regdump_gfx_mode
 	
 	; TODO: put all the other lines
 
@@ -977,16 +638,42 @@ static idt64_trap64:function
 	mov qword [reg_RIP_bank], rax
 
 	mov rdi, false
-	call idt64_regdump
+	call idt64_regdump_gfx_mode
 
 	jmp $
 
 	iret
 
-idt64_exception_GPF_string:
-	db "  #GP "
-.end:	
-%define idt64_exception_GPF_string_len (idt64_exception_GPF_string.end - idt64_exception_GPF_string)
+idt64_PF:
+static idt64_PF:function
+	; TODO: Bank RIP, RSP and RBP(?) correctly
+
+	mov qword [reg_RAX_bank], rax
+	mov qword [reg_RBX_bank], rbx
+	mov qword [reg_RCX_bank], rcx
+	mov qword [reg_RDX_bank], rdx
+	mov qword [reg_RSI_bank], rsi
+	mov qword [reg_RDI_bank], rdi
+	mov qword [reg_RSP_bank], rsp
+	mov qword [reg_RBP_bank], rbp
+	mov word [reg_CS_bank],  cs
+	mov word [reg_DS_bank],  ds
+	mov word [reg_SS_bank],  ss
+	mov word [reg_ES_bank],  es
+	mov word [reg_FS_bank],  fs
+	mov word [reg_GS_bank],  gs
+
+	pop rax
+	mov qword [Error_Code_bank], rax
+
+	pop rax
+	mov qword [reg_RIP_bank], rax
+
+	mov rdi, true
+	mov rsi, InterruptCodeTable.PageFault
+	call idt64_regdump_gfx_mode
+
+	jmp $
 
 idt64_GPF:
 static idt64_GPF:function
@@ -1014,14 +701,8 @@ static idt64_GPF:function
 	mov qword [reg_RIP_bank], rax
 
 	mov rdi, true
-	call idt64_regdump
-
-	mov rdi, TEXT_ADDR_START + TEXT_WIDTH_IN_BYTES + (6 * 2) ;line 1 (zero indexed), column 2 (zero indexed), multiplied by 2 since 1 byte out of two controls color
-	mov [idt64_cursor], rdi
-
-	mov rdi, idt64_exception_GPF_string
-	mov rsi, idt64_exception_GPF_string_len
-	call idt64_putnchar
+	mov rsi, InterruptCodeTable.GeneralProtectionFault
+	call idt64_regdump_gfx_mode
 
 	jmp $
 
@@ -1081,6 +762,66 @@ static idt64_keyboardIRQ:function
 ;line 16; ======================================================
 ;line 15; ||                   No Error Code                  ||
 ;	 alt;
+
+
+%define interruptCodeSize 4
+InterruptCodeTable:
+.DivisionError:
+	db "#DE", 0
+.Debug:
+	db "#DB", 0
+.NMI:
+	dd 0
+.Breakpoint:
+	db "#BP", 0
+.Overflow:
+	db "#OF", 0
+.BoundRangeExceeded:
+	db "#BR", 0
+.InvalidOpcode:
+	db "#UD", 0
+.DeviceNotAvailable:
+	db "#NM", 0
+.DoubleFault:
+	db "#DF", 0
+.CoprocessorSegmentOverrun:
+	dd 0
+.invalidTSS:
+	db "#TS", 0
+.SegmentNotPresent:
+	db "#NP", 0
+.StackSegmentFault:
+	db "#SS", 0
+.GeneralProtectionFault:
+	db "#GP", 0
+.PageFault:
+	db "#PF", 0
+	dd 0
+.x87FloatingPointException:
+	db "#MF", 0
+.AlignmentCheck:
+	db "#AC", 0
+.MachineCheck:
+	db "#MC", 0
+.SIMDFloatingPointException:
+	db "#XM", 0
+.VirtualizationException:
+	db "#VE", 0
+.ControlProtectionException:
+	db "#CP", 0
+	dd 0
+	dd 0
+	dd 0
+	dd 0
+	dd 0
+	dd 0
+.HypvervisorInjectionException:
+	db "#HV", 0
+.VMMCommunicationException:
+	db "#VC", 0
+.SecurityException:
+	db "#SX", 0
+	dd 0
 
 InterruptHandlerTable:
 ;faults:
