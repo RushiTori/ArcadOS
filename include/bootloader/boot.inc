@@ -32,9 +32,9 @@
 %define GDT_ENTRY(base, limit, access, flag)	(((limit) & 0xFFFF)         | \
 												(((base) & 0xFFFFFF) << 16) | \
 												(((access) & 0xFF) << 40)   | \
-												(((limit) & 0xF0000) << 32) | \
+												((((limit) & 0xF0000) >> 16) << 48)) | \
 												(((flag) & 0xF) << 52)      | \
-												(((base) & 0xFF000000) << 32))
+												((((base) & 0xFF000000) >> 24) << 56))
 
 %define GDT_LIMIT_BYTE_TO_GRANULAR(limit)		((limit >> 12) + ((limit & 0xFFFFFF) > 0))
 
@@ -43,6 +43,7 @@ extern boot_sector_1_start
 extern boot_sector_2_start
 extern boot_sector_3_start
 extern paging_start
-extern IDT_Setup
+extern make_idt_32
+extern make_idt_64
 
 %endif ; BOOT_INC

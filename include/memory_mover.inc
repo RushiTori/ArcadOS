@@ -5,7 +5,7 @@
 
 ; The memory map for the .text sections
 %define CODE_MEMORY_START     0x0007C00
-%define CODE_MEMORY_END       0x1000000 
+%define CODE_MEMORY_END       0x1000000
 %define CODE_MEMORY_SIZE      (CODE_MEMORY_END - CODE_MEMORY_START)         ; 16-ish megabytes
 
 ; I want to keep that
