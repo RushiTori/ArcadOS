@@ -23,7 +23,7 @@ bits 64
 %define TEXT_WIDTH_IN_BYTES           (TEXT_WIDTH_IN_CHARACTER * TEXT_CHAR_DATA_WIDTH_IN_BYTES)
 %define TEXT_COLOR_WHITE              0x0F
 
-%define IDT64_BUFFER_LEN              64
+%define IDT64_BUFFER_LEN              64 + 2 + 1 ;add 2 for the prefix, add 1 for null terminator
 
 %define IDT64_TRAP64_WIREFRAME_WIDTH  54
 
@@ -266,7 +266,7 @@ idt64_puthex_gfx:
 static idt64_puthex_gfx: function
 	mov byte [idt64_buffer],     '0'
 	mov byte [idt64_buffer + 1], 'x'
-
+	mov byte [idt64_buffer + rcx + 2], 0
 	.cvt_loop:
 		mov rax,  rdx
 		and rax, 0xF
@@ -294,19 +294,15 @@ static idt64_puthex_gfx: function
 ; ruins the value of rax, rcx, r8 and anything draw_text ruins
 idt64_putbin_gfx:
 static idt64_putbin_gfx: function
-	mov r8, idt64_buffer
-
-	mov byte [rdx],     '0'
-	mov byte [rdx + 1], 'b'
-	
-	add r8, 2
-	add r8, rcx
+	mov byte [idt64_buffer],     '0'
+	mov byte [idt64_buffer + 1], 'b'
+	mov byte [idt64_buffer + rcx + 2], 0
 	.cvt_loop:
 		mov rax,  rdx
 		and rax, 0b1
 
-		mov al, byte [idt64_bindigits + rax]
-		mov byte [idt64_buffer + r8 + 2 - 1], al ;add 2 for the prefix, remove 1 because rcx gets decremented only when the instruction loop is executed
+		mov al, byte [idt64_hexdigits + rax]
+		mov byte [idt64_buffer + rcx + 2 - 1], al ;add 2 for the prefix, remove 1 because rcx gets decremented only when the instruction loop is executed
 
 		shr  rdx, 1
 		loop .cvt_loop
@@ -314,6 +310,7 @@ static idt64_putbin_gfx: function
 	;rdi already set
 	;rsi already set
 	mov  rdx, idt64_buffer
+	
 	call idt64_draw_text_and_shadow
 	
 	ret
@@ -326,6 +323,7 @@ static idt64_putbin_gfx: function
 ; y: rsi
 ; name: rdx
 ; bank: rcx
+; n: r8
 idt64_putreg_gfx:
 static idt64_putreg_gfx: function
 	push rbp
@@ -335,6 +333,7 @@ static idt64_putreg_gfx: function
 	mov [rbp - 0x8], rsi  ;y
 	mov [rbp - 0x10], rdx ;name
 	mov [rbp - 0x18], rcx ;bank
+	mov [rbp - 0x20], r8
 
 	
 	call idt64_draw_text_and_shadow
@@ -361,7 +360,7 @@ static idt64_putreg_gfx: function
 	mov rsi, [rbp - 0x8]
 	mov rdx, [rbp - 0x18]
 	mov rdx, [rdx]
-	mov rcx, 8 * 2 ;one byte is 2 hex digits, we want 8 bytes for 64 bits
+	mov rcx, [rbp - 0x20]
 	call idt64_puthex_gfx
 
 	add rsp, 0x8 * 5
@@ -457,6 +456,7 @@ static idt64_regdump_gfx_mode:function
 	mov rsi, 16
 	mov rdx, reg_RIP_name
 	mov rcx, reg_RIP_bank
+	mov r8, (64/4)
 	call idt64_putreg_gfx
 
 	;putting an empty line for clarity
@@ -465,48 +465,56 @@ static idt64_regdump_gfx_mode:function
 	mov rsi, 32
 	mov rdx, reg_RAX_name
 	mov rcx, reg_RAX_bank
+	mov r8, (64/4)
 	call idt64_putreg_gfx
 
 	mov rdi, 0
 	mov rsi, 40
 	mov rdx, reg_RBX_name
 	mov rcx, reg_RBX_bank
+	mov r8, (64/4)
 	call idt64_putreg_gfx
 
 	mov rdi, 0
 	mov rsi, 48
 	mov rdx, reg_RCX_name
 	mov rcx, reg_RCX_bank
+	mov r8, (64/4)
 	call idt64_putreg_gfx
 
 	mov rdi, 0
 	mov rsi, 56
 	mov rdx, reg_RDX_name
 	mov rcx, reg_RDX_bank
+	mov r8, (64/4)
 	call idt64_putreg_gfx
 
 	mov rdi, 0
 	mov rsi, 64
 	mov rdx, reg_RDI_name
 	mov rcx, reg_RDI_bank
+	mov r8, (64/4)
 	call idt64_putreg_gfx
 
 	mov rdi, 0
 	mov rsi, 72
 	mov rdx, reg_RSI_name
 	mov rcx, reg_RSI_bank
+	mov r8, (64/4)
 	call idt64_putreg_gfx
 
 	mov rdi, 0
 	mov rsi, 80
 	mov rdx, reg_RBP_name
 	mov rcx, reg_RBP_bank
+	mov r8, (64/4)
 	call idt64_putreg_gfx
 
 	mov rdi, 0
 	mov rsi, 88
 	mov rdx, reg_RSP_name
 	mov rcx, reg_RSP_bank
+	mov r8, (64/4)
 	call idt64_putreg_gfx
 
 	;putting an empty line for clarity
@@ -515,36 +523,42 @@ static idt64_regdump_gfx_mode:function
 	mov rsi, 104
 	mov rdx, reg_CS_name
 	mov rcx, reg_CS_bank
+	mov r8, (16/4)
 	call idt64_putreg_gfx
 
 	mov rdi, 0
 	mov rsi, 112
 	mov rdx, reg_DS_name
 	mov rcx, reg_DS_bank
+	mov r8, (16/4)
 	call idt64_putreg_gfx
 
 	mov rdi, 0
 	mov rsi, 120
 	mov rdx, reg_SS_name
 	mov rcx, reg_SS_bank
+	mov r8, (16/4)
 	call idt64_putreg_gfx
 
 	mov rdi, 0
 	mov rsi, 128
 	mov rdx, reg_ES_name
 	mov rcx, reg_ES_bank
+	mov r8, (16/4)
 	call idt64_putreg_gfx
 
 	mov rdi, 0
 	mov rsi, 136
 	mov rdx, reg_FS_name
 	mov rcx, reg_FS_bank
+	mov r8, (16/4)
 	call idt64_putreg_gfx
 
 	mov rdi, 0
 	mov rsi, 144
 	mov rdx, reg_GS_name
 	mov rcx, reg_GS_bank
+	mov r8, (16/4)
 	call idt64_putreg_gfx
 
 	;putting empty line
@@ -557,7 +571,15 @@ static idt64_regdump_gfx_mode:function
 		mov rsi, 160
 		mov rdx, idt64_errorcode_string
 		mov rcx, Error_Code_bank
+		mov r8, (32/4)
 		call idt64_putreg_gfx
+
+		mov rdi, 0
+		mov rsi, 168
+		mov rdx, [Error_Code_bank]
+		mov rcx, 32
+		call idt64_putbin_gfx
+
 		jmp .endErrorCode
 	.noErrorCode:
 		mov rdi, 0
@@ -839,7 +861,7 @@ InterruptHandlerTable:
 	dq idt64_trap64_error_code  ;segment not present
 	dq idt64_trap64_error_code	;stack segment fault
 	dq idt64_GPF				;GPF
-	dq idt64_trap64_error_code	;page fault
+	dq idt64_PF					;page fault
 	dq 0						;reserved
 
 	dq idt64_trap64				;x87 floating point exception
