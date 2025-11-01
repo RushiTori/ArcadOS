@@ -1,7 +1,7 @@
 COMP:=nasm
 COMP_FLAGS:=-f elf64 -g -F dwarf
 LINK:=ld
-LINK_FLAGS:=-Tlinkerscript.ld
+LINK_FLAGS:=-Tlinkerscript.ld -Map=symbols.map
 
 NAME:=ArcadOS
 
