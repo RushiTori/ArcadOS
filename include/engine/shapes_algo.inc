@@ -1,37 +1,8 @@
 %ifndef SHAPES_ALGO_INC
 %define SHAPES_ALGO_INC
 
-;
-;line algo
-;line algo cond
-;line algo vec
-;line algo cond vec
-;
-;rect fill algo
-;rect fill algo cond
-;rect fill algo vec
-;rect fill algo cond vec
-;
-;rect line algo
-;rect line algo cond
-;rect line algo vec
-;rect line algo cond vec
-;
-;triangle fill algo vec
-;triangle fill algo cond vec
-;
-;triangle line algo vec
-;triangle line algo cond vec
-;
-;circle fill algo
-;circle fill algo cond
-;circle fill algo vec
-;circle fill algo cond vec
-;
-;circle line algo
-;circle line algo cond
-;circle line algo vec
-;circle line algo cond vec
+%include "engine/shapes_algo_base.inc"
+
 ;
 ;Callback types
 ;
