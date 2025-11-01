@@ -4,7 +4,7 @@ bits             64
 
 section          .text
 
-; SreenVec2? rect_fill_algo_base(uint16_t x, uint16_t y, uint16_t w, uint16_t h, ShapeAlgoCall call, bool isCond);
+; bool rect_fill_algo_base(uint16_t x, uint16_t y, uint16_t w, uint16_t h, ShapeAlgoCall call, bool isCond);
 function(global, rect_fill_algo_base)
 	cmp dx, 0
 	je  .end
@@ -60,7 +60,7 @@ function(global, rect_fill_algo_base)
 	.end:
 	ret
 
-; SreenVec2? rect_line_algo_base(uint16_t x, uint16_t y, uint16_t w, uint16_t h, ShapeAlgoCall call, bool isCond);
+; bool rect_line_algo_base(uint16_t x, uint16_t y, uint16_t w, uint16_t h, ShapeAlgoCall call, bool isCond);
 function(global, rect_line_algo_base)
 	cmp dx, 0
 	je  .end

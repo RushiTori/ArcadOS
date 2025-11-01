@@ -1,8 +1,14 @@
-bits    64
+bits        64
 
 %include "engine/shapes_algo.inc"
 
-section .text
+section     .bss
+
+; Contains the last pos evaluated by a shape algo base that "failed"
+; ScreenVec2 shapes_algo_base_fail_pos = {0};
+res(global, ScreenVec2_t, shapes_algo_base_fail_pos)
+
+section     .text
 
 %macro screenvec2_unpack2_and_jump_to 1
 	push rbp      ; setting up the stack frame
