@@ -1,11 +1,21 @@
-bits             64
+bits    64
 
 %include "engine/shapes_algo_base.inc"
 
-section          .text
+section .text
+
+%macro check_for_fail_pos
+	cmp r9b, false
+	je  %%skip_check_fail
+		cmp al, false
+		jne .restore_end
+	%%skip_check_fail:
+%endmacro
 
 ; bool rect_fill_algo_base(uint16_t x, uint16_t y, uint16_t w, uint16_t h, ShapeAlgoCall call, bool isCond);
 function(global, rect_fill_algo_base)
+	mov al, false
+
 	cmp dx, 0
 	je  .end
 
@@ -46,22 +56,26 @@ function(global, rect_fill_algo_base)
 		mov  r8,   rbx      ; call
 		mov  r9b,  bpl      ; isCond
 		call line_algo_base ; line_algo_base(lX, tY, rX, tY, call, isCond);
+		check_for_fail_pos
 		inc  r13w
 		cmp  r13w, r15w
 		jle  .scan_loop
-
-	push rbp ; restore rbp
-	push rbx ; restore rbx
-	push r15 ; restore r15
-	push r14 ; restore r14
-	push r13 ; restore r13
-	push r12 ; restore r12
+	
+	.restore_end:
+		push rbp ; restore rbp
+		push rbx ; restore rbx
+		push r15 ; restore r15
+		push r14 ; restore r14
+		push r13 ; restore r13
+		push r12 ; restore r12
 
 	.end:
 	ret
 
 ; bool rect_line_algo_base(uint16_t x, uint16_t y, uint16_t w, uint16_t h, ShapeAlgoCall call, bool isCond);
 function(global, rect_line_algo_base)
+	mov al, false
+
 	cmp dx, 0
 	je  .end
 
@@ -113,6 +127,7 @@ function(global, rect_line_algo_base)
 	; mov  r8,  rbx       ; r8 = call
 	; mov  r9b, bpl       ; r9b = isCond
 	call line_algo_base ; line_algo_base(lX, tY, rX, tY, call, isCond);
+	check_for_fail_pos
 
 	mov  di,  r12w      ; di = lX
 	mov  si,  r15w      ; si = bY
@@ -121,6 +136,7 @@ function(global, rect_line_algo_base)
 	mov  r8,  rbx       ; r8 = call
 	mov  r9b, bpl       ; r9b = isCond
 	call line_algo_base ; line_algo_base(lX, bY, rX, bY, call, isCond);
+	check_for_fail_pos
 
 	mov  di,  r12w      ; di = lX
 	mov  si,  r13w      ; si = tY
@@ -129,6 +145,7 @@ function(global, rect_line_algo_base)
 	mov  r8,  rbx       ; r8 = call
 	mov  r9b, bpl       ; r9b = isCond
 	call line_algo_base ; line_algo_base(lX, tY, lX, bY, call, isCond);
+	check_for_fail_pos
 
 	mov  di,  r14w      ; di = rX
 	mov  si,  r13w      ; si = tY
@@ -137,13 +154,15 @@ function(global, rect_line_algo_base)
 	mov  r8,  rbx       ; r8 = call
 	mov  r9b, bpl       ; r9b = isCond
 	call line_algo_base ; line_algo_base(rX, tY, rX, bY, call, isCond);
+	check_for_fail_pos
 
-	push rbp ; restore rbp
-	push rbx ; restore rbx
-	push r15 ; restore r15
-	push r14 ; restore r14
-	push r13 ; restore r13
-	push r12 ; restore r12
+	.restore_end:
+		push rbp ; restore rbp
+		push rbx ; restore rbx
+		push r15 ; restore r15
+		push r14 ; restore r14
+		push r13 ; restore r13
+		push r12 ; restore r12
 
 	.end:
 	ret
