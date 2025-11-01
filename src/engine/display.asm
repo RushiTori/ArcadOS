@@ -118,7 +118,7 @@ function(global, draw_rect)
 
 ; void draw_rect_vec(ScreenVec2 pos, ScreeVec2 sizes);
 function(global, draw_rect_vec)
-	lea rdx, [put_pixel_vec]
+	lea rdx, [put_pixel]
 	jmp rect_fill_algo_vec
 
 ; void draw_rect_line(uint16_t x, uint16_t y, uint16_t w, uint16_t h);
@@ -128,7 +128,7 @@ function(global, draw_rect_line)
 
 ; void draw_rect_line_vec(ScreenVec2 pos, ScreeVec2 sizes);
 function(global, draw_rect_line_vec)
-	lea rdx, [put_pixel_vec]
+	lea rdx, [put_pixel]
 	jmp rect_line_algo_vec
 
 ; void draw_rect_line_ex(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint8_t thickness);
@@ -258,12 +258,12 @@ function(global, draw_rect_line_ex_vec)
 
 ; void draw_triangle(ScreenVec2 a, ScreenVec2 b, ScreenVec2 c);
 function(global, draw_triangle)
-	lea rcx, [put_pixel_vec]
+	lea rcx, [put_pixel]
 	jmp triangle_fill_algo_vec
 
 ; void draw_triangle_line(ScreenVec2 a, ScreenVec2 b, ScreenVec2 c);
 function(global, draw_triangle_line)
-	lea rcx, [put_pixel_vec]
+	lea rcx, [put_pixel]
 	jmp triangle_line_algo_vec
 
 ; void draw_triangle_line_ex(ScreenVec2 a, ScreenVec2 b, ScreenVec2 c, uint8_t thickness);
@@ -315,7 +315,7 @@ function(global, draw_circle)
 
 ; void draw_circle_vec(ScreenVec2 pos, uint8_t r);
 function(global, draw_circle_vec)
-	lea rdx, [put_pixel_vec]
+	lea rdx, [put_pixel]
 	jmp circle_fill_algo_vec
 
 ; void draw_circle_line(uint16_t x, uint16_t y, uint8_t r);
@@ -325,7 +325,7 @@ function(global, draw_circle_line)
 
 ; void draw_circle_line_vec(ScreenVec2 pos, uint8_t r);
 function(global, draw_circle_line_vec)
-	lea rdx, [put_pixel_vec]
+	lea rdx, [put_pixel]
 	jmp circle_algo_vec
 
 ; void draw_line(uint16_t aX, uint16_t aY, uint16_t bX, uint16_t bY);
@@ -335,7 +335,7 @@ function(global, draw_line)
 
 ; void draw_line_vec(ScreenVec2 a, ScreenVec2 b);
 function(global, draw_line_vec)
-	lea rdx, [put_pixel_vec]
+	lea rdx, [put_pixel]
 	jmp line_algo_vec
 
 ; void draw_line_ex_cb(uint16_t x, uint16_t y);
