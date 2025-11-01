@@ -1,7 +1,7 @@
 %ifndef FONT_INC
 %define FONT_INC
 
-%include "engine/screen.inc"
+%include "engine/display.inc"
 
 ; args : u8 color
 extern set_font_color
