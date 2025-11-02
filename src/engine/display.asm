@@ -1,37 +1,37 @@
-bits             64
+bits         64
 
 %include "engine/display.inc"
 
-section          .data
+section      .data
 
 var(static, uint8_t, current_display_color, 0x1F)
 var(static, pointer_t, display_buffer_addr, NULL)
 var(static, uint8_t, draw_line_ex_radius, 0)
 
-section          .text
+section      .text
 
 ; pointer_t get_display_buffer(void);
-function(global, get_display_buffer)
+func(global, get_display_buffer)
 	mov rax, pointer_p [display_buffer_addr]
 	ret
 
 ; void set_display_buffer(pointer_t buffer);
-function(global, set_display_buffer)
+func(global, set_display_buffer)
 	mov pointer_p [display_buffer_addr], rdi
 	ret
 
 ; uint8_t get_display_color(void);
-function(global, get_display_color)
+func(global, get_display_color)
 	mov al, uint8_p [current_display_color]
 	ret
 
 ; void set_display_color(uint8_t col);
-function(global, set_display_color)
+func(global, set_display_color)
 	mov uint8_p [current_display_color], dil
 	ret
 
 ; void put_pixel(uint16_t x, uint16_t y);
-function(global, put_pixel)
+func(global, put_pixel)
 	and rdi, 0xFFFF
 	cmp rdi, DISPLAY_WIDTH
 	jae .end               ; if (x >= DISPLAY_WIDTH) return;
@@ -60,79 +60,79 @@ function(global, put_pixel)
 	ret
 
 ; void put_pixel_vec(ScreenVec2 vec);
-function(global, put_pixel_vec)
+func(global, put_pixel_vec)
 	call screenvec2_unpack
 	mov  di, ax
 	mov  si, dx
 	jmp  put_pixel
 
 ; void clear_screen(void);
-function(global, clear_screen)
+func(global, clear_screen)
 	call get_color
 	mov  dil, al
 	jmp  clear_screen_c
 
 ; void clear_screen_c(uint8_t col);
-function(global, clear_screen_c)
+func(global, clear_screen_c)
 	mov al,  dil
 	mov rcx, DISPLAY_BUFFER_SIZE
 	rep stosb
 	ret
 
 ; void draw_square(uint16_t x, uint16_t y, uint16_t size);
-function(global, draw_square)
+func(global, draw_square)
 	mov cx, dx
 	jmp draw_rect
 
 ; void draw_square_vec(ScreenVec2 pos, uint16_t size);
-function(global, draw_square_vec)
+func(global, draw_square_vec)
 	mov dx, si
 	jmp draw_rect_vec
 
 ; void draw_square_line(uint16_t x, uint16_t y, uint16_t size);
-function(global, draw_square_line)
+func(global, draw_square_line)
 	mov cx, dx
 	jmp draw_rect_line
 
 ; void draw_square_line_vec(ScreenVec2 pos, uint16_t size);
-function(global, draw_square_line_vec)
+func(global, draw_square_line_vec)
 	mov dx, si
 	jmp draw_rect_line_vec
 
 ; void draw_square_line_ex(uint16_t x, uint16_t y, uint16_t size, uint8_t thickness);
-function(global, draw_square_line_ex)
+func(global, draw_square_line_ex)
 	mov r8b, cl
 	mov cx,  dx
 	jmp draw_rect_line_ex
 
 ; void draw_square_line_ex_vec(ScreenVec2 pos, uint16_t size, uint8_t thickness);
-function(global, draw_square_line_ex_vec)
+func(global, draw_square_line_ex_vec)
 	mov cl, dl
 	mov dx, si
 	jmp draw_rect_line_ex_vec
 
 ; void draw_rect(uint16_t x, uint16_t y, uint16_t w, uint16_t h);
-function(global, draw_rect)
+func(global, draw_rect)
 	lea r8, [put_pixel]
 	jmp rect_fill_algo
 
 ; void draw_rect_vec(ScreenVec2 pos, ScreeVec2 sizes);
-function(global, draw_rect_vec)
+func(global, draw_rect_vec)
 	lea rdx, [put_pixel]
 	jmp rect_fill_algo_vec
 
 ; void draw_rect_line(uint16_t x, uint16_t y, uint16_t w, uint16_t h);
-function(global, draw_rect_line)
+func(global, draw_rect_line)
 	lea r8, [put_pixel]
 	jmp rect_line_algo
 
 ; void draw_rect_line_vec(ScreenVec2 pos, ScreeVec2 sizes);
-function(global, draw_rect_line_vec)
+func(global, draw_rect_line_vec)
 	lea rdx, [put_pixel]
 	jmp rect_line_algo_vec
 
 ; void draw_rect_line_ex(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint8_t thickness);
-function(global, draw_rect_line_ex)
+func(global, draw_rect_line_ex)
 	cmp r8b, 0
 	je  .nothing_to_draw
 	cmp r8b, 1
@@ -219,7 +219,7 @@ function(global, draw_rect_line_ex)
 	ret
 
 ; void draw_rect_line_ex_vec(ScreenVec2 pos, ScreeVec2 sizes, uint8_t thickness);
-function(global, draw_rect_line_ex_vec)
+func(global, draw_rect_line_ex_vec)
 	cmp dl, 0
 	je  .nothing_to_draw
 	cmp dl, 1
@@ -257,17 +257,17 @@ function(global, draw_rect_line_ex_vec)
 	ret
 
 ; void draw_triangle(ScreenVec2 a, ScreenVec2 b, ScreenVec2 c);
-function(global, draw_triangle)
+func(global, draw_triangle)
 	lea rcx, [put_pixel]
 	jmp triangle_fill_algo_vec
 
 ; void draw_triangle_line(ScreenVec2 a, ScreenVec2 b, ScreenVec2 c);
-function(global, draw_triangle_line)
+func(global, draw_triangle_line)
 	lea rcx, [put_pixel]
 	jmp triangle_line_algo_vec
 
 ; void draw_triangle_line_ex(ScreenVec2 a, ScreenVec2 b, ScreenVec2 c, uint8_t thickness);
-function(global, draw_triangle_line_ex)
+func(global, draw_triangle_line_ex)
 	cmp cl, 0
 	je  .nothing_to_draw
 	cmp cl, 1
@@ -309,42 +309,42 @@ function(global, draw_triangle_line_ex)
 	ret
 
 ; void draw_circle(uint16_t x, uint16_t y, uint8_t r);
-function(global, draw_circle)
+func(global, draw_circle)
 	lea rcx, [put_pixel]
 	jmp circle_fill_algo
 
 ; void draw_circle_vec(ScreenVec2 pos, uint8_t r);
-function(global, draw_circle_vec)
+func(global, draw_circle_vec)
 	lea rdx, [put_pixel]
 	jmp circle_fill_algo_vec
 
 ; void draw_circle_line(uint16_t x, uint16_t y, uint8_t r);
-function(global, draw_circle_line)
+func(global, draw_circle_line)
 	lea rcx, [put_pixel]
 	jmp circle_algo
 
 ; void draw_circle_line_vec(ScreenVec2 pos, uint8_t r);
-function(global, draw_circle_line_vec)
+func(global, draw_circle_line_vec)
 	lea rdx, [put_pixel]
 	jmp circle_algo_vec
 
 ; void draw_line(uint16_t aX, uint16_t aY, uint16_t bX, uint16_t bY);
-function(global, draw_line)
+func(global, draw_line)
 	lea r8, [put_pixel]
 	jmp line_algo
 
 ; void draw_line_vec(ScreenVec2 a, ScreenVec2 b);
-function(global, draw_line_vec)
+func(global, draw_line_vec)
 	lea rdx, [put_pixel]
 	jmp line_algo_vec
 
 ; void draw_line_ex_cb(uint16_t x, uint16_t y);
-function(static, draw_line_ex_cb)
+func(static, draw_line_ex_cb)
 	mov dl, uint8_p [draw_line_ex_radius]
 	jmp draw_circle
 
 ; void draw_line_ex(uint16_t aX, uint16_t aY, uint16_t bX, uint16_t bY, uint8_t thickness);
-function(global, draw_line_ex)
+func(global, draw_line_ex)
 	cmp r8b, 0
 	je  .nothing_to_draw
 	cmp r8b, 1
@@ -359,7 +359,7 @@ function(global, draw_line_ex)
 	ret
 
 ; void draw_line_ex_vec(ScreenVec2 a, ScreenVec2 b, uint8_t thickness);
-function(global, draw_line_ex_vec)
+func(global, draw_line_ex_vec)
 	push rbp      ; setting up the stack frame
 	mov  rbp, rsp
 

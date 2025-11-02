@@ -26,7 +26,7 @@ section     .text
 %endmacro
 
 ; bool triangle_fill_fan(uint16_t x, uint16_t y);
-function(static, triangle_fill_fan)
+func(static, triangle_fill_fan)
 	mov dx,  uint16_p [anchor.x]
 	mov cx,  uint16_p [anchor.y]
 	mov r8,  pointer_p [sub_call]
@@ -34,7 +34,7 @@ function(static, triangle_fill_fan)
 	jmp line_algo_base
 
 ; bool triangle_fill_algo_base(ScreenVec2 a, ScreenVec2 b, ScreenVec2 c, ShapeAlgoCall call, bool isCond);
-function(global, triangle_fill_algo_base)
+func(global, triangle_fill_algo_base)
 	push r12 ; preserve r12
 	push r13 ; preserve r13
 	push r14 ; preserve r14
@@ -84,7 +84,7 @@ function(global, triangle_fill_algo_base)
 	ret
 
 ; bool triangle_line_algo_base(ScreenVec2 a, ScreenVec2 b, ScreenVec2 c, ShapeAlgoCall call, bool isCond);
-function(global, triangle_line_algo_base)
+func(global, triangle_line_algo_base)
 	push r12 ; preserve r12
 	push r13 ; preserve r13
 	push r14 ; preserve r14

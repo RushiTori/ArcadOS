@@ -13,7 +13,7 @@ section .text
 %endmacro
 
 ; bool rect_fill_algo_base(uint16_t x, uint16_t y, uint16_t w, uint16_t h, ShapeAlgoCall call, bool isCond);
-function(global, rect_fill_algo_base)
+func(global, rect_fill_algo_base)
 	mov al, false
 
 	cmp dx, 0
@@ -75,7 +75,7 @@ function(global, rect_fill_algo_base)
 	ret
 
 ; bool rect_fill_algo_base(ScreenVec2 pos, ScreenVec2 sizes, ShapeAlgoCall call, bool isCond);
-function(global, rect_fill_algo_vec_base)
+func(global, rect_fill_algo_vec_base)
 	push rcx ; preserve isCond
 	push rdx ; preserve call
 	push rsi ; preserve sizes
@@ -100,7 +100,7 @@ function(global, rect_fill_algo_vec_base)
 	jmp rect_fill_algo_base
 
 ; bool rect_line_algo_base(uint16_t x, uint16_t y, uint16_t w, uint16_t h, ShapeAlgoCall call, bool isCond);
-function(global, rect_line_algo_base)
+func(global, rect_line_algo_base)
 	mov al, false
 
 	cmp dx, 0
@@ -197,7 +197,7 @@ function(global, rect_line_algo_base)
 	ret
 
 ; bool rect_line_algo_base(ScreenVec2 pos, ScreenVec2 sizes, ShapeAlgoCall call, bool isCond);
-function(global, rect_line_algo_vec_base)
+func(global, rect_line_algo_vec_base)
 	push rcx ; preserve isCond
 	push rdx ; preserve call
 	push rsi ; preserve sizes
