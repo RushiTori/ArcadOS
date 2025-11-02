@@ -21,8 +21,8 @@ func(global, line_algo_base)
 	; uint16_t endY = bY;
 	; uint16_t distX = abs(((int16_t)aX) - ((int16_t)bX));
 	; uint16_t distY = abs(((int16_t)aY) - ((int16_t)bY));
-	; int16_t dirX = WIP;
-	; int16_t dirY = WIP;
+	; int16_t dirX = (aX <= bX) 1 : -1;
+	; int16_t dirY = (aY <= bY) 1 : -1;
 	;
 
 	mov r12w, di ; r12w = currX
