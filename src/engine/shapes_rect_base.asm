@@ -74,6 +74,12 @@ function(global, rect_fill_algo_base)
 	.end:
 	ret
 
+; bool rect_fill_algo_base(ScreenVec2 pos, ScreenVec2 sizes, ShapeAlgoCall call, bool isCond);
+function(global, rect_fill_algo_vec_base)
+	; WIP
+	.end:
+	ret
+
 ; bool rect_line_algo_base(uint16_t x, uint16_t y, uint16_t w, uint16_t h, ShapeAlgoCall call, bool isCond);
 function(global, rect_line_algo_base)
 	mov al, false
@@ -168,5 +174,11 @@ function(global, rect_line_algo_base)
 		pop r13    ; restore r13
 		pop r12    ; restore r12
 
+	.end:
+	ret
+
+; bool rect_line_algo_base(ScreenVec2 pos, ScreenVec2 sizes, ShapeAlgoCall call, bool isCond);
+function(global, rect_line_algo_vec_base)
+	; WIP
 	.end:
 	ret

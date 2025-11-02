@@ -9,3 +9,9 @@ function(global, line_algo_base)
 	; WIP
 	.end:
 	ret
+
+; bool line_algo_vec_base(ScreenVec2 a, ScreenVec2 b, ShapeAlgoCall call, bool isCond);
+function(global, line_algo_vec_base)
+	; WIP
+	.end:
+	ret
