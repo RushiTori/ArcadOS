@@ -34,12 +34,13 @@ function(global, rect_fill_algo_base)
 	; }
 	;
 
-	push r12 ; preserve r12
-	push r13 ; preserve r13
-	push r14 ; preserve r14
-	push r15 ; preserve r15
-	push rbx ; preserve rbx
-	push rbp ; preserve rbp
+	push r12    ; preserve r12
+	push r13    ; preserve r13
+	push r14    ; preserve r14
+	push r15    ; preserve r15
+	push rbx    ; preserve rbx
+	push rbp    ; preserve rbp
+	sub  rsp, 8 ; to re-align the stack
 
 	mov r12w, di  ; r12w = lX
 	mov r13w, si  ; r13w = tY
@@ -62,12 +63,13 @@ function(global, rect_fill_algo_base)
 		jle  .scan_loop
 	
 	.restore_end:
-		push rbp ; restore rbp
-		push rbx ; restore rbx
-		push r15 ; restore r15
-		push r14 ; restore r14
-		push r13 ; restore r13
-		push r12 ; restore r12
+		add rsp, 8 ; to re-align the stack
+		pop rbp    ; restore rbp
+		pop rbx    ; restore rbx
+		pop r15    ; restore r15
+		pop r14    ; restore r14
+		pop r13    ; restore r13
+		pop r12    ; restore r12
 
 	.end:
 	ret
@@ -106,12 +108,13 @@ function(global, rect_line_algo_base)
 	dec cx     ; h - 1
 	add cx, si ; bY
 
-	push r12 ; preserve r12
-	push r13 ; preserve r13
-	push r14 ; preserve r14
-	push r15 ; preserve r15
-	push rbx ; preserve rbx
-	push rbp ; preserve rbp
+	push r12    ; preserve r12
+	push r13    ; preserve r13
+	push r14    ; preserve r14
+	push r15    ; preserve r15
+	push rbx    ; preserve rbx
+	push rbp    ; preserve rbp
+	sub  rsp, 8 ; to re-align the stack
 
 	mov r12w, di  ; r12w = lX
 	mov r13w, si  ; r13w = tY
@@ -157,12 +160,13 @@ function(global, rect_line_algo_base)
 	check_for_fail_pos
 
 	.restore_end:
-		push rbp ; restore rbp
-		push rbx ; restore rbx
-		push r15 ; restore r15
-		push r14 ; restore r14
-		push r13 ; restore r13
-		push r12 ; restore r12
+		add rsp, 8 ; to re-align the stack
+		pop rbp    ; restore rbp
+		pop rbx    ; restore rbx
+		pop r15    ; restore r15
+		pop r14    ; restore r14
+		pop r13    ; restore r13
+		pop r12    ; restore r12
 
 	.end:
 	ret
