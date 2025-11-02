@@ -5,7 +5,7 @@ bits    64
 section .text
 
 %macro check_for_fail_pos
-	cmp r9b, false
+	cmp bpl, false
 	je  %%skip_check_fail
 		cmp al, false
 		jne .restore_end
