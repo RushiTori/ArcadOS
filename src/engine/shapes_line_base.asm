@@ -4,6 +4,10 @@ bits         64
 
 section      .text
 
+; Source:
+; Bresenham's Line Algorithm - Demystified Step by Step By "NoBS Code"
+; https://www.youtube.com/watch?v=CceepU1vIKo
+
 ; bool line_algo_base(uint16_t aX, uint16_t aY, uint16_t bX, uint16_t bY, ShapeAlgoCall call, bool isCond);
 func(global, line_algo_base)
 	push r12    ; preserve r12
@@ -47,6 +51,26 @@ func(global, line_algo_base)
 	jle line_algo_base_horizontal
 	jmp line_algo_base_vertical
 
+func(static, line_algo_base_end)
+	.with_fail:
+		mov  di, r12w        ; di = currX
+		mov  si, r13w        ; si = currY
+		call screenvec2_pack ; screenvec2_pack(currX, currY);
+
+		mov ScreenVec2_p [shapes_algo_base_fail_pos], eax
+
+		mov al, true
+
+	.without_fail:
+	add rsp, 8 ; to re-align the stack
+	pop rbp    ; restore rbp
+	pop rbx    ; restore rbx
+	pop r15    ; restore r15
+	pop r14    ; restore r14
+	pop r13    ; restore r13
+	pop r12    ; restore r12
+	ret
+
 func(static, line_algo_base_horizontal)
 	mov bx, dx ; bx = endX
 
@@ -55,7 +79,10 @@ func(static, line_algo_base_horizontal)
 		neg bp
 	.skip_correct_dir_y: ; bp = dirY
 
-	; WIP
+	shl r15w, 1    ; r15w = 2 * dy
+	mov r11w, r15w ; r11w = 2 * dy
+	sub r11w, r14w ; r11w = 2 * dy - dx
+	shl r14w, 1    ; r14w = 2 * dx
 
 	cmp di, dx ; (aX <= bX)? line_algo_base_left_to_right() : line_algo_base_right_to_left()
 
@@ -63,12 +90,68 @@ func(static, line_algo_base_horizontal)
 	jmp line_algo_base_right_to_left
 
 func(static, line_algo_base_left_to_right)
-	; WIP
-	ret
+	push r8 ; preserve call
+	push r9 ; preserve isCond
+
+	mov  di, r12w ; di = currX
+	mov  si, r13w ; si = currY
+	call r8       ; call(currX, currY);
+
+	pop r9 ; restore isCond
+	pop r8 ; restore call
+
+	cmp r9b, false
+	je  .skip_check_cond
+		cmp al, false
+		jne line_algo_base_end.with_fail
+	.skip_check_cond:
+	
+	; if (currX == endX) goto line_algo_base_end.without_fail;
+	cmp r12w, bx
+	je  line_algo_base_end.without_fail
+
+	cmp r11w, 0
+	jl  .skip_adjust_other_axis
+		add r13w, bp   ; currY += dirY
+		sub r11w, r14w ; p -= 2 * distX
+	.skip_adjust_other_axis:
+	add r11w, r15w ; p += 2 * distY
+
+	inc r12w ; currX++;
+
+	jmp line_algo_base_left_to_right
 
 func(static, line_algo_base_right_to_left)
-	; WIP
-	ret
+	push r8 ; preserve call
+	push r9 ; preserve isCond
+
+	mov  di, r12w ; di = currX
+	mov  si, r13w ; si = currY
+	call r8       ; call(currX, currY);
+
+	pop r9 ; restore isCond
+	pop r8 ; restore call
+
+	cmp r9b, false
+	je  .skip_check_cond
+		cmp al, false
+		jne line_algo_base_end.with_fail
+	.skip_check_cond:
+	
+	; if (currX == endX) goto line_algo_base_end.without_fail;
+	cmp r12w, bx
+	je  line_algo_base_end.without_fail
+
+	cmp r11w, 0
+	jl  .skip_adjust_other_axis
+		add r13w, bp   ; currY += dirY
+		sub r11w, r14w ; p -= 2 * distX
+	.skip_adjust_other_axis:
+	add r11w, r15w ; p += 2 * distY
+
+	dec r12w ; currX--;
+
+	jmp line_algo_base_right_to_left
 
 func(static, line_algo_base_vertical)
 	mov bx, cx ; bx = endX
@@ -78,20 +161,79 @@ func(static, line_algo_base_vertical)
 		neg bp
 	.skip_correct_dir_x: ; bp = dirX
 
-	; WIP
+	shl r14w, 1    ; r14w = 2 * dx
+	mov r11w, r14w ; r11w = 2 * dx
+	sub r11w, r15w ; r11w = 2 * dx - dy
+	shl r15w, 1    ; r15w = 2 * dy
 
-	cmp di, dx ; (aY <= bY)? line_algo_base_top_to_bottom() : line_algo_base_bottom_to_top()
+	cmp si, cx ; (aY <= bY)? line_algo_base_top_to_bottom() : line_algo_base_bottom_to_top()
 
 	jle line_algo_base_top_to_bottom
 	jmp line_algo_base_bottom_to_top
 
 func(static, line_algo_base_top_to_bottom)
-	; WIP
-	ret
+	push r8 ; preserve call
+	push r9 ; preserve isCond
+
+	mov  di, r12w ; di = currX
+	mov  si, r13w ; si = currY
+	call r8       ; call(currX, currY);
+
+	pop r9 ; restore isCond
+	pop r8 ; restore call
+
+	cmp r9b, false
+	je  .skip_check_cond
+		cmp al, false
+		jne line_algo_base_end.with_fail
+	.skip_check_cond:
+	
+	; if (currY == endY) goto line_algo_base_end.without_fail;
+	cmp r13w, bx
+	je  line_algo_base_end.without_fail
+
+	cmp r11w, 0
+	jl  .skip_adjust_other_axis
+		add r13w, bp   ; currX += dirX
+		sub r11w, r15w ; p -= 2 * distY
+	.skip_adjust_other_axis:
+	add r11w, r14w ; p += 2 * distX
+
+	inc r13w ; currY++;
+
+	jmp line_algo_base_top_to_bottom
 
 func(static, line_algo_base_bottom_to_top)
-	; WIP
-	ret
+	push r8 ; preserve call
+	push r9 ; preserve isCond
+
+	mov  di, r12w ; di = currX
+	mov  si, r13w ; si = currY
+	call r8       ; call(currX, currY);
+
+	pop r9 ; restore isCond
+	pop r8 ; restore call
+
+	cmp r9b, false
+	je  .skip_check_cond
+		cmp al, false
+		jne line_algo_base_end.with_fail
+	.skip_check_cond:
+	
+	; if (currY == endY) goto line_algo_base_end.without_fail;
+	cmp r13w, bx
+	je  line_algo_base_end.without_fail
+
+	cmp r11w, 0
+	jl  .skip_adjust_other_axis
+		add r13w, bp   ; currX += dirX
+		sub r11w, r15w ; p -= 2 * distY
+	.skip_adjust_other_axis:
+	add r11w, r14w ; p += 2 * distX
+
+	dec r13w ; currY++;
+
+	jmp line_algo_base_top_to_bottom
 
 ; bool line_algo_vec_base(ScreenVec2 a, ScreenVec2 b, ShapeAlgoCall call, bool isCond);
 func(global, line_algo_vec_base)
