@@ -76,9 +76,26 @@ function(global, rect_fill_algo_base)
 
 ; bool rect_fill_algo_base(ScreenVec2 pos, ScreenVec2 sizes, ShapeAlgoCall call, bool isCond);
 function(global, rect_fill_algo_vec_base)
-	; WIP
-	.end:
-	ret
+	push rcx ; preserve isCond
+	push rdx ; preserve call
+	push rsi ; preserve sizes
+	
+	call screenvec2_unpack ; screenvec2_unpack(pos);
+	pop  rdi               ; restore sizes
+
+	push rdx ; preserve pos.y
+	push rax ; preserve pos.x
+	
+	call screenvec2_unpack ; screenvec2_unpack(sizes);
+
+	pop rdi    ; restore pos.x
+	pop rsi    ; restore pos.y
+	mov cx, dx ; sizes.y (h)
+	mov dx, ax ; sizes.x (w)
+	pop r8     ; restore call
+	pop r9     ; restore isCond
+	
+	jmp rect_fill_algo_base
 
 ; bool rect_line_algo_base(uint16_t x, uint16_t y, uint16_t w, uint16_t h, ShapeAlgoCall call, bool isCond);
 function(global, rect_line_algo_base)
@@ -179,6 +196,23 @@ function(global, rect_line_algo_base)
 
 ; bool rect_line_algo_base(ScreenVec2 pos, ScreenVec2 sizes, ShapeAlgoCall call, bool isCond);
 function(global, rect_line_algo_vec_base)
-	; WIP
-	.end:
-	ret
+	push rcx ; preserve isCond
+	push rdx ; preserve call
+	push rsi ; preserve sizes
+	
+	call screenvec2_unpack ; screenvec2_unpack(pos);
+	pop  rdi               ; restore sizes
+
+	push rdx ; preserve pos.y
+	push rax ; preserve pos.x
+	
+	call screenvec2_unpack ; screenvec2_unpack(sizes);
+
+	pop rdi    ; restore pos.x
+	pop rsi    ; restore pos.y
+	mov cx, dx ; sizes.y (h)
+	mov dx, ax ; sizes.x (w)
+	pop r8     ; restore call
+	pop r9     ; restore isCond
+	
+	jmp rect_line_algo_base
