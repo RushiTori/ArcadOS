@@ -32,18 +32,42 @@ func(static, put_texture_pixel)
 
 ; void draw_texture(const Texture* tex, uint16_t x, uint16_t y);
 func(global, draw_texture)
-    ; WIP
-    ret
+    mov uint8_p [mask_type], NO_MASK ; no masking to be done
+    mov uint16_p [screen_pos.x], si ; screen_pos.x = x
+    mov uint16_p [screen_pos.y], dx ; screen_pos.y = y
+    mov rax, pointer_p [rdi + Texture.pixels] ; rax = tex->pixels
+    mov pointer_p [source_pixels], rax ; source_pixels = tex->pixels
+
+    mov dx, uint16_p [rdi + Texture.width] ; w = tex->width
+    mov cx, uint16_p [rdi + Texture.height] ; h = tex->height
+    xor di, di ; x = 0
+    xor si, si ; y = 0
+    lea r8, [put_texture_pixel] ; call = put_texture_pixel
+    jmp rect_fill_algo
 
 ; void draw_texture_vec(const Texture* tex, ScreenVec2 pos);
 func(global, draw_texture_vec)
-    ; WIP
-    ret
+    push rdi ; preserve tex
+    mov edi, esi
+    call screenvec2_unpack ; screenvec2_unpack(pos);
+    pop rdi ; restore tex
+
+    mov si, ax ; x = pos.x
+    ; mov dx, dx ; y = pos.y
+    jmp draw_texture
 
 ; void draw_texture_rec(const Texture* tex, uint16_t x, uint16_t y, ScreenVec2 sourcePos, ScreenVec2 sourceSizes);
 func(global, draw_texture_rec)
-    ; WIP
-    ret
+    mov uint8_p [mask_type], NO_MASK ; no masking to be done
+    mov uint16_p [screen_pos.x], si ; screen_pos.x = x
+    mov uint16_p [screen_pos.y], dx ; screen_pos.y = y
+    mov rax, pointer_p [rdi + Texture.pixels] ; rax = tex->pixels
+    mov pointer_p [source_pixels], rax ; source_pixels = tex->pixels
+
+    mov edi, ecx ; pos = sourcePos
+    mov esi, r8d ; sizes = sourceSizes
+    lea rdx, [put_texture_pixel] ; call = put_texture_pixel
+    jmp rect_fill_algo_vec
 
 ; void draw_texture_rec_vec(const Texture* tex, ScreenVec2 pos, ScreenVec2 sourcePos, ScreenVec2 sourceSizes);
 func(global, draw_texture_rec_vec)
