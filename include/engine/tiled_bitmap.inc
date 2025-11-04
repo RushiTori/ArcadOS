@@ -20,4 +20,11 @@ struc TiledBitmap
     .padding: resb 4 ; Padding to make the struct 16 bytes
 endstruc
 
+;
+; draw tiled bitmap
+; draw tiled bitmap vec
+; draw tiled bitmap indexed
+; draw tiled bitmap indexed vec
+;
+
 %endif ; TILED_BITMAP_INC
