@@ -21,6 +21,12 @@ struc Bitmap
 endstruc
 
 ;
+;bitmap get bit
+;bitmap get bit vec
+;bitmap get bit indexed
+;bitmap set bit
+;bitmap set bit vec
+;bitmap set bit indexed
 ;draw bitmap
 ;draw bitmap vec
 ;draw bitmap rec

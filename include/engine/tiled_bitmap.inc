@@ -21,10 +21,16 @@ struc TiledBitmap
 endstruc
 
 ;
-; draw tiled bitmap
-; draw tiled bitmap vec
-; draw tiled bitmap indexed
-; draw tiled bitmap indexed vec
+;tiled bitmap get tile
+;tiled bitmap get tile vec
+;tiled bitmap get tile indexed
+;tiled bitmap set tile
+;tiled bitmap set tile vec
+;tiled bitmap set tile indexed
+;draw tiled bitmap
+;draw tiled bitmap vec
+;draw tiled bitmap indexed
+;draw tiled bitmap indexed vec
 ;
 
 %endif ; TILED_BITMAP_INC
