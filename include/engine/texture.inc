@@ -37,13 +37,13 @@ extern texture_get_pixel_vec
 ; uint8_t texture_get_pixel_indexed(const Texture* tex, uint32_t idx);
 extern texture_get_pixel_indexed
 
-; void texture_set_pixel(const Texture* tex, uint16_t x, uint16_t y, uint8_t col);
+; void texture_set_pixel(Texture* tex, uint16_t x, uint16_t y, uint8_t col);
 extern texture_set_pixel
 
-; void texture_set_pixel_vec(const Texture* tex, ScreenVec2 pos, uint8_t col);
+; void texture_set_pixel_vec(Texture* tex, ScreenVec2 pos, uint8_t col);
 extern texture_set_pixel_vec
 
-; void texture_set_pixel_indexed(const Texture* tex, uint32_t idx, uint8_t col);
+; void texture_set_pixel_indexed(Texture* tex, uint32_t idx, uint8_t col);
 extern texture_set_pixel_indexed
 
 ; void draw_texture(const Texture* tex, uint16_t x, uint16_t y);

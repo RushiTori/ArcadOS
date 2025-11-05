@@ -80,32 +80,68 @@ func(static, put_texture_pixel)
 
 ; uint8_t texture_get_pixel(const Texture* tex, uint16_t x, uint16_t y);
 func(global, texture_get_pixel)
-    ; WIP
-    ret
+    and esi, 0xFFFF ; esi = (uint32_t)x
+    and edx, 0xFFFF ; edx = (uint32_t)y
+
+    movzx eax, uint16_p [rdi + Texture.width] ; eax = (uint32_t)(tex->width)
+    mul   edx                                 ; eax = y * tex->width
+    add   esi, eax                            ; esi = y * tex->width + x
+    jmp   texture_get_pixel_indexed           ; texture_get_pixel_indexed(tex, y * tex->width + x);
 
 ; uint8_t texture_get_pixel_vec(const Texture* tex, ScreenVec2 pos);
 func(global, texture_get_pixel_vec)
-    ; WIP
-    ret
+    push rdi ; preserve tex
+
+    mov  edi, esi          ; edi = pos
+    call screenvec2_unpack ; screenvec2_unpack(pos);
+
+    pop rdi ; restore tex
+
+    mov si, ax            ; si = pos.x
+    ; mov dx, dx            ; dx = pos.y
+    jmp texture_get_pixel ; texture_get_pixel(tex, pos.x, pos.y);
 
 ; uint8_t texture_get_pixel_indexed(const Texture* tex, uint32_t idx);
 func(global, texture_get_pixel_indexed)
-    ; WIP
+    mov rdi, pointer_p [rdi + Texture.pixels] ; rdi = tex->pixels
+    and rsi, 0xFFFFFFFF                       ; rsi = (uint64_t)idx
+
+    mov al, uint8_p [rdi + rsi] ; al = tex->pixels[(uint64_t)idx];
     ret
 
 ; void texture_set_pixel(const Texture* tex, uint16_t x, uint16_t y, uint8_t col);
 func(global, texture_set_pixel)
-    ; WIP
-    ret
+    and esi, 0xFFFF ; esi = (uint32_t)x
+    and edx, 0xFFFF ; edx = (uint32_t)y
+
+    movzx eax, uint16_p [rdi + Texture.width] ; eax = (uint32_t)(tex->width)
+    mul   edx                                 ; eax = y * tex->width
+    add   esi, eax                            ; esi = y * tex->width + x
+    jmp   texture_set_pixel_indexed           ; texture_set_pixel_indexed(tex, y * tex->width + x, col);
 
 ; void texture_set_pixel_vec(const Texture* tex, ScreenVec2 pos, uint8_t col);
 func(global, texture_set_pixel_vec)
-    ; WIP
-    ret
+    push rdx    ; preserve col
+    push rdi    ; preserve tex
+    sub  rsp, 8 ; to re-align the stack
+
+    mov  edi, esi          ; edi = pos
+    call screenvec2_unpack ; screenvec2_unpack(pos);
+
+    add rsp, 8 ; to re-align the stack
+    pop rdi    ; restore tex
+
+    mov si, ax            ; si = pos.x
+    ; mov dx, dx            ; dx = pos.y
+    pop rcx               ; restore col
+    jmp texture_set_pixel ; texture_set_pixel(tex, pos.x, pos.y, col);
 
 ; void texture_set_pixel_indexed(const Texture* tex, uint32_t idx, uint8_t col);
 func(global, texture_set_pixel_indexed)
-    ; WIP
+    mov rdi, pointer_p [rdi + Texture.pixels] ; rdi = tex->pixels
+    and rsi, 0xFFFFFFFF                       ; rsi = (uint64_t)idx
+
+    mov uint8_p [rdi + rsi], dl ; tex->pixels[(uint64_t)idx] = col;
     ret
 
 ; void draw_texture(const Texture* tex, uint16_t x, uint16_t y);
