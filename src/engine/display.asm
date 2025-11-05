@@ -32,6 +32,19 @@ func(global, set_display_color)
 
 ; void put_pixel(uint16_t x, uint16_t y);
 func(global, put_pixel)
+	push rdi    ; preserve x
+	push rsi    ; preserve y
+	sub  rsp, 8 ; to re-align the stack
+
+	call get_display_color
+
+	add rsp, 8      ; to re-align the stack
+	pop rsi         ; restore y
+	pop rdi         ; restore x
+	jmp put_pixel_c
+
+; void put_pixel_c(uint16_t x, uint16_t y, uint8_t col);
+func(global, put_pixel_c)
 	and rdi, 0xFFFF
 	cmp rdi, DISPLAY_WIDTH
 	jae .end               ; if (x >= DISPLAY_WIDTH) return;
@@ -44,27 +57,45 @@ func(global, put_pixel)
 	mul rsi                ; rax = y * DISPLAY_WIDTH
 	add rdi, rax           ; rdi = y * DISPLAY_WIDTH + x
 
-	push rdi
+	push rdi    ; preserve display_buffer_offset
+	push rdx    ; preserve col
+	sub  rsp, 8 ; to re-align the stack
+
 	call get_display_buffer
-	pop  rdi
+	
+	add rsp, 8 ; to re-align the stack
+	pop rsi    ; restore col
+	pop rdi    ; restore display_buffer_offset
 
 	add rdi, rax ; rdi = display_buffer + y * DISPLAY_WIDTH + x
-
-	push rdi
-	call get_display_color
-	pop  rdi
 	
-	mov uint8_p [rdi], al
+	mov uint8_p [rdi], sil
 
 	.end:
 	ret
 
-; void put_pixel_vec(ScreenVec2 vec);
+; void put_pixel_vec(ScreenVec2 pos);
 func(global, put_pixel_vec)
-	call screenvec2_unpack
-	mov  di, ax
-	mov  si, dx
-	jmp  put_pixel
+	sub rsp, 8 ; to re-align the stack
+
+	call screenvec2_unpack ; screenvec2_unpack(pos);
+
+	add rsp, 8 ; to re-align the stack
+
+	mov di, ax
+	mov si, dx
+	jmp put_pixel
+
+; void put_pixel_c_vec(ScreenVec2 pos, uint8_t col);
+func(global, put_pixel_c_vec)
+	push rsi ; preserve col
+
+	call screenvec2_unpack ; screenvec2_unpack(pos);
+	
+	mov di, ax    ; pos.x
+	mov si, dx    ; pos.y
+	pop rdx       ; restore col
+	jmp put_pixel
 
 ; void clear_screen(void);
 func(global, clear_screen)

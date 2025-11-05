@@ -23,8 +23,14 @@ extern set_display_color
 ; void put_pixel(uint16_t x, uint16_t y);
 extern put_pixel
 
-; void put_pixel_vec(ScreenVec2 vec);
+; void put_pixel_c(uint16_t x, uint16_t y, uint8_t col);
+extern put_pixel_c
+
+; void put_pixel_vec(ScreenVec2 pos);
 extern put_pixel_vec
+
+; void put_pixel_c_vec(ScreenVec2 pos, uint8_t col);
+extern put_pixel_c_vec
 
 ; void clear_screen(void);
 extern clear_screen
