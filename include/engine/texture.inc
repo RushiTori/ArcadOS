@@ -28,25 +28,6 @@ struc Texture
     .padding: resb 2 ; Padding to make the struct 16 bytes
 endstruc
 
-;
-; Maybe add masked versions ???
-; Bitmap (2D or contiguous ?)
-; Font could be a contiguous Bitmap ?
-; maybe add both bitmap types to accomodate everyone ?
-; maybe add masking with texture and 2D bitmaps too ?
-;
-;
-;
-;draw texture
-;draw texture vec
-;draw texture rec
-;draw texture rec vec
-;draw texture masked
-;draw texture masked vec
-;draw texture masked rec
-;draw texture masked rec vec
-;
-
 ; void draw_texture(const Texture* tex, uint16_t x, uint16_t y);
 extern draw_texture
 
@@ -59,28 +40,16 @@ extern draw_texture_rec
 ; void draw_texture_rec_vec(const Texture* tex, ScreenVec2 pos, ScreenVec2 sourcePos, ScreenVec2 sourceSizes);
 extern draw_texture_rec_vec
 
-; void draw_texture_masked(const Texture* tex, const Texture* mask, uint16_t x, uint16_t y);
+; void draw_texture_masked(const Texture* tex, const Bitmap* mask, uint16_t x, uint16_t y);
 extern draw_texture_masked
 
-; void draw_texture_masked_vec(const Texture* tex, const Texture* mask, ScreenVec2 pos);
+; void draw_texture_masked_vec(const Texture* tex, const Bitmap* mask, ScreenVec2 pos);
 extern draw_texture_masked_vec
 
-; void draw_texture_masked_rec(const Texture* tex, const Texture* mask, uint16_t x, uint16_t y, ScreenVec2 sourcePos, ScreenVec2 sourceSizes);
+; void draw_texture_masked_rec(const Texture* tex, const Bitmap* mask, uint16_t x, uint16_t y, ScreenVec2 sourcePos, ScreenVec2 sourceSizes);
 extern draw_texture_masked_rec
 
-; void draw_texture_masked_rec_vec(const Texture* tex, const Texture* mask, ScreenVec2 pos, ScreenVec2 sourcePos, ScreenVec2 sourceSizes);
+; void draw_texture_masked_rec_vec(const Texture* tex, const Bitmap* mask, ScreenVec2 pos, ScreenVec2 sourcePos, ScreenVec2 sourceSizes);
 extern draw_texture_masked_rec_vec
-
-; void draw_texture_bitmasked(const Texture* tex, const Bitmap* mask, uint16_t x, uint16_t y);
-extern draw_texture_bitmasked
-
-; void draw_texture_bitmasked_vec(const Texture* tex, const Bitmap* mask, ScreenVec2 pos);
-extern draw_texture_bitmasked_vec
-
-; void draw_texture_bitmasked_rec(const Texture* tex, const Bitmap* mask, uint16_t x, uint16_t y, ScreenVec2 sourcePos, ScreenVec2 sourceSizes);
-extern draw_texture_bitmasked_rec
-
-; void draw_texture_bitmasked_rec_vec(const Texture* tex, const Bitmap* mask, ScreenVec2 pos, ScreenVec2 sourcePos, ScreenVec2 sourceSizes);
-extern draw_texture_bitmasked_rec_vec
 
 %endif ; TEXTURE_INC
