@@ -149,47 +149,6 @@ func(global, bitmap_set_bit_indexed)
 
 ; void draw_bitmap(const Bitmap* map, uint16_t x, uint16_t y);
 func(global, draw_bitmap)
-    ; WIP
-    ret
-
-; void draw_bitmap_vec(const Bitmap* map, ScreenVec2 pos);
-func(global, draw_bitmap_vec)
-    ; WIP
-    ret
-
-; void draw_bitmap_rec(const Bitmap* map, uint16_t x, uint16_t y, ScreenVec2 sourcePos, ScreenVec2 sourceSizes);
-func(global, draw_bitmap_rec)
-    ; WIP
-    ret
-
-; void draw_bitmap_rec_vec(const Bitmap* map, ScreenVec2 pos, ScreenVec2 sourcePos, ScreenVec2 sourceSizes);
-func(global, draw_bitmap_rec_vec)
-    ; WIP
-    ret
-
-; void draw_bitmap_masked(const Bitmap* map, const Bitmap* mask, uint16_t x, uint16_t y);
-func(global, draw_bitmap_masked)
-    ; WIP
-    ret
-
-; void draw_bitmap_masked_vec(const Bitmap* map, const Bitmap* mask, ScreenVec2 pos);
-func(global, draw_bitmap_masked_vec)
-    ; WIP
-    ret
-
-; void draw_bitmap_masked_rec(const Bitmap* map, const Bitmap* mask, uint16_t x, uint16_t y, ScreenVec2 sourcePos, ScreenVec2 sourceSizes);
-func(global, draw_bitmap_masked_rec)
-    ; WIP
-    ret
-
-; void draw_bitmap_masked_rec_vec(const Bitmap* map, const Bitmap* mask, ScreenVec2 pos, ScreenVec2 sourcePos, ScreenVec2 sourceSizes);
-func(global, draw_bitmap_masked_rec_vec)
-    ; WIP
-    ret
-
-
-; void draw_bitmap(const Bitmap* map, uint16_t x, uint16_t y);
-func(global, draw_bitmap)
     mov uint8_p [use_mask], false ; no masking to be done
     .ignore_no_mask:
 
