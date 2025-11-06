@@ -186,3 +186,139 @@ func(global, draw_bitmap_masked_rec)
 func(global, draw_bitmap_masked_rec_vec)
     ; WIP
     ret
+
+
+; void draw_bitmap(const Bitmap* map, uint16_t x, uint16_t y);
+func(global, draw_bitmap)
+    mov uint8_p [use_mask], false ; no masking to be done
+    .ignore_no_mask:
+
+    mov uint16_p [screen_pos.x], si  ; screen_pos.x = x
+    mov uint16_p [screen_pos.y], dx  ; screen_pos.y = y
+    mov pointer_p [map],         rdi ; (static) map = (arg) map
+
+    mov uint16_p [map_pos.x], 0 ; map_pos.x = 0
+    mov uint16_p [map_pos.y], 0 ; map_pos.y = 0
+
+    mov dx, uint16_p [rdi + Bitmap.width]  ; w = map->width
+    mov cx, uint16_p [rdi + Bitmap.height] ; h = map->height
+    xor di, di                             ; x = 0
+    xor si, si                             ; y = 0
+    lea r8, [put_bitmap_bit]               ; call = put_bitmap_bit
+    jmp rect_fill_algo                     ; rect_fill_algo(0, 0, map->width, map->height, put_bitmap_bit);
+
+; void draw_bitmap_vec(const Bitmap* map, ScreenVec2 pos);
+func(global, draw_bitmap_vec)
+    mov uint8_p [use_mask], false ; no masking to be done
+    .ignore_no_mask:
+
+    push rdi ; preserve map
+
+    mov  edi, esi
+    call screenvec2_unpack ; screenvec2_unpack(pos);
+
+    pop rdi ; restore map
+
+    mov si, ax ; x = pos.x
+    ; mov dx, dx       ; y = pos.y
+
+    mov uint16_p [screen_pos.x], si  ; screen_pos.x = pos.x
+    mov uint16_p [screen_pos.y], dx  ; screen_pos.y = pos.y
+    mov pointer_p [map],         rdi ; (static) map = (arg) map
+
+    mov uint16_p [map_pos.x], 0 ; map_pos.x = 0
+    mov uint16_p [map_pos.y], 0 ; map_pos.y = 0
+
+    mov dx, uint16_p [rdi + Bitmap.width]  ; w = map->width
+    mov cx, uint16_p [rdi + Bitmap.height] ; h = map->height
+    xor di, di                             ; x = 0
+    xor si, si                             ; y = 0
+    lea r8, [put_bitmap_bit]               ; call = put_bitmap_bit
+    jmp rect_fill_algo                     ; rect_fill_algo(0, 0, map->width, map->height, put_bitmap_bit);
+
+; void draw_bitmap_rec(const Bitmap* map, uint16_t x, uint16_t y, ScreenVec2 sourcePos, ScreenVec2 sourceSizes);
+func(global, draw_bitmap_rec)
+    mov uint8_p [use_mask], false ; no masking to be done
+    .ignore_no_mask:
+
+    mov uint16_p [screen_pos.x], si  ; screen_pos.x = x
+    mov uint16_p [screen_pos.y], dx  ; screen_pos.y = y
+    mov pointer_p [map],         rdi ; (static) map = (arg) map
+
+    mov ScreenVec2_p [map_pos], ecx ; map_pos = sourcePos
+
+    mov edi, ecx              ; pos = sourcePos
+    mov esi, r8d              ; sizes = sourceSizes
+    lea rdx, [put_bitmap_bit] ; call = put_bitmap_bit
+    jmp rect_fill_algo_vec    ; rect_fill_algo_vec(sourcePos, sourceSizes, put_bitmap_bit);
+
+; void draw_bitmap_rec_vec(const Bitmap* map, ScreenVec2 pos, ScreenVec2 sourcePos, ScreenVec2 sourceSizes);
+func(global, draw_bitmap_rec_vec)
+    mov uint8_p [use_mask], false ; no masking to be done
+    .ignore_no_mask:
+
+    push rdi ; preserve map
+    push rdx ; preserve sourcePos
+    push rcx ; preserve sourceSizes
+
+    mov  edi, esi
+    call screenvec2_unpack ; screenvec2_unpack(pos);
+
+    mov si, ax ; x = pos.x
+    ; mov dx, dx ; y = pos.y
+    pop r8     ; restore sourceSizes
+    pop rcx    ; restore sourcePos
+    pop rdi    ; restore map
+
+    mov uint16_p [screen_pos.x], si  ; screen_pos.x = pos.x
+    mov uint16_p [screen_pos.y], dx  ; screen_pos.y = pos.y
+    mov pointer_p [map],         rdi ; (static) map = (arg) map
+
+    mov ScreenVec2_p [map_pos], ecx ; map_pos = sourcePos
+
+    mov edi, ecx              ; pos = sourcePos
+    mov esi, r8d              ; sizes = sourceSizes
+    lea rdx, [put_bitmap_bit] ; call = put_bitmap_bit
+    jmp rect_fill_algo_vec    ; rect_fill_algo_vec(sourcePos, sourceSizes, put_bitmap_bit);
+
+; void draw_bitmap_masked(const Bitmap* map, const Bitmap* mask, uint16_t x, uint16_t y);
+func(global, draw_bitmap_masked)
+    mov pointer_p [mask],   rsi  ; (static) mask = (arg) mask
+    mov uint8_p [use_mask], true ; there is masking to be done
+
+    ; Shifting registers to mimmick a call without mask
+    mov si, dx
+    mov dx, cx
+    jmp draw_bitmap.ignore_no_mask ; draw_bitmap(map, x, y);
+
+; void draw_bitmap_masked_vec(const Bitmap* map, const Bitmap* mask, ScreenVec2 pos);
+func(global, draw_bitmap_masked_vec)
+    mov pointer_p [mask],   rsi  ; (static) mask = (arg) mask
+    mov uint8_p [use_mask], true ; there is masking to be done
+
+    ; Shifting registers to mimmick a call without mask
+    mov esi, edx
+    jmp draw_bitmap_vec.ignore_no_mask ; draw_bitmap_vec(map, ScreenVec2 pos);
+
+; void draw_bitmap_masked_rec(const Bitmap* map, const Bitmap* mask, uint16_t x, uint16_t y, ScreenVec2 sourcePos, ScreenVec2 sourceSizes);
+func(global, draw_bitmap_masked_rec)
+    mov pointer_p [mask],   rsi  ; (static) mask = (arg) mask
+    mov uint8_p [use_mask], true ; there is masking to be done
+
+    ; Shifting registers to mimmick a call without mask
+    mov si,  dx
+    mov dx,  cx
+    mov ecx, r8d
+    mov r8d, r9d
+    jmp draw_bitmap_rec.ignore_no_mask ; draw_bitmap_rec(map, uint16_t x, uint16_t y, ScreenVec2 sourcePos, ScreenVec2 sourceSizes);
+
+; void draw_bitmap_masked_rec_vec(const Bitmap* map, const Bitmap* mask, ScreenVec2 pos, ScreenVec2 sourcePos, ScreenVec2 sourceSizes);
+func(global, draw_bitmap_masked_rec_vec)
+    mov pointer_p [mask],   rsi  ; (static) mask = (arg) mask
+    mov uint8_p [use_mask], true ; there is masking to be done
+
+    ; Shifting registers to mimmick a call without mask
+    mov esi, edx
+    mov edx, ecx
+    mov ecx, r8d
+    jmp draw_bitmap_rec_vec.ignore_no_mask ; draw_bitmap_rec_vec(map, ScreenVec2 pos, ScreenVec2 sourcePos, ScreenVec2 sourceSizes);
