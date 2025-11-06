@@ -37,4 +37,46 @@ endstruc
 ;draw bitmap masked rec vec
 ;
 
+; void bitmap_get_bit(const Bitmap* map, uint16_t x, uint16_t y);
+extern bitmap_get_bit
+
+; void bitmap_get_bit_vec(const Bitmap* map, ScreenVec2 pos);
+extern bitmap_get_bit_vec
+
+; void bitmap_get_bit_indexed(const Bitmap* map, uint32_t idx);
+extern bitmap_get_bit_indexed
+
+; void bitmap_set_bit(Bitmap* map, uint16_t x, uint16_t y);
+extern bitmap_set_bit
+
+; void bitmap_set_bit_vec(Bitmap* map, ScreenVec2 pos);
+extern bitmap_set_bit_vec
+
+; void bitmap_set_bit_indexed(Bitmap* map, uint32_t idx);
+extern bitmap_set_bit_indexed
+
+; void draw_bitmap(const Bitmap* map, uint16_t x, uint16_t y);
+extern draw_bitmap
+
+; void draw_bitmap_vec(const Bitmap* map, ScreenVec2 pos);
+extern draw_bitmap_vec
+
+; void draw_bitmap_rec(const Bitmap* map, uint16_t x, uint16_t y, ScreenVec2 sourcePos, ScreenVec2 sourceSizes);
+extern draw_bitmap_rec
+
+; void draw_bitmap_rec_vec(const Bitmap* map, ScreenVec2 pos, ScreenVec2 sourcePos, ScreenVec2 sourceSizes);
+extern draw_bitmap_rec_vec
+
+; void draw_bitmap_masked(const Bitmap* map, const Bitmap* mask, uint16_t x, uint16_t y);
+extern draw_bitmap_masked
+
+; void draw_bitmap_masked_vec(const Bitmap* map, const Bitmap* mask, ScreenVec2 pos);
+extern draw_bitmap_masked_vec
+
+; void draw_bitmap_masked_rec(const Bitmap* map, const Bitmap* mask, uint16_t x, uint16_t y, ScreenVec2 sourcePos, ScreenVec2 sourceSizes);
+extern draw_bitmap_masked_rec
+
+; void draw_bitmap_masked_rec_vec(const Bitmap* map, const Bitmap* mask, ScreenVec2 pos, ScreenVec2 sourcePos, ScreenVec2 sourceSizes);
+extern draw_bitmap_masked_rec_vec
+
 %endif ; BITMAP_INC
