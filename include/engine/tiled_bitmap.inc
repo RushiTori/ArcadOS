@@ -5,32 +5,49 @@
 
 ; TiledBitmap formal definition
 struc TiledBitmap
-    ; The bitTiles array, each tile is an 8x8 bits map and each uint64_t in this array contains a single tile
-    ; uint64_t* bitTiles;
-    struc_member(pointer_t, bitTiles, 1)
+    ; The tiles array, each tile is an 8x8 Bitmap and each uint64_t in this array contains a single tile
+    ; uint64_t* tiles;
+    struc_member(pointer_t, tiles, 1)
 
-	; Width of the bitTiles array
+	; Width of the tiles array
 	; uint16_t width;
 	struc_member(uint16_t, width, 1)
 
-	; Height of the bitTiles array
+	; Height of the tiles array
 	; uint16_t height;
 	struc_member(uint16_t, height, 1)
 
     .padding: resb 4 ; Padding to make the struct 16 bytes
 endstruc
 
-;
-;tiled bitmap get tile
-;tiled bitmap get tile vec
-;tiled bitmap get tile indexed
-;tiled bitmap set tile
-;tiled bitmap set tile vec
-;tiled bitmap set tile indexed
-;draw tiled bitmap
-;draw tiled bitmap vec
-;draw tiled bitmap indexed
-;draw tiled bitmap indexed vec
-;
+; void tiled_bitmap_get_tile(const TiledBitmap* tile_map, WIP);
+extern tiled_bitmap_get_tile
+
+; void tiled_bitmap_get_tile_vec(const TiledBitmap* tile_map, WIP);
+extern tiled_bitmap_get_tile_vec
+
+; void tiled_bitmap_get_tile_indexed(const TiledBitmap* tile_map, WIP);
+extern tiled_bitmap_get_tile_indexed
+
+; void tiled_bitmap_set_tile(const TiledBitmap* tile_map, WIP);
+extern tiled_bitmap_set_tile
+
+; void tiled_bitmap_set_tile_vec(const TiledBitmap* tile_map, WIP);
+extern tiled_bitmap_set_tile_vec
+
+; void tiled_bitmap_set_tile_indexed(const TiledBitmap* tile_map, WIP);
+extern tiled_bitmap_set_tile_indexed
+
+; void draw_tiled_bitmap(const TiledBitmap* tile_map, WIP);
+extern draw_tiled_bitmap
+
+; void draw_tiled_bitmap_vec(const TiledBitmap* tile_map, WIP);
+extern draw_tiled_bitmap_vec
+
+; void draw_tiled_bitmap_indexed(const TiledBitmap* tile_map, WIP);
+extern draw_tiled_bitmap_indexed
+
+; void draw_tiled_bitmap_indexed_vec(const TiledBitmap* tile_map, WIP);
+extern draw_tiled_bitmap_indexed_vec
 
 %endif ; TILED_BITMAP_INC
