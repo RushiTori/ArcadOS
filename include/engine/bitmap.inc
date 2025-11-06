@@ -27,6 +27,9 @@ endstruc
 ;bitmap set bit
 ;bitmap set bit vec
 ;bitmap set bit indexed
+;bitmap unset bit
+;bitmap unset bit vec
+;bitmap unset bit indexed
 ;draw bitmap
 ;draw bitmap vec
 ;draw bitmap rec
@@ -54,6 +57,15 @@ extern bitmap_set_bit_vec
 
 ; void bitmap_set_bit_indexed(Bitmap* map, uint32_t idx);
 extern bitmap_set_bit_indexed
+
+; void bitmap_unset_bit(Bitmap* map, uint16_t x, uint16_t y);
+extern bitmap_unset_bit
+
+; void bitmap_unset_bit_vec(Bitmap* map, ScreenVec2 pos);
+extern bitmap_unset_bit_vec
+
+; void bitmap_unset_bit_indexed(Bitmap* map, uint32_t idx);
+extern bitmap_unset_bit_indexed
 
 ; void draw_bitmap(const Bitmap* map, uint16_t x, uint16_t y);
 extern draw_bitmap

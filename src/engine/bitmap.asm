@@ -37,7 +37,6 @@ func(static, put_bitmap_bit)
     ;
     ; if (canPut) put_pixel(screenX, screenY);
     ;
-    ; WIP
 
     sub rsp,                8  ; make enough space for: x and y
     mov uint16_p [rsp],     di ; preserve x
@@ -106,13 +105,28 @@ func(global, bitmap_get_bit_vec)
 
 ; uint8_t bitmap_get_bit_indexed(const Bitmap* map, uint32_t idx);
 func(global, bitmap_get_bit_indexed)
-    mov rdi, pointer_p [rdi + Bitmap.pixels] ; rdi = map->pixels
-    and rsi, 0xFFFFFFFF                      ; rsi = (uint64_t)idx
+    ;
+    ; uint32_t byteIdx = idx / 8;
+    ; uint8_t bitIdx = idx % 8;
+    ; uint8_t bitMask = 1 << bitIdx;
+    ; bool_t res = (bool_t)(map->bits[byteIdx] & bitMask);
+    ;
 
-    mov al, uint8_p [rdi + rsi] ; al = map->pixels[(uint64_t)idx];
+    and rsi, 0xFFFFFFFF ; rsi = (uint64_t)idx
+    mov rdx, rsi        ; rdx = (uint64_t)idx
+    and rdx, 0b111      ; rdx = bitIdx
+    shr rsi, 3          ; rsi = byteIdx
+
+    mov rdi, pointer_p [rdi + Bitmap.bits] ; rdi = map->bits
+    mov al,  uint8_p [rdi + rsi]           ; al = map->bits[(uint64_t)idx];
+
+    mov   cl, 1
+    shl   cl, dl ; cl = bitMask
+    and   al, cl ; al = map->bits[byteIdx] & bitMask
+    setnz al     ; al = (bool_t)(map->bits[byteIdx] & bitMask)
     ret
 
-; void bitmap_set_bit(const Bitmap* map, uint16_t x, uint16_t y, uint8_t col);
+; void bitmap_set_bit(const Bitmap* map, uint16_t x, uint16_t y);
 func(global, bitmap_set_bit)
     and esi, 0xFFFF ; esi = (uint32_t)x
     and edx, 0xFFFF ; edx = (uint32_t)y
@@ -122,7 +136,7 @@ func(global, bitmap_set_bit)
     add   esi, eax                           ; esi = y * map->width + x
     jmp   bitmap_set_bit_indexed             ; bitmap_set_bit_indexed(map, y * map->width + x, col);
 
-; void bitmap_set_bit_vec(const Bitmap* map, ScreenVec2 pos, uint8_t col);
+; void bitmap_set_bit_vec(const Bitmap* map, ScreenVec2 pos);
 func(global, bitmap_set_bit_vec)
     push rdx    ; preserve col
     push rdi    ; preserve map
@@ -139,12 +153,80 @@ func(global, bitmap_set_bit_vec)
     pop rcx            ; restore col
     jmp bitmap_set_bit ; bitmap_set_bit(map, pos.x, pos.y, col);
 
-; void bitmap_set_bit_indexed(const Bitmap* map, uint32_t idx, uint8_t col);
+; void bitmap_set_bit_indexed(const Bitmap* map, uint32_t idx);
 func(global, bitmap_set_bit_indexed)
-    mov rdi, pointer_p [rdi + Bitmap.pixels] ; rdi = map->pixels
-    and rsi, 0xFFFFFFFF                      ; rsi = (uint64_t)idx
+    ;
+    ; uint32_t byteIdx = idx / 8;
+    ; uint8_t bitIdx = idx % 8;
+    ; uint8_t bitMask = 1 << bitIdx;
+    ; map->bits[byteIdx] = map->bits[byteIdx] | bitMask;
+    ;
 
-    mov uint8_p [rdi + rsi], dl ; map->pixels[(uint64_t)idx] = col;
+    and rsi, 0xFFFFFFFF ; rsi = (uint64_t)idx
+    mov rdx, rsi        ; rdx = (uint64_t)idx
+    and rdx, 0b111      ; rdx = bitIdx
+    shr rsi, 3          ; rsi = byteIdx
+
+    mov rdi, pointer_p [rdi + Bitmap.bits] ; rdi = map->bits
+    mov al,  uint8_p [rdi + rsi]           ; al = map->bits[(uint64_t)idx];
+
+    mov cl, 1
+    shl cl, dl ; cl = bitMask
+    or  al, cl ; al = map->bits[byteIdx] | bitMask
+    
+    mov uint8_p [rdi + rsi], al ; map->bits[byteIdx] = map->bits[byteIdx] | bitMask
+    ret
+
+; void bitmap_unset_bit(const Bitmap* map, uint16_t x, uint16_t y);
+func(global, bitmap_unset_bit)
+    and esi, 0xFFFF ; esi = (uint32_t)x
+    and edx, 0xFFFF ; edx = (uint32_t)y
+
+    movzx eax, uint16_p [rdi + Bitmap.width] ; eax = (uint32_t)(map->width)
+    mul   edx                                ; eax = y * map->width
+    add   esi, eax                           ; esi = y * map->width + x
+    jmp   bitmap_unset_bit_indexed           ; bitmap_unset_bit_indexed(map, y * map->width + x, col);
+
+; void bitmap_unset_bit_vec(const Bitmap* map, ScreenVec2 pos);
+func(global, bitmap_unset_bit_vec)
+    push rdx    ; preserve col
+    push rdi    ; preserve map
+    sub  rsp, 8 ; to re-align the stack
+
+    mov  edi, esi          ; edi = pos
+    call screenvec2_unpack ; screenvec2_unpack(pos);
+
+    add rsp, 8 ; to re-align the stack
+    pop rdi    ; restore map
+
+    mov si, ax           ; si = pos.x
+    ; mov dx, dx            ; dx = pos.y
+    pop rcx              ; restore col
+    jmp bitmap_unset_bit ; bitmap_unset_bit(map, pos.x, pos.y, col);
+
+; void bitmap_unset_bit_indexed(const Bitmap* map, uint32_t idx);
+func(global, bitmap_unset_bit_indexed)
+    ;
+    ; uint32_t byteIdx = idx / 8;
+    ; uint8_t bitIdx = idx % 8;
+    ; uint8_t bitMask = ~(1 << bitIdx);
+    ; map->bits[byteIdx] = map->bits[byteIdx] & bitMask;
+    ;
+
+    and rsi, 0xFFFFFFFF ; rsi = (uint64_t)idx
+    mov rdx, rsi        ; rdx = (uint64_t)idx
+    and rdx, 0b111      ; rdx = bitIdx
+    shr rsi, 3          ; rsi = byteIdx
+
+    mov rdi, pointer_p [rdi + Bitmap.bits] ; rdi = map->bits
+    mov al,  uint8_p [rdi + rsi]           ; al = map->bits[(uint64_t)idx];
+
+    mov cl, 1
+    shl cl, dl ; cl = 1 << bitIdx
+    not cl     ; cl = bitMask
+    and al, cl ; al = map->bits[byteIdx] & bitMask
+    
+    mov uint8_p [rdi + rsi], al ; map->bits[byteIdx] = map->bits[byteIdx] & bitMask
     ret
 
 ; void draw_bitmap(const Bitmap* map, uint16_t x, uint16_t y);
