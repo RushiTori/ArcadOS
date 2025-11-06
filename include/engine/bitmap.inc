@@ -40,13 +40,13 @@ endstruc
 ;draw bitmap masked rec vec
 ;
 
-; void bitmap_get_bit(const Bitmap* map, uint16_t x, uint16_t y);
+; bool_t bitmap_get_bit(const Bitmap* map, uint16_t x, uint16_t y);
 extern bitmap_get_bit
 
-; void bitmap_get_bit_vec(const Bitmap* map, ScreenVec2 pos);
+; bool_t bitmap_get_bit_vec(const Bitmap* map, ScreenVec2 pos);
 extern bitmap_get_bit_vec
 
-; void bitmap_get_bit_indexed(const Bitmap* map, uint32_t idx);
+; bool_t bitmap_get_bit_indexed(const Bitmap* map, uint32_t idx);
 extern bitmap_get_bit_indexed
 
 ; void bitmap_set_bit(Bitmap* map, uint16_t x, uint16_t y);

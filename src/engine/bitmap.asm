@@ -80,7 +80,7 @@ func(static, put_bitmap_bit)
     add rsp, 8 ; to exit the stack frame
     ret
 
-; uint8_t bitmap_get_bit(const Bitmap* map, uint16_t x, uint16_t y);
+; bool_t bitmap_get_bit(const Bitmap* map, uint16_t x, uint16_t y);
 func(global, bitmap_get_bit)
     and esi, 0xFFFF ; esi = (uint32_t)x
     and edx, 0xFFFF ; edx = (uint32_t)y
@@ -90,7 +90,7 @@ func(global, bitmap_get_bit)
     add   esi, eax                           ; esi = y * map->width + x
     jmp   bitmap_get_bit_indexed             ; bitmap_get_bit_indexed(map, y * map->width + x);
 
-; uint8_t bitmap_get_bit_vec(const Bitmap* map, ScreenVec2 pos);
+; bool_t bitmap_get_bit_vec(const Bitmap* map, ScreenVec2 pos);
 func(global, bitmap_get_bit_vec)
     push rdi ; preserve map
 
@@ -103,7 +103,7 @@ func(global, bitmap_get_bit_vec)
     ; mov dx, dx            ; dx = pos.y
     jmp bitmap_get_bit ; bitmap_get_bit(map, pos.x, pos.y);
 
-; uint8_t bitmap_get_bit_indexed(const Bitmap* map, uint32_t idx);
+; bool_t bitmap_get_bit_indexed(const Bitmap* map, uint32_t idx);
 func(global, bitmap_get_bit_indexed)
     ;
     ; uint32_t byteIdx = idx / 8;
