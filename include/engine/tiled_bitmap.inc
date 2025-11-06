@@ -20,34 +20,34 @@ struc TiledBitmap
     .padding: resb 4 ; Padding to make the struct 16 bytes
 endstruc
 
-; void tiled_bitmap_get_tile(const TiledBitmap* tile_map, WIP);
+; uint64_t tiled_bitmap_get_tile(const TiledBitmap* tile_map, uint16_t x, uint16_t y);
 extern tiled_bitmap_get_tile
 
-; void tiled_bitmap_get_tile_vec(const TiledBitmap* tile_map, WIP);
+; uint64_t tiled_bitmap_get_tile_vec(const TiledBitmap* tile_map, ScreenVec2 pos);
 extern tiled_bitmap_get_tile_vec
 
-; void tiled_bitmap_get_tile_indexed(const TiledBitmap* tile_map, WIP);
+; uint64_t tiled_bitmap_get_tile_indexed(const TiledBitmap* tile_map, uint32_t idx);
 extern tiled_bitmap_get_tile_indexed
 
-; void tiled_bitmap_set_tile(const TiledBitmap* tile_map, WIP);
+; void tiled_bitmap_set_tile(const TiledBitmap* tile_map, uint16_t x, uint16_t y, uint64_t tile);
 extern tiled_bitmap_set_tile
 
-; void tiled_bitmap_set_tile_vec(const TiledBitmap* tile_map, WIP);
+; void tiled_bitmap_set_tile_vec(const TiledBitmap* tile_map, ScreenVec2 pos, uint64_t tile);
 extern tiled_bitmap_set_tile_vec
 
-; void tiled_bitmap_set_tile_indexed(const TiledBitmap* tile_map, WIP);
+; void tiled_bitmap_set_tile_indexed(const TiledBitmap* tile_map, uint32_t idx, uint64_t tile);
 extern tiled_bitmap_set_tile_indexed
 
-; void draw_tiled_bitmap(const TiledBitmap* tile_map, WIP);
+; void draw_tiled_bitmap(const TiledBitmap* tile_map, uint16_t tileX, uint16_t tileY, uint16_t posX, uint16_t posY);
 extern draw_tiled_bitmap
 
-; void draw_tiled_bitmap_vec(const TiledBitmap* tile_map, WIP);
+; void draw_tiled_bitmap_vec(const TiledBitmap* tile_map, ScreenVec2 tilePos, ScreenVec2 screenPos);
 extern draw_tiled_bitmap_vec
 
-; void draw_tiled_bitmap_indexed(const TiledBitmap* tile_map, WIP);
+; void draw_tiled_bitmap_indexed(const TiledBitmap* tile_map, uint32_t idx, uint16_t posX, uint16_t posY);
 extern draw_tiled_bitmap_indexed
 
-; void draw_tiled_bitmap_indexed_vec(const TiledBitmap* tile_map, WIP);
+; void draw_tiled_bitmap_indexed_vec(const TiledBitmap* tile_map, uint32_t idx, ScreenVec2 screenPos);
 extern draw_tiled_bitmap_indexed_vec
 
 %endif ; TILED_BITMAP_INC
