@@ -81,34 +81,70 @@ func(static, put_bitmap_bit)
     add rsp, 8 ; to exit the stack frame
     ret
 
-; void bitmap_get_bit(const Bitmap* map, uint16_t x, uint16_t y);
+; uint8_t bitmap_get_bit(const Bitmap* map, uint16_t x, uint16_t y);
 func(global, bitmap_get_bit)
-    ; WIP
-    ret
+    and esi, 0xFFFF ; esi = (uint32_t)x
+    and edx, 0xFFFF ; edx = (uint32_t)y
 
-; void bitmap_get_bit_vec(const Bitmap* map, ScreenVec2 pos);
+    movzx eax, uint16_p [rdi + Bitmap.width] ; eax = (uint32_t)(map->width)
+    mul   edx                                ; eax = y * map->width
+    add   esi, eax                           ; esi = y * map->width + x
+    jmp   bitmap_get_bit_indexed             ; bitmap_get_bit_indexed(map, y * map->width + x);
+
+; uint8_t bitmap_get_bit_vec(const Bitmap* map, ScreenVec2 pos);
 func(global, bitmap_get_bit_vec)
-    ; WIP
-    ret
+    push rdi ; preserve map
 
-; void bitmap_get_bit_indexed(const Bitmap* map, uint32_t idx);
+    mov  edi, esi          ; edi = pos
+    call screenvec2_unpack ; screenvec2_unpack(pos);
+
+    pop rdi ; restore map
+
+    mov si, ax         ; si = pos.x
+    ; mov dx, dx            ; dx = pos.y
+    jmp bitmap_get_bit ; bitmap_get_bit(map, pos.x, pos.y);
+
+; uint8_t bitmap_get_bit_indexed(const Bitmap* map, uint32_t idx);
 func(global, bitmap_get_bit_indexed)
-    ; WIP
+    mov rdi, pointer_p [rdi + Bitmap.pixels] ; rdi = map->pixels
+    and rsi, 0xFFFFFFFF                      ; rsi = (uint64_t)idx
+
+    mov al, uint8_p [rdi + rsi] ; al = map->pixels[(uint64_t)idx];
     ret
 
-; void bitmap_set_bit(Bitmap* map, uint16_t x, uint16_t y);
+; void bitmap_set_bit(const Bitmap* map, uint16_t x, uint16_t y, uint8_t col);
 func(global, bitmap_set_bit)
-    ; WIP
-    ret
+    and esi, 0xFFFF ; esi = (uint32_t)x
+    and edx, 0xFFFF ; edx = (uint32_t)y
 
-; void bitmap_set_bit_vec(Bitmap* map, ScreenVec2 pos);
+    movzx eax, uint16_p [rdi + Bitmap.width] ; eax = (uint32_t)(map->width)
+    mul   edx                                ; eax = y * map->width
+    add   esi, eax                           ; esi = y * map->width + x
+    jmp   bitmap_set_bit_indexed             ; bitmap_set_bit_indexed(map, y * map->width + x, col);
+
+; void bitmap_set_bit_vec(const Bitmap* map, ScreenVec2 pos, uint8_t col);
 func(global, bitmap_set_bit_vec)
-    ; WIP
-    ret
+    push rdx    ; preserve col
+    push rdi    ; preserve map
+    sub  rsp, 8 ; to re-align the stack
 
-; void bitmap_set_bit_indexed(Bitmap* map, uint32_t idx);
+    mov  edi, esi          ; edi = pos
+    call screenvec2_unpack ; screenvec2_unpack(pos);
+
+    add rsp, 8 ; to re-align the stack
+    pop rdi    ; restore map
+
+    mov si, ax         ; si = pos.x
+    ; mov dx, dx            ; dx = pos.y
+    pop rcx            ; restore col
+    jmp bitmap_set_bit ; bitmap_set_bit(map, pos.x, pos.y, col);
+
+; void bitmap_set_bit_indexed(const Bitmap* map, uint32_t idx, uint8_t col);
 func(global, bitmap_set_bit_indexed)
-    ; WIP
+    mov rdi, pointer_p [rdi + Bitmap.pixels] ; rdi = map->pixels
+    and rsi, 0xFFFFFFFF                      ; rsi = (uint64_t)idx
+
+    mov uint8_p [rdi + rsi], dl ; map->pixels[(uint64_t)idx] = col;
     ret
 
 ; void draw_bitmap(const Bitmap* map, uint16_t x, uint16_t y);
