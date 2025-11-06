@@ -239,7 +239,8 @@ func(global, draw_texture_rec_vec)
 
 ; void draw_texture_masked(const Texture* tex, const Bitmap* mask, uint16_t x, uint16_t y);
 func(global, draw_texture_masked)
-    mov pointer_p [mask], rsi ; (static) mask = (arg) mask
+    mov pointer_p [mask],   rsi  ; (static) mask = (arg) mask
+    mov uint8_p [use_mask], true ; there is masking to be done
 
     ; Shifting registers to mimmick a call without mask
     mov si, dx
@@ -248,7 +249,8 @@ func(global, draw_texture_masked)
 
 ; void draw_texture_masked_vec(const Texture* tex, const Bitmap* mask, ScreenVec2 pos);
 func(global, draw_texture_masked_vec)
-    mov pointer_p [mask], rsi ; (static) mask = (arg) mask
+    mov pointer_p [mask],   rsi  ; (static) mask = (arg) mask
+    mov uint8_p [use_mask], true ; there is masking to be done
 
     ; Shifting registers to mimmick a call without mask
     mov esi, edx
@@ -256,7 +258,8 @@ func(global, draw_texture_masked_vec)
 
 ; void draw_texture_masked_rec(const Texture* tex, const Bitmap* mask, uint16_t x, uint16_t y, ScreenVec2 sourcePos, ScreenVec2 sourceSizes);
 func(global, draw_texture_masked_rec)
-    mov pointer_p [mask], rsi ; (static) mask = (arg) mask
+    mov pointer_p [mask],   rsi  ; (static) mask = (arg) mask
+    mov uint8_p [use_mask], true ; there is masking to be done
 
     ; Shifting registers to mimmick a call without mask
     mov si,  dx
@@ -267,7 +270,8 @@ func(global, draw_texture_masked_rec)
 
 ; void draw_texture_masked_rec_vec(const Texture* tex, const Bitmap* mask, ScreenVec2 pos, ScreenVec2 sourcePos, ScreenVec2 sourceSizes);
 func(global, draw_texture_masked_rec_vec)
-    mov pointer_p [mask], rsi ; (static) mask = (arg) mask
+    mov pointer_p [mask],   rsi  ; (static) mask = (arg) mask
+    mov uint8_p [use_mask], true ; there is masking to be done
 
     ; Shifting registers to mimmick a call without mask
     mov esi, edx
