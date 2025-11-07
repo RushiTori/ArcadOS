@@ -22,6 +22,7 @@ static map_pos: data
 	iend
 
 res(static,  bool_t, use_mask)
+res(static,  bool_t, inversed)
 
 section      .text
 
@@ -33,7 +34,7 @@ func(static, put_bitmap_bit)
     ;
     ; bool isMapBitSet = bitmap_get_bit(map, x, y);
     ;
-    ; bool canPut = !usemask || (use_mask && bitmap_get_bit(mask, x, y));
+    ; bool canPut = !usemask || (use_mask && (bitmap_get_bit(mask, x, y) ^ inversed));
     ;
     ; if (canPut) put_pixel(screenX, screenY);
     ;
@@ -57,10 +58,11 @@ func(static, put_bitmap_bit)
         mov si, uint16_p [rsp + 2] ; restore y
     .skip_check_mask:
 
-    mov  dx,  si              ; dx = y
-    mov  si,  di              ; si = x
-    mov  rdi, pointer_p [map] ; rdi = map
-    call bitmap_get_bit       ; bitmap_get_bit(map, x, y);
+    mov  dx,  si                ; dx = y
+    mov  si,  di                ; si = x
+    mov  rdi, pointer_p [map]   ; rdi = map
+    call bitmap_get_bit         ; bitmap_get_bit(map, x, y);
+    xor  al,  bool_t [inversed] ; bitmap_get_bit(map, x, y) ^ inversed
     cmp  al,  false
     je   .end
 
@@ -231,6 +233,8 @@ func(global, bitmap_unset_bit_indexed)
 
 ; void draw_bitmap(const Bitmap* map, uint16_t x, uint16_t y);
 func(global, draw_bitmap)
+    mov bool_p [inversed],  false ; not inversed
+    .ignore_no_inverse:
     mov uint8_p [use_mask], false ; no masking to be done
     .ignore_no_mask:
 
@@ -250,6 +254,8 @@ func(global, draw_bitmap)
 
 ; void draw_bitmap_vec(const Bitmap* map, ScreenVec2 pos);
 func(global, draw_bitmap_vec)
+    mov bool_p [inversed],  false ; not inversed
+    .ignore_no_inverse:
     mov uint8_p [use_mask], false ; no masking to be done
     .ignore_no_mask:
 
@@ -279,6 +285,8 @@ func(global, draw_bitmap_vec)
 
 ; void draw_bitmap_rec(const Bitmap* map, uint16_t x, uint16_t y, ScreenVec2 sourcePos, ScreenVec2 sourceSizes);
 func(global, draw_bitmap_rec)
+    mov bool_p [inversed],  false ; not inversed
+    .ignore_no_inverse:
     mov uint8_p [use_mask], false ; no masking to be done
     .ignore_no_mask:
 
@@ -295,6 +303,8 @@ func(global, draw_bitmap_rec)
 
 ; void draw_bitmap_rec_vec(const Bitmap* map, ScreenVec2 pos, ScreenVec2 sourcePos, ScreenVec2 sourceSizes);
 func(global, draw_bitmap_rec_vec)
+    mov bool_p [inversed],  false ; not inversed
+    .ignore_no_inverse:
     mov uint8_p [use_mask], false ; no masking to be done
     .ignore_no_mask:
 
@@ -324,8 +334,10 @@ func(global, draw_bitmap_rec_vec)
 
 ; void draw_bitmap_masked(const Bitmap* map, const Bitmap* mask, uint16_t x, uint16_t y);
 func(global, draw_bitmap_masked)
-    mov pointer_p [mask],   rsi  ; (static) mask = (arg) mask
-    mov uint8_p [use_mask], true ; there is masking to be done
+    mov bool_p [inversed],  false ; not inversed
+    .ignore_no_inverse:
+    mov pointer_p [mask],   rsi   ; (static) mask = (arg) mask
+    mov uint8_p [use_mask], true  ; there is masking to be done
 
     ; Shifting registers to mimmick a call without mask
     mov si, dx
@@ -334,8 +346,10 @@ func(global, draw_bitmap_masked)
 
 ; void draw_bitmap_masked_vec(const Bitmap* map, const Bitmap* mask, ScreenVec2 pos);
 func(global, draw_bitmap_masked_vec)
-    mov pointer_p [mask],   rsi  ; (static) mask = (arg) mask
-    mov uint8_p [use_mask], true ; there is masking to be done
+    mov bool_p [inversed],  false ; not inversed
+    .ignore_no_inverse:
+    mov pointer_p [mask],   rsi   ; (static) mask = (arg) mask
+    mov uint8_p [use_mask], true  ; there is masking to be done
 
     ; Shifting registers to mimmick a call without mask
     mov esi, edx
@@ -343,8 +357,10 @@ func(global, draw_bitmap_masked_vec)
 
 ; void draw_bitmap_masked_rec(const Bitmap* map, const Bitmap* mask, uint16_t x, uint16_t y, ScreenVec2 sourcePos, ScreenVec2 sourceSizes);
 func(global, draw_bitmap_masked_rec)
-    mov pointer_p [mask],   rsi  ; (static) mask = (arg) mask
-    mov uint8_p [use_mask], true ; there is masking to be done
+    mov bool_p [inversed],  false ; not inversed
+    .ignore_no_inverse:
+    mov pointer_p [mask],   rsi   ; (static) mask = (arg) mask
+    mov uint8_p [use_mask], true  ; there is masking to be done
 
     ; Shifting registers to mimmick a call without mask
     mov si,  dx
@@ -355,11 +371,61 @@ func(global, draw_bitmap_masked_rec)
 
 ; void draw_bitmap_masked_rec_vec(const Bitmap* map, const Bitmap* mask, ScreenVec2 pos, ScreenVec2 sourcePos, ScreenVec2 sourceSizes);
 func(global, draw_bitmap_masked_rec_vec)
-    mov pointer_p [mask],   rsi  ; (static) mask = (arg) mask
-    mov uint8_p [use_mask], true ; there is masking to be done
+    mov bool_p [inversed],  false ; not inversed
+    .ignore_no_inverse:
+    mov pointer_p [mask],   rsi   ; (static) mask = (arg) mask
+    mov uint8_p [use_mask], true  ; there is masking to be done
 
     ; Shifting registers to mimmick a call without mask
     mov esi, edx
     mov edx, ecx
     mov ecx, r8d
     jmp draw_bitmap_rec_vec.ignore_no_mask ; draw_bitmap_rec_vec(map, ScreenVec2 pos, ScreenVec2 sourcePos, ScreenVec2 sourceSizes);
+
+; void draw_bitmap_inversed(const Bitmap* map, uint16_t x, uint16_t y);
+func(global, draw_bitmap_inversed)
+    mov bool_p [inversed], true ; inversed = true
+
+    jmp draw_bitmap.ignore_no_inverse ; draw_bitmap(map, x, y);
+
+; void draw_bitmap_inversed_vec(const Bitmap* map, ScreenVec2 pos);
+func(global, draw_bitmap_inversed_vec)
+    mov bool_p [inversed], true ; inversed = true
+
+    jmp draw_bitmap_vec.ignore_no_inverse ; draw_bitmap_vec(map, pos);
+
+; void draw_bitmap_inversed_rec(const Bitmap* map, uint16_t x, uint16_t y, ScreenVec2 sourcePos, ScreenVec2 sourceSizes);
+func(global, draw_bitmap_inversed_rec)
+    mov bool_p [inversed], true ; inversed = true
+
+    jmp draw_bitmap_rec.ignore_no_inverse ; draw_bitmap_rec(map, x, y, sourcePos, sourceSizes);
+
+; void draw_bitmap_inversed_rec_vec(const Bitmap* map, ScreenVec2 pos, ScreenVec2 sourcePos, ScreenVec2 sourceSizes);
+func(global, draw_bitmap_inversed_rec_vec)
+    mov bool_p [inversed], true ; inversed = true
+
+    jmp draw_bitmap_rec_vec.ignore_no_inverse ; draw_bitmap_rec_vec(map, pos, sourcePos, sourceSizes);
+
+; void draw_bitmap_inversed_masked(const Bitmap* map, const Bitmap* mask, uint16_t x, uint16_t y);
+func(global, draw_bitmap_inversed_masked)
+    mov bool_p [inversed], true ; inversed = true
+
+    jmp draw_bitmap_masked.ignore_no_inverse ; draw_bitmap_masked(map, mask, x, y);
+
+; void draw_bitmap_inversed_masked_vec(const Bitmap* map, const Bitmap* mask, ScreenVec2 pos);
+func(global, draw_bitmap_inversed_masked_vec)
+    mov bool_p [inversed], true ; inversed = true
+
+    jmp draw_bitmap_masked_vec.ignore_no_inverse ; draw_bitmap_masked_vec(map, mask, pos);
+
+; void draw_bitmap_inversed_masked_rec(const Bitmap* map, const Bitmap* mask, uint16_t x, uint16_t y, ScreenVec2 sourcePos, ScreenVec2 sourceSizes);
+func(global, draw_bitmap_inversed_masked_rec)
+    mov bool_p [inversed], true ; inversed = true
+
+    jmp draw_bitmap_masked_rec.ignore_no_inverse ; draw_bitmap_masked_rec(map, mask, x, y, sourcePos, sourceSizes);
+
+; void draw_bitmap_inversed_masked_rec_vec(const Bitmap* map, const Bitmap* mask, ScreenVec2 pos, ScreenVec2 sourcePos, ScreenVec2 sourceSizes);
+func(global, draw_bitmap_inversed_masked_rec_vec)
+    mov bool_p [inversed], true ; inversed = true
+
+    jmp draw_bitmap_masked_rec_vec.ignore_no_inverse ; draw_bitmap_masked_rec_vec(map, mask, pos, sourcePos, sourceSizes);
