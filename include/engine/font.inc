@@ -192,172 +192,172 @@ extern set_font_shadow_color
 ; void set_all_font_colors(uint8_t fontCol, uint8_t backCol, uint8_t shadowCol);
 extern set_all_font_colors
 
-; void draw_glyph(uint8_t glyph, WIP);
+; void draw_glyph(uint8_t glyph, uint16_t x, uint16_t y);
 extern draw_glyph
 
-; void draw_glyph_vec(uint8_t glyph, WIP);
+; void draw_glyph_vec(uint8_t glyph, ScreenVec2 pos);
 extern draw_glyph_vec
 
-; void draw_glyph_c(uint8_t glyph, WIP);
+; void draw_glyph_c(uint8_t glyph, uint16_t x, uint16_t y, uint8_t col);
 extern draw_glyph_c
 
-; void draw_glyph_c_vec(uint8_t glyph, WIP);
+; void draw_glyph_c_vec(uint8_t glyph, ScreenVec2 pos, uint8_t col);
 extern draw_glyph_c_vec
 
-; void draw_glyph_background(uint8_t glyph, WIP);
+; void draw_glyph_background(uint8_t glyph, uint16_t x, uint16_t y);
 extern draw_glyph_background
 
-; void draw_glyph_background_vec(uint8_t glyph, WIP);
+; void draw_glyph_background_vec(uint8_t glyph, ScreenVec2 pos);
 extern draw_glyph_background_vec
 
-; void draw_glyph_background_c(uint8_t glyph, WIP);
+; void draw_glyph_background_c(uint8_t glyph, uint16_t x, uint16_t y, uint8_t col);
 extern draw_glyph_background_c
 
-; void draw_glyph_background_c_vec(uint8_t glyph, WIP);
+; void draw_glyph_background_c_vec(uint8_t glyph, ScreenVec2 pos, uint8_t col);
 extern draw_glyph_background_c_vec
 
-; void draw_glyph_shadow(uint8_t glyph, WIP);
+; void draw_glyph_shadow(uint8_t glyph, uint16_t x, uint16_t y);
 extern draw_glyph_shadow
 
-; void draw_glyph_shadow_vec(uint8_t glyph, WIP);
+; void draw_glyph_shadow_vec(uint8_t glyph, ScreenVec2 pos);
 extern draw_glyph_shadow_vec
 
-; void draw_glyph_shadow_c(uint8_t glyph, WIP);
+; void draw_glyph_shadow_c(uint8_t glyph, uint16_t x, uint16_t y, uint8_t col);
 extern draw_glyph_shadow_c
 
-; void draw_glyph_shadow_c_vec(uint8_t glyph, WIP);
+; void draw_glyph_shadow_c_vec(uint8_t glyph, ScreenVec2 pos, uint8_t col);
 extern draw_glyph_shadow_c_vec
 
-; void draw_glyph_and_background(uint8_t glyph, WIP);
+; void draw_glyph_and_background(uint8_t glyph, uint16_t x, uint16_t y);
 extern draw_glyph_and_background
 
-; void draw_glyph_and_background_vec(uint8_t glyph, WIP);
+; void draw_glyph_and_background_vec(uint8_t glyph, ScreenVec2 pos);
 extern draw_glyph_and_background_vec
 
-; void draw_glyph_and_background_c(uint8_t glyph, WIP);
+; void draw_glyph_and_background_c(uint8_t glyph, uint16_t x, uint16_t y, uint8_t fontCol, uint8_t backCol);
 extern draw_glyph_and_background_c
 
-; void draw_glyph_and_background_c_vec(uint8_t glyph, WIP);
+; void draw_glyph_and_background_c_vec(uint8_t glyph, ScreenVec2 pos, uint8_t fontCol, uint8_t backCol);
 extern draw_glyph_and_background_c_vec
 
-; void draw_glyph_and_shadow(uint8_t glyph, WIP);
+; void draw_glyph_and_shadow(uint8_t glyph, uint16_t x, uint16_t y);
 extern draw_glyph_and_shadow
 
-; void draw_glyph_and_shadow_vec(uint8_t glyph, WIP);
+; void draw_glyph_and_shadow_vec(uint8_t glyph, ScreenVec2 pos);
 extern draw_glyph_and_shadow_vec
 
-; void draw_glyph_and_shadow_c(uint8_t glyph, WIP);
+; void draw_glyph_and_shadow_c(uint8_t glyph, uint16_t x, uint16_t y, uint8_t fontCol, uint8_t shadowCol);
 extern draw_glyph_and_shadow_c
 
-; void draw_glyph_and_shadow_c_vec(uint8_t glyph, WIP);
+; void draw_glyph_and_shadow_c_vec(uint8_t glyph, ScreenVec2 pos, uint8_t fontCol, uint8_t shadowCol);
 extern draw_glyph_and_shadow_c_vec
 
-; void draw_glyph_background_and_shadow(uint8_t glyph, WIP);
+; void draw_glyph_background_and_shadow(uint8_t glyph, uint16_t x, uint16_t y);
 extern draw_glyph_background_and_shadow
 
-; void draw_glyph_background_and_shadow_vec(uint8_t glyph, WIP);
+; void draw_glyph_background_and_shadow_vec(uint8_t glyph, ScreenVec2 pos);
 extern draw_glyph_background_and_shadow_vec
 
-; void draw_glyph_background_and_shadow_c(uint8_t glyph, WIP);
+; void draw_glyph_background_and_shadow_c(uint8_t glyph, uint16_t x, uint16_t y, uint8_t backCol, uint8_t shadowCol);
 extern draw_glyph_background_and_shadow_c
 
-; void draw_glyph_background_and_shadow_c_vec(uint8_t glyph, WIP);
+; void draw_glyph_background_and_shadow_c_vec(uint8_t glyph, ScreenVec2 pos, uint8_t backCol, uint8_t shadowCol);
 extern draw_glyph_background_and_shadow_c_vec
 
-; void draw_glyph_all(uint8_t glyph, WIP);
+; void draw_glyph_all(uint8_t glyph, uint16_t x, uint16_t y);
 extern draw_glyph_all
 
-; void draw_glyph_all_vec(uint8_t glyph, WIP);
+; void draw_glyph_all_vec(uint8_t glyph, ScreenVec2 pos);
 extern draw_glyph_all_vec
 
-; void draw_glyph_all_c(uint8_t glyph, WIP);
+; void draw_glyph_all_c(uint8_t glyph, uint16_t x, uint16_t y, uint8_t fontCol, uint8_t backCol, uint8_t shadowCol);
 extern draw_glyph_all_c
 
-; void draw_glyph_all_c_vec(uint8_t glyph, WIP);
+; void draw_glyph_all_c_vec(uint8_t glyph, ScreenVec2 pos, uint8_t fontCol, uint8_t backCol, uint8_t shadowCol);
 extern draw_glyph_all_c_vec
 
-; void draw_text(const uint8_t* glyphs, WIP);
+; void draw_text(const uint8_t* glyphs, uint16_t x, uint16_t y);
 extern draw_text
 
-; void draw_text_vec(const uint8_t* glyphs, WIP);
+; void draw_text_vec(const uint8_t* glyphs, ScreenVec2 pos);
 extern draw_text_vec
 
-; void draw_text_c(const uint8_t* glyphs, WIP);
+; void draw_text_c(const uint8_t* glyphs, uint16_t x, uint16_t y, uint8_t col);
 extern draw_text_c
 
-; void draw_text_c_vec(const uint8_t* glyphs, WIP);
+; void draw_text_c_vec(const uint8_t* glyphs, ScreenVec2 pos, uint8_t col);
 extern draw_text_c_vec
 
-; void draw_text_background(const uint8_t* glyphs, WIP);
+; void draw_text_background(const uint8_t* glyphs, uint16_t x, uint16_t y);
 extern draw_text_background
 
-; void draw_text_background_vec(const uint8_t* glyphs, WIP);
+; void draw_text_background_vec(const uint8_t* glyphs, ScreenVec2 pos);
 extern draw_text_background_vec
 
-; void draw_text_background_c(const uint8_t* glyphs, WIP);
+; void draw_text_background_c(const uint8_t* glyphs, uint16_t x, uint16_t y, uint8_t col);
 extern draw_text_background_c
 
-; void draw_text_background_c_vec(const uint8_t* glyphs, WIP);
+; void draw_text_background_c_vec(const uint8_t* glyphs, ScreenVec2 pos, uint8_t col);
 extern draw_text_background_c_vec
 
-; void draw_text_shadow(const uint8_t* glyphs, WIP);
+; void draw_text_shadow(const uint8_t* glyphs, uint16_t x, uint16_t y);
 extern draw_text_shadow
 
-; void draw_text_shadow_vec(const uint8_t* glyphs, WIP);
+; void draw_text_shadow_vec(const uint8_t* glyphs, ScreenVec2 pos);
 extern draw_text_shadow_vec
 
-; void draw_text_shadow_c(const uint8_t* glyphs, WIP);
+; void draw_text_shadow_c(const uint8_t* glyphs, uint16_t x, uint16_t y, uint8_t col);
 extern draw_text_shadow_c
 
-; void draw_text_shadow_c_vec(const uint8_t* glyphs, WIP);
+; void draw_text_shadow_c_vec(const uint8_t* glyphs, ScreenVec2 pos, uint8_t col);
 extern draw_text_shadow_c_vec
 
-; void draw_text_and_background(const uint8_t* glyphs, WIP);
+; void draw_text_and_background(const uint8_t* glyphs, uint16_t x, uint16_t y);
 extern draw_text_and_background
 
-; void draw_text_and_background_vec(const uint8_t* glyphs, WIP);
+; void draw_text_and_background_vec(const uint8_t* glyphs, ScreenVec2 pos);
 extern draw_text_and_background_vec
 
-; void draw_text_and_background_c(const uint8_t* glyphs, WIP);
+; void draw_text_and_background_c(const uint8_t* glyphs, uint16_t x, uint16_t y, uint8_t fontCol, uint8_t backCol);
 extern draw_text_and_background_c
 
-; void draw_text_and_background_c_vec(const uint8_t* glyphs, WIP);
+; void draw_text_and_background_c_vec(const uint8_t* glyphs, ScreenVec2 pos, uint8_t fontCol, uint8_t backCol);
 extern draw_text_and_background_c_vec
 
-; void draw_text_and_shadow(const uint8_t* glyphs, WIP);
+; void draw_text_and_shadow(const uint8_t* glyphs, uint16_t x, uint16_t y);
 extern draw_text_and_shadow
 
-; void draw_text_and_shadow_vec(const uint8_t* glyphs, WIP);
+; void draw_text_and_shadow_vec(const uint8_t* glyphs, ScreenVec2 pos);
 extern draw_text_and_shadow_vec
 
-; void draw_text_and_shadow_c(const uint8_t* glyphs, WIP);
+; void draw_text_and_shadow_c(const uint8_t* glyphs, uint16_t x, uint16_t y, uint8_t fontCol, uint8_t shadowCol);
 extern draw_text_and_shadow_c
 
-; void draw_text_and_shadow_c_vec(const uint8_t* glyphs, WIP);
+; void draw_text_and_shadow_c_vec(const uint8_t* glyphs, ScreenVec2 pos, uint8_t fontCol, uint8_t shadowCol);
 extern draw_text_and_shadow_c_vec
 
-; void draw_text_background_and_shadow(const uint8_t* glyphs, WIP);
+; void draw_text_background_and_shadow(const uint8_t* glyphs, uint16_t x, uint16_t y);
 extern draw_text_background_and_shadow
 
-; void draw_text_background_and_shadow_vec(const uint8_t* glyphs, WIP);
+; void draw_text_background_and_shadow_vec(const uint8_t* glyphs, ScreenVec2 pos);
 extern draw_text_background_and_shadow_vec
 
-; void draw_text_background_and_shadow_c(const uint8_t* glyphs, WIP);
+; void draw_text_background_and_shadow_c(const uint8_t* glyphs, uint16_t x, uint16_t y, uint8_t backCol, uint8_t shadowCol);
 extern draw_text_background_and_shadow_c
 
-; void draw_text_background_and_shadow_c_vec(const uint8_t* glyphs, WIP);
+; void draw_text_background_and_shadow_c_vec(const uint8_t* glyphs, ScreenVec2 pos, uint8_t backCol, uint8_t shadowCol);
 extern draw_text_background_and_shadow_c_vec
 
-; void draw_text_all(const uint8_t* glyphs, WIP);
+; void draw_text_all(const uint8_t* glyphs, uint16_t x, uint16_t y);
 extern draw_text_all
 
-; void draw_text_all_vec(const uint8_t* glyphs, WIP);
+; void draw_text_all_vec(const uint8_t* glyphs, ScreenVec2 pos);
 extern draw_text_all_vec
 
-; void draw_text_all_c(const uint8_t* glyphs, WIP);
+; void draw_text_all_c(const uint8_t* glyphs, uint16_t x, uint16_t y, uint8_t fontCol, uint8_t backCol, uint8_t shadowCol);
 extern draw_text_all_c
 
-; void draw_text_all_c_vec(const uint8_t* glyphs, WIP);
+; void draw_text_all_c_vec(const uint8_t* glyphs, ScreenVec2 pos, uint8_t fontCol, uint8_t backCol, uint8_t shadowCol);
 extern draw_text_all_c_vec
 
 %endif ; FONT_INC
