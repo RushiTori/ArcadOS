@@ -20,26 +20,6 @@ struc Bitmap
     .padding: resb 4 ; Padding to make the struct 16 bytes
 endstruc
 
-;
-;bitmap get bit
-;bitmap get bit vec
-;bitmap get bit indexed
-;bitmap set bit
-;bitmap set bit vec
-;bitmap set bit indexed
-;bitmap unset bit
-;bitmap unset bit vec
-;bitmap unset bit indexed
-;draw bitmap
-;draw bitmap vec
-;draw bitmap rec
-;draw bitmap rec vec
-;draw bitmap masked
-;draw bitmap masked vec
-;draw bitmap masked rec
-;draw bitmap masked rec vec
-;
-
 ; bool_t bitmap_get_bit(const Bitmap* map, uint16_t x, uint16_t y);
 extern bitmap_get_bit
 
