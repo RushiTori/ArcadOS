@@ -1,7 +1,7 @@
 %ifndef TILED_BITMAP_INC
 %define TILED_BITMAP_INC
 
-%include "engine/display.inc"
+%include "engine/bitmap.inc"
 
 ; TiledBitmap formal definition
 struc TiledBitmap
