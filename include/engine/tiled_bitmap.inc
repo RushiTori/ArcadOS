@@ -50,4 +50,16 @@ extern draw_tiled_bitmap_indexed
 ; void draw_tiled_bitmap_indexed_vec(const TiledBitmap* tile_map, uint32_t idx, ScreenVec2 screenPos);
 extern draw_tiled_bitmap_indexed_vec
 
+; void draw_tiled_bitmap_inverse(const TiledBitmap* tile_map, uint16_t tileX, uint16_t tileY, uint16_t posX, uint16_t posY);
+extern draw_tiled_bitmap_inverse
+
+; void draw_tiled_bitmap_inverse_vec(const TiledBitmap* tile_map, ScreenVec2 tilePos, ScreenVec2 screenPos);
+extern draw_tiled_bitmap_inverse_vec
+
+; void draw_tiled_bitmap_inverse_indexed(const TiledBitmap* tile_map, uint32_t idx, uint16_t posX, uint16_t posY);
+extern draw_tiled_bitmap_inverse_indexed
+
+; void draw_tiled_bitmap_inverse_indexed_vec(const TiledBitmap* tile_map, uint32_t idx, ScreenVec2 screenPos);
+extern draw_tiled_bitmap_inverse_indexed_vec
+
 %endif ; TILED_BITMAP_INC

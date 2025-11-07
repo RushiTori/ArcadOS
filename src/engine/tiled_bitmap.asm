@@ -144,3 +144,66 @@ func(global, draw_tiled_bitmap_indexed_vec)
     lea rdi, [tile_as_bitmap] ; rdi = &tile_as_bitmap;
 
     jmp draw_bitmap_vec ; draw_bitmap_vec(&tile_as_bitmap, screenPos);
+
+
+; void draw_tiled_bitmap_inverse(const TiledBitmap* tile_map, uint16_t tileX, uint16_t tileY, uint16_t posX, uint16_t posY);
+func(global, draw_tiled_bitmap_inverse)
+    push rcx    ; preserve posY
+    push rdx    ; preserve posX
+    sub  rsp, 8 ; to re-align the stack
+
+    call tiled_bitmap_get_tile ; tiled_bitmap_get_tile(tile_map, tileX, tileY);
+
+    mov uint64_p [tile_data], rax ; tile_data = tiled_bitmap_get_tile(tile_map, tileX, tileY);
+
+    lea rdi, [tile_as_bitmap] ; rdi = &tile_as_bitmap
+
+    add rsp, 8              ; to re-align the stack
+    pop rsi                 ; restore posX
+    pop rdx                 ; restore posY
+    jmp draw_bitmap_inverse ; draw_bitmap_inverse(&tile_as_bitmap, posX, posY);
+
+; void draw_tiled_bitmap_inverse_vec(const TiledBitmap* tile_map, ScreenVec2 tilePos, ScreenVec2 screenPos);
+func(global, draw_tiled_bitmap_inverse_vec)
+    push rdx ; preserve screenPos
+
+    call tiled_bitmap_get_tile_vec ; tiled_bitmap_get_tile_vec(tile_map, tilePos);
+
+    pop rsi ; restore screenPos
+
+    mov uint64_p [tile_data], rax ; tile_data = tiled_bitmap_get_tile_vec(tile_map, tilePos);
+
+    lea rdi, [tile_as_bitmap] ; rdi = &tile_as_bitmap;
+
+    jmp draw_bitmap_inverse_vec ; draw_bitmap_inverse_vec(&tile_as_bitmap, screenPos);
+
+; void draw_tiled_bitmap_inverse_indexed(const TiledBitmap* tile_map, uint32_t idx, uint16_t posX, uint16_t posY);
+func(global, draw_tiled_bitmap_inverse_indexed)
+    push rcx    ; preserve posY
+    push rdx    ; preserve posX
+    sub  rsp, 8 ; to re-align the stack
+
+    call tiled_bitmap_get_tile_indexed ; tiled_bitmap_get_tile_indexed(tile_map, idx);
+
+    mov uint64_p [tile_data], rax ; tile_data = tiled_bitmap_get_tile_indexed(tile_map, idx);
+
+    lea rdi, [tile_as_bitmap] ; rdi = &tile_as_bitmap
+
+    add rsp, 8              ; to re-align the stack
+    pop rsi                 ; restore posX
+    pop rdx                 ; restore posY
+    jmp draw_bitmap_inverse ; draw_bitmap_inverse(&tile_as_bitmap, posX, posY);
+
+; void draw_tiled_bitmap_inverse_indexed_vec(const TiledBitmap* tile_map, uint32_t idx, ScreenVec2 screenPos);
+func(global, draw_tiled_bitmap_inverse_indexed_vec)
+    push rdx ; preserve screenPos
+
+    call tiled_bitmap_get_tile_indexed_vec ; tiled_bitmap_get_tile_indexed_vec(tile_map, idx);
+
+    pop rsi ; restore screenPos
+
+    mov uint64_p [tile_data], rax ; tile_data = tiled_bitmap_get_tile_indexed(tile_map, idx);
+
+    lea rdi, [tile_as_bitmap] ; rdi = &tile_as_bitmap;
+
+    jmp draw_bitmap_inverse_vec ; draw_bitmap_inverse_vec(&tile_as_bitmap, screenPos);
