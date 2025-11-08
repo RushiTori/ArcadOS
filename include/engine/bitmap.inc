@@ -17,7 +17,15 @@ struc Bitmap
 	; uint16_t height;
 	struc_member(uint16_t, height, 1)
 
-    .padding: resb 4 ; Padding to make the struct 16 bytes
+	; The "main" color, used by draw calls
+	; uint8_t main_color;
+	struc_member(uint8_t, main_color, 1)
+
+	; The "inverse" color, used by "inverse" draw calls
+	; uint8_t inverse_color;
+	struc_member(uint8_t, inverse_color, 1)
+
+    .padding: resb 2 ; Padding to make the struct 16 bytes
 endstruc
 
 ; bool_t bitmap_get_bit(const Bitmap* map, uint16_t x, uint16_t y);
