@@ -31,6 +31,7 @@ func(static, put_bitmap_bit)
     ;
     ; uint16_t screenX = x - map_pos.x + screen_pos.x;
     ; uint16_t screenY = y - map_pos.y + screen_pos.y;
+    ; uint8_t col = (inversed)? map->inverse_color : map->main_color;
     ;
     ; bool isMapBitSet = bitmap_get_bit(map, x, y);
     ;
@@ -76,7 +77,14 @@ func(static, put_bitmap_bit)
     sub si, uint16_p [map_pos.y]    ; si = y - map_pos.y
     add si, uint16_p [screen_pos.y] ; si = y - map_pos.y + screen_pos.y
 
-    jmp put_pixel ; put_pixel_c(screenX, screenY);
+    mov rdx,               pointer_p [map]           ; rdx = map
+    mov dl,                [rdx + Bitmap.main_color] ; dl = map->main_color
+    cmp bool_t [inversed], false
+    je  .skip_load_inverse_col
+        mov dl, [rdx + Bitmap.inverse_color] ; if (inversed) dl = map->inverse_color
+    .skip_load_inverse_col:
+
+    jmp put_pixel_c ; put_pixel_c(screenX, screenY, col);
 
     .end:
     add rsp, 8 ; to exit the stack frame
