@@ -7,11 +7,11 @@ section .data
 tile_as_bitmap:
 static  tile_as_bitmap: data
 	istruc Bitmap
-        at .bits,                dq tile_data
-        at .width,               dw 8
-        at .height,              dw 8
-        at .main_color,          db 0x0F
-        at .inverse_color_color, db 0x00
+        at .bits,          dq tile_data
+        at .width,         dw 8
+        at .height,        dw 8
+        at .main_color,    db 0x0F
+        at .inverse_color, db 0x00
         at .padding,             db 0, 0
 	iend
 
