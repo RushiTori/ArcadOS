@@ -2,15 +2,17 @@ bits    64
 
 %include "engine/tiled_bitmap.inc"
 
-section .rodata
+section .data
 
 tile_as_bitmap:
 static  tile_as_bitmap: data
 	istruc Bitmap
-        at .bits,   dq tile_data
-        at .width,  dw 8
-        at .height, dw 8
-        at .padding db 0, 0, 0, 0
+        at .bits,                dq tile_data
+        at .width,               dw 8
+        at .height,              dw 8
+        at .main_color,          db 0x0F
+        at .inverse_color_color, db 0x00
+        at .padding,             db 0, 0
 	iend
 
 section      .bss
@@ -85,6 +87,14 @@ func(global, tiled_bitmap_set_tile_indexed)
 
 ; void draw_tiled_bitmap(const TiledBitmap* tile_map, uint16_t tileX, uint16_t tileY, uint16_t posX, uint16_t posY);
 func(global, draw_tiled_bitmap)
+    ; tile_as_bitmap.main_color = tile_map->main_color
+    mov al,                                  uint8_p [rdi + TiledBitmap.main_color]
+    mov uint8_p [tile_as_bitmap.main_color], al
+
+    ; tile_as_bitmap.inverse_color = tile_map->inverse_color
+    mov al,                                     uint8_p [rdi + TiledBitmap.inverse_color]
+    mov uint8_p [tile_as_bitmap.inverse_color], al
+
     push rcx    ; preserve posY
     push rdx    ; preserve posX
     sub  rsp, 8 ; to re-align the stack
@@ -102,6 +112,14 @@ func(global, draw_tiled_bitmap)
 
 ; void draw_tiled_bitmap_vec(const TiledBitmap* tile_map, ScreenVec2 tilePos, ScreenVec2 screenPos);
 func(global, draw_tiled_bitmap_vec)
+    ; tile_as_bitmap.main_color = tile_map->main_color
+    mov al,                                  uint8_p [rdi + TiledBitmap.main_color]
+    mov uint8_p [tile_as_bitmap.main_color], al
+
+    ; tile_as_bitmap.inverse_color = tile_map->inverse_color
+    mov al,                                     uint8_p [rdi + TiledBitmap.inverse_color]
+    mov uint8_p [tile_as_bitmap.inverse_color], al
+
     push rdx ; preserve screenPos
 
     call tiled_bitmap_get_tile_vec ; tiled_bitmap_get_tile_vec(tile_map, tilePos);
@@ -116,6 +134,14 @@ func(global, draw_tiled_bitmap_vec)
 
 ; void draw_tiled_bitmap_indexed(const TiledBitmap* tile_map, uint32_t idx, uint16_t posX, uint16_t posY);
 func(global, draw_tiled_bitmap_indexed)
+    ; tile_as_bitmap.main_color = tile_map->main_color
+    mov al,                                  uint8_p [rdi + TiledBitmap.main_color]
+    mov uint8_p [tile_as_bitmap.main_color], al
+
+    ; tile_as_bitmap.inverse_color = tile_map->inverse_color
+    mov al,                                     uint8_p [rdi + TiledBitmap.inverse_color]
+    mov uint8_p [tile_as_bitmap.inverse_color], al
+
     push rcx    ; preserve posY
     push rdx    ; preserve posX
     sub  rsp, 8 ; to re-align the stack
@@ -133,6 +159,14 @@ func(global, draw_tiled_bitmap_indexed)
 
 ; void draw_tiled_bitmap_indexed_vec(const TiledBitmap* tile_map, uint32_t idx, ScreenVec2 screenPos);
 func(global, draw_tiled_bitmap_indexed_vec)
+    ; tile_as_bitmap.main_color = tile_map->main_color
+    mov al,                                  uint8_p [rdi + TiledBitmap.main_color]
+    mov uint8_p [tile_as_bitmap.main_color], al
+
+    ; tile_as_bitmap.inverse_color = tile_map->inverse_color
+    mov al,                                     uint8_p [rdi + TiledBitmap.inverse_color]
+    mov uint8_p [tile_as_bitmap.inverse_color], al
+
     push rdx ; preserve screenPos
 
     call tiled_bitmap_get_tile_indexed_vec ; tiled_bitmap_get_tile_indexed_vec(tile_map, idx);
@@ -148,6 +182,14 @@ func(global, draw_tiled_bitmap_indexed_vec)
 
 ; void draw_tiled_bitmap_inverse(const TiledBitmap* tile_map, uint16_t tileX, uint16_t tileY, uint16_t posX, uint16_t posY);
 func(global, draw_tiled_bitmap_inverse)
+    ; tile_as_bitmap.main_color = tile_map->main_color
+    mov al,                                  uint8_p [rdi + TiledBitmap.main_color]
+    mov uint8_p [tile_as_bitmap.main_color], al
+
+    ; tile_as_bitmap.inverse_color = tile_map->inverse_color
+    mov al,                                     uint8_p [rdi + TiledBitmap.inverse_color]
+    mov uint8_p [tile_as_bitmap.inverse_color], al
+
     push rcx    ; preserve posY
     push rdx    ; preserve posX
     sub  rsp, 8 ; to re-align the stack
@@ -165,6 +207,14 @@ func(global, draw_tiled_bitmap_inverse)
 
 ; void draw_tiled_bitmap_inverse_vec(const TiledBitmap* tile_map, ScreenVec2 tilePos, ScreenVec2 screenPos);
 func(global, draw_tiled_bitmap_inverse_vec)
+    ; tile_as_bitmap.main_color = tile_map->main_color
+    mov al,                                  uint8_p [rdi + TiledBitmap.main_color]
+    mov uint8_p [tile_as_bitmap.main_color], al
+
+    ; tile_as_bitmap.inverse_color = tile_map->inverse_color
+    mov al,                                     uint8_p [rdi + TiledBitmap.inverse_color]
+    mov uint8_p [tile_as_bitmap.inverse_color], al
+
     push rdx ; preserve screenPos
 
     call tiled_bitmap_get_tile_vec ; tiled_bitmap_get_tile_vec(tile_map, tilePos);
@@ -179,6 +229,14 @@ func(global, draw_tiled_bitmap_inverse_vec)
 
 ; void draw_tiled_bitmap_inverse_indexed(const TiledBitmap* tile_map, uint32_t idx, uint16_t posX, uint16_t posY);
 func(global, draw_tiled_bitmap_inverse_indexed)
+    ; tile_as_bitmap.main_color = tile_map->main_color
+    mov al,                                  uint8_p [rdi + TiledBitmap.main_color]
+    mov uint8_p [tile_as_bitmap.main_color], al
+
+    ; tile_as_bitmap.inverse_color = tile_map->inverse_color
+    mov al,                                     uint8_p [rdi + TiledBitmap.inverse_color]
+    mov uint8_p [tile_as_bitmap.inverse_color], al
+
     push rcx    ; preserve posY
     push rdx    ; preserve posX
     sub  rsp, 8 ; to re-align the stack
@@ -196,6 +254,14 @@ func(global, draw_tiled_bitmap_inverse_indexed)
 
 ; void draw_tiled_bitmap_inverse_indexed_vec(const TiledBitmap* tile_map, uint32_t idx, ScreenVec2 screenPos);
 func(global, draw_tiled_bitmap_inverse_indexed_vec)
+    ; tile_as_bitmap.main_color = tile_map->main_color
+    mov al,                                  uint8_p [rdi + TiledBitmap.main_color]
+    mov uint8_p [tile_as_bitmap.main_color], al
+
+    ; tile_as_bitmap.inverse_color = tile_map->inverse_color
+    mov al,                                     uint8_p [rdi + TiledBitmap.inverse_color]
+    mov uint8_p [tile_as_bitmap.inverse_color], al
+
     push rdx ; preserve screenPos
 
     call tiled_bitmap_get_tile_indexed_vec ; tiled_bitmap_get_tile_indexed_vec(tile_map, idx);
