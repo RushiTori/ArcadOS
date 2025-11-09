@@ -27,6 +27,9 @@
 %define FONT_WIDTH              16
 %define FONT_HEIGHT             16
 
+%define FONT_TILE_WIDTH         SCREEN_TILE_WIDTH
+%define FONT_TILE_HEIGHT        SCREEN_TILE_HEIGHT
+
 %define FONT_LINE_FEED          0x0A
 %define FONT_NEW_LINE           FONT_LINE_FEED
 

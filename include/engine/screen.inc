@@ -13,11 +13,6 @@
 %define SCREEN_TILE_WIDTH  (SCREEN_WIDTH / SCREEN_TILE_SIZE)
 %define SCREEN_TILE_HEIGHT (SCREEN_HEIGHT / SCREEN_TILE_SIZE)
 
-; Tiles also work for text functions
-%define SCREEN_TEXT_SIZE   SCREEN_TILE_SIZE
-%define SCREEN_TEXT_WIDTH  SCREEN_TILE_WIDTH
-%define SCREEN_TEXT_HEIGHT SCREEN_TILE_HEIGHT
-
 ; ScreenVec2 formal definition
 struc ScreenVec2
 	; Vector x component
