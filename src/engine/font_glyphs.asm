@@ -146,3 +146,49 @@ func(global, draw_glyph_shadow_c)
 ; void draw_glyph_shadow_c_vec(uint8_t glyph, ScreenVec2 pos, uint8_t col);
 func(global, draw_glyph_shadow_c_vec)
 	__base_c_vec_body_and_jump_to draw_glyph_shadow_base
+
+; void draw_glyph_and_background(uint8_t glyph, uint16_t x, uint16_t y);
+func(global, draw_glyph_and_background)
+	push rdi ; preserve glyph
+	push rsi ; preserve x
+	push rdx ; preserve y
+
+	call get_font_color ; get_font_color();
+
+	push rax    ; preserve get_font_color();
+	sub  rsp, 8 ; to re-align the stack
+
+	call get_font_background_color ; get_font_background_color();
+
+	mov r8b, al                     ; r8b = get_font_background_color();
+	add rsp, 8                      ; to re-align the stack
+	pop rdx                         ; restore get_font_color();
+	pop rdx                         ; restore y
+	pop rsi                         ; restore x
+	pop rdi                         ; restore glyph
+	jmp draw_glyph_and_background_c ; draw_glyph_and_background_c(glyph, x, y, get_font_color(), get_font_background_color());
+
+; void draw_glyph_and_background_vec(uint8_t glyph, ScreenVec2 pos);
+func(global, draw_glyph_and_background_vec)
+	__base_vec_body_and_jump_to draw_glyph_shadow
+
+; void draw_glyph_and_background_c(uint8_t glyph, uint16_t x, uint16_t y, uint8_t fontCol, uint8_t backCol);
+func(global, draw_glyph_and_background_c)
+	; WIP
+	ret
+
+; void draw_glyph_and_background_c_vec(uint8_t glyph, ScreenVec2 pos, uint8_t fontCol, uint8_t backCol);
+func(global, draw_glyph_and_background_c_vec)
+	push rdi ; preserve glyph
+	push rdx ; preserve fontCol
+	push rcx ; preserve backCol
+
+	mov  rdi, rsi
+	call screenvec2_unpack ; screenvec2_unpack(pos);
+
+	pop r8                          ; restore backCol
+	pop rcx                         ; restore fontCol
+	; mov dx, dx                      ; pos.y
+	mov si, ax                      ; pos.x
+	pop rdi                         ; restore glyph
+	jmp draw_glyph_and_background_c ; draw_glyph_and_background_c(glyph, pos.x, pos.y, fontCol, backCol);
