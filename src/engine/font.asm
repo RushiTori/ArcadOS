@@ -207,16 +207,6 @@ func(global, set_font_color)
     mov uint8_p [font_color], dil ; font_color = col
     ret
 
-; uint8_t get_font_background_color(void);
-func(global, get_font_background_color)
-    mov al, uint8_p [shadow_color]
-    ret                            ; return shadow_color
-
-; void set_font_background_color(uint8_t col);
-func(global, set_font_background_color)
-    mov uint8_p [shadow_color], dil ; shadow_color = col
-    ret
-
 ; uint8_t get_font_shadow_color(void);
 func(global, get_font_shadow_color)
     mov al, uint8_p [background_color]
@@ -227,9 +217,19 @@ func(global, set_font_shadow_color)
     mov uint8_p [background_color], dil ; background_color = col
     ret
 
-; void set_all_font_colors(uint8_t fontCol, uint8_t backCol, uint8_t shadowCol);
+; uint8_t get_font_background_color(void);
+func(global, get_font_background_color)
+    mov al, uint8_p [shadow_color]
+    ret                            ; return shadow_color
+
+; void set_font_background_color(uint8_t col);
+func(global, set_font_background_color)
+    mov uint8_p [shadow_color], dil ; shadow_color = col
+    ret
+
+; void set_all_font_colors(uint8_t fontCol, uint8_t shadowCol, uint8_t backCol);
 func(global, set_all_font_colors)
     mov uint8_p [font_color],       dil ; font_color = fontCol
-    mov uint8_p [shadow_color],     sil ; shadow_color = backCol
-    mov uint8_p [background_color], dl  ; background_color = shadowCol
+    mov uint8_p [shadow_color],     sil ; shadow_color = shadowCol
+    mov uint8_p [background_color], dl  ; background_color = backCol
     ret

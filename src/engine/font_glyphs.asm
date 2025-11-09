@@ -162,28 +162,6 @@ func(global, draw_glyph_c)
 func(global, draw_glyph_c_vec)
 	__simple_glyph_base_c_vec_body_and_jump_to draw_glyph_base
 
-; void draw_glyph_background_base(uint8_t glyph, uint16_t x, uint16_t y, uint8_t col);
-func(static, draw_glyph_background_base)
-	mov uint8_p [current_font_data.inverse_color], cl ; current_font_data.inverse_color = col
-
-	prepare_drawing_glyph_and_jump_to draw_tiled_bitmap_inverse_indexed
-
-; void draw_glyph_background(uint8_t glyph, uint16_t x, uint16_t y);
-func(global, draw_glyph_background)
-	__simple_glyph_base_body_and_jump_to draw_glyph_background_base
-
-; void draw_glyph_background_vec(uint8_t glyph, ScreenVec2 pos);
-func(global, draw_glyph_background_vec)
-	__simple_glyph_base_vec_body_and_jump_to draw_glyph_background
-
-; void draw_glyph_background_c(uint8_t glyph, uint16_t x, uint16_t y, uint8_t col);
-func(global, draw_glyph_background_c)
-	jmp draw_glyph_background_base ; draw_glyph_background_base(glyph, x, y, col);
-
-; void draw_glyph_background_c_vec(uint8_t glyph, ScreenVec2 pos, uint8_t col);
-func(global, draw_glyph_background_c_vec)
-	__simple_glyph_base_c_vec_body_and_jump_to draw_glyph_background_base
-
 ; void draw_glyph_shadow_base(uint8_t glyph, uint16_t x, uint16_t y, uint8_t col);
 func(static, draw_glyph_shadow_base)
 	mov uint8_p [current_font_data.main_color], cl ; current_font_data.main_color = col
@@ -208,6 +186,28 @@ func(global, draw_glyph_shadow_c)
 ; void draw_glyph_shadow_c_vec(uint8_t glyph, ScreenVec2 pos, uint8_t col);
 func(global, draw_glyph_shadow_c_vec)
 	__simple_glyph_base_c_vec_body_and_jump_to draw_glyph_shadow_base
+
+; void draw_glyph_background_base(uint8_t glyph, uint16_t x, uint16_t y, uint8_t col);
+func(static, draw_glyph_background_base)
+	mov uint8_p [current_font_data.inverse_color], cl ; current_font_data.inverse_color = col
+
+	prepare_drawing_glyph_and_jump_to draw_tiled_bitmap_inverse_indexed
+
+; void draw_glyph_background(uint8_t glyph, uint16_t x, uint16_t y);
+func(global, draw_glyph_background)
+	__simple_glyph_base_body_and_jump_to draw_glyph_background_base
+
+; void draw_glyph_background_vec(uint8_t glyph, ScreenVec2 pos);
+func(global, draw_glyph_background_vec)
+	__simple_glyph_base_vec_body_and_jump_to draw_glyph_background
+
+; void draw_glyph_background_c(uint8_t glyph, uint16_t x, uint16_t y, uint8_t col);
+func(global, draw_glyph_background_c)
+	jmp draw_glyph_background_base ; draw_glyph_background_base(glyph, x, y, col);
+
+; void draw_glyph_background_c_vec(uint8_t glyph, ScreenVec2 pos, uint8_t col);
+func(global, draw_glyph_background_c_vec)
+	__simple_glyph_base_c_vec_body_and_jump_to draw_glyph_background_base
 
 ; void draw_glyph_and_background(uint8_t glyph, uint16_t x, uint16_t y);
 func(global, draw_glyph_and_background)
