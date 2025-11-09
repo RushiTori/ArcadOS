@@ -83,23 +83,23 @@ section .text
 	push rsi ; preserve x
 	push rdx ; preserve y
 
-	call %2 ; %2();
+	call %2 ; frontCol();
 
-	push rax    ; preserve %2();
+	push rax    ; preserve frontCol();
 	sub  rsp, 8 ; to re-align the stack
 
-	call %3 ; %3();
+	call %3 ; backCol();
 
-	mov r8b, al ; r8b = %3();
+	mov r8b, al ; r8b = backCol();
 	add rsp, 8  ; to re-align the stack
-	pop rdx     ; restore %2();
+	pop rdx     ; restore frontCol();
 	pop rdx     ; restore y
 	pop rsi     ; restore x
 	pop rdi     ; restore glyph
-	jmp %1      ; %1(glyph, x, y, %2(), %3());
+	jmp %1      ; %1(glyph, x, y, frontCol(), backCol());
 %endmacro
 
-%define __binary_glyph_base_body_and_jump_to(jump, mainCol, secondCol) __binary_glyph_base_body_and_jump_to__ jump, mainCol, secondCol
+%define __binary_glyph_base_body_and_jump_to(jump, frontCol, backCol) __binary_glyph_base_body_and_jump_to__ jump, frontCol, backCol
 
 %macro __binary_glyph_base_c_body__ 2
 	sub rsp, 8 ; to align the stack and make room to preserve the args
@@ -209,6 +209,23 @@ func(global, draw_glyph_background_c)
 func(global, draw_glyph_background_c_vec)
 	__simple_glyph_base_c_vec_body_and_jump_to draw_glyph_background_base
 
+; void draw_glyph_and_shadow(uint8_t glyph, uint16_t x, uint16_t y);
+func(global, draw_glyph_and_shadow)
+	__binary_glyph_base_body_and_jump_to(draw_glyph_and_shadow_c, get_font_color, get_font_shadow_color)
+
+; void draw_glyph_and_shadow_vec(uint8_t glyph, ScreenVec2 pos);
+func(global, draw_glyph_and_shadow_vec)
+	__simple_glyph_base_vec_body_and_jump_to draw_glyph_and_shadow
+
+; void draw_glyph_and_shadow_c(uint8_t glyph, uint16_t x, uint16_t y, uint8_t fontCol, uint8_t shadowCol);
+func(global, draw_glyph_and_shadow_c)
+	__binary_glyph_base_c_body(draw_glyph_c, draw_glyph_shadow_c)
+	ret
+
+; void draw_glyph_and_shadow_c_vec(uint8_t glyph, ScreenVec2 pos, uint8_t fontCol, uint8_t shadowCol);
+func(global, draw_glyph_and_shadow_c_vec)
+	__binary_glyph_base_c_vec_body_and_jump_to draw_glyph_and_shadow_c
+
 ; void draw_glyph_and_background(uint8_t glyph, uint16_t x, uint16_t y);
 func(global, draw_glyph_and_background)
 	__binary_glyph_base_body_and_jump_to(draw_glyph_and_background_c, get_font_color, get_font_background_color)
@@ -225,3 +242,20 @@ func(global, draw_glyph_and_background_c)
 ; void draw_glyph_and_background_c_vec(uint8_t glyph, ScreenVec2 pos, uint8_t fontCol, uint8_t backCol);
 func(global, draw_glyph_and_background_c_vec)
 	__binary_glyph_base_c_vec_body_and_jump_to draw_glyph_and_background_c
+
+; void draw_glyph_shadow_and_background(uint8_t glyph, uint16_t x, uint16_t y);
+func(global, draw_glyph_shadow_and_background)
+	__binary_glyph_base_body_and_jump_to(draw_glyph_shadow_and_background_c, get_font_shadow_color, get_font_background_color)
+
+; void draw_glyph_shadow_and_background_vec(uint8_t glyph, ScreenVec2 pos);
+func(global, draw_glyph_shadow_and_background_vec)
+	__simple_glyph_base_vec_body_and_jump_to draw_glyph_shadow_and_background
+
+; void draw_glyph_shadow_and_background_c(uint8_t glyph, uint16_t x, uint16_t y, uint8_t shadowCol, uint8_t backCol);
+func(global, draw_glyph_shadow_and_background_c)
+	__binary_glyph_base_c_body(draw_glyph_shadow_c, draw_glyph_background_c)
+	ret
+
+; void draw_glyph_shadow_and_background_c_vec(uint8_t glyph, ScreenVec2 pos, uint8_t shadowCol, uint8_t backCol);
+func(global, draw_glyph_shadow_and_background_c_vec)
+	__binary_glyph_base_c_vec_body_and_jump_to draw_glyph_shadow_and_background_c
