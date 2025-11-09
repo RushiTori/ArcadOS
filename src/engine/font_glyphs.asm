@@ -107,19 +107,19 @@ func(static, draw_glyph_background_base)
 	prepare_drawing_glyph_and_jump_to draw_tiled_bitmap_inverse_indexed
 
 ; void draw_glyph_background(uint8_t glyph, uint16_t x, uint16_t y);
-func(draw_glyph_background)
+func(global, draw_glyph_background)
 	__base_body_and_jump_to draw_glyph_background_base
 
 ; void draw_glyph_background_vec(uint8_t glyph, ScreenVec2 pos);
-func(draw_glyph_background_vec)
+func(global, draw_glyph_background_vec)
 	__base_vec_body_and_jump_to draw_glyph_background
 
 ; void draw_glyph_background_c(uint8_t glyph, uint16_t x, uint16_t y, uint8_t col);
-func(draw_glyph_background_c)
+func(global, draw_glyph_background_c)
 	jmp draw_glyph_background_base ; draw_glyph_background_base(glyph, x, y, col);
 
 ; void draw_glyph_background_c_vec(uint8_t glyph, ScreenVec2 pos, uint8_t col);
-func(draw_glyph_background_c_vec)
+func(global, draw_glyph_background_c_vec)
 	__base_c_vec_body_and_jump_to draw_glyph_background_base
 
 ; void draw_glyph_shadow_base(uint8_t glyph, uint16_t x, uint16_t y, uint8_t col);
@@ -132,17 +132,17 @@ func(static, draw_glyph_shadow_base)
 	prepare_drawing_glyph_and_jump_to draw_tiled_bitmap_inverse_indexed
 
 ; void draw_glyph_shadow(uint8_t glyph, uint16_t x, uint16_t y);
-func(draw_glyph_shadow)
+func(global, draw_glyph_shadow)
 	__base_body_and_jump_to draw_glyph_shadow_base
 
 ; void draw_glyph_shadow_vec(uint8_t glyph, ScreenVec2 pos);
-func(draw_glyph_shadow_vec)
+func(global, draw_glyph_shadow_vec)
 	__base_vec_body_and_jump_to draw_glyph_shadow
 
 ; void draw_glyph_shadow_c(uint8_t glyph, uint16_t x, uint16_t y, uint8_t col);
-func(draw_glyph_shadow_c)
+func(global, draw_glyph_shadow_c)
 	jmp draw_glyph_shadow_base ; draw_glyph_shadow_base(glyph, x, y, col);
 
 ; void draw_glyph_shadow_c_vec(uint8_t glyph, ScreenVec2 pos, uint8_t col);
-func(draw_glyph_shadow_c_vec)
+func(global, draw_glyph_shadow_c_vec)
 	__base_c_vec_body_and_jump_to draw_glyph_shadow_base
