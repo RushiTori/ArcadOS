@@ -27,12 +27,12 @@ func(static, draw_text_algo)
 	;
 	;  handle_line_feed:
 	;    currY += TILE_HEIGHT;
-	;    if (make_nl_as_crnl) currX = startX;
+	;    if (make_nl_as_crnl()) currX = startX;
 	;    goto finished_handling_glyph;
 	;
 	;  handle_carriage_return:
 	;    currX = startX;
-	;    if (make_cr_as_crnl) currY += TILE_HEIGHT;
+	;    if (make_cr_as_crnl()) currY += TILE_HEIGHT;
 	;    goto finished_handling_glyph;
 	;
 	;  handle_horizontal_tab:
@@ -43,6 +43,14 @@ func(static, draw_text_algo)
 	;}
 	;
 	; WIP
+	;
+	;r12 = glyphs
+	;r13w = currX
+	;r14w = currY
+	;r15w = startX
+	;rbx = call
+	;
+	;al = currGlyph
 	;
 
 	ret
