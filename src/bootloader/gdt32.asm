@@ -39,8 +39,12 @@ prepare_segment_registers32:
 	mov esp, 0x00020000
 	mov ebp, 0x00020000
 
+	mov edi, 0xFF
+	mov esi, 0xFF
+	call mask_pic32
+
 	mov edi, 0x20
-	mov esi, 0x30
+	mov esi, 0x28
 	call remap_pic32
 
 	jmp make_idt_32
