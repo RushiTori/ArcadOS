@@ -2,4 +2,6 @@
 .ccls-cache/
 objs/
 .clang-format
+symbols.map
+bx_enh_dbg.ini
 ArcadOS.*
