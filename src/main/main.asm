@@ -252,8 +252,15 @@ global main:function
 	mov rdi, KEY_BACKSPACE
 	call is_key_pressed
 	cmp rax, true
-	jne .skipBackspace
+	je .handleBackspace
 
+	mov rdi, KEY_BACKSPACE
+	call is_key_pressed_typematic
+	cmp rax, true
+	je .handleBackspace
+	jmp .skipBackspace
+
+.handleBackspace
 	mov rdi, [TextIndex]
 	cmp rdi, 0
 	je .skipBackspace
