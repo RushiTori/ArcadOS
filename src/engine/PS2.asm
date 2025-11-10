@@ -472,9 +472,20 @@ GetDevicesID:
 	mov rdx, warning_no_PS2_devices
 	call draw_text
 
-	mov rdi, 5000 ;5 seconds
-	shl rdi, 32
-	call sleep_ms
+	call create_timer ;i realized timer were incredibly buggy, whenever we get into bochs/bare metal territory, suddendly, a "wait for 5000 ms" turns into "hey i instantly finished lol"
+	mov rdi, rax
+	push rdi
+
+.timer_wait_loop:
+	pop rdi
+	push rdi
+	call get_timer_ms
+	shr rax, 32
+	cmp rax, 5000
+	jl .timer_wait_loop
+
+	pop rdi
+	call remove_timer
 .end_check:
 
 	ret
