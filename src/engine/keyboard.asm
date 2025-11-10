@@ -6,6 +6,7 @@ bits 64
 %include "engine/PS2.inc"
 %include "bootloader/pic.inc"
 
+%define KEY_STATE_UNKNOWN  0
 %define KEY_STATE_PRESSED  1
 %define KEY_STATE_DOWN     2
 %define KEY_STATE_RELEASED 3
@@ -305,6 +306,13 @@ global keyboardSetScancodeTable:function
 
 	mov [isNumpadLocked], al
 
+	mov rcx, KEY_COUNT
+
+	.clearKeys:
+		mov byte [key_states + rcx - 1], KEY_STATE_UP
+		mov byte [IRQ_key_states + rcx - 1], KEY_STATE_UNKNOWN
+		loop .clearKeys
+
 	ret
 
 ;rax: scancode with byte 1 being MSB, and byte 3 being LSB
@@ -390,11 +398,11 @@ static update_keyboard_handler_IRQ:function
 	jne .writepress
 	.writerelease:
 		movzx rdi, al
-		mov byte[IRQ_key_states + rdi], 1
+		mov byte[IRQ_key_states + rdi], KEY_STATE_PRESSED
 		jmp .end
 	.writepress:
 		movzx rdi, al
-		mov byte[IRQ_key_states + rdi], 2
+		mov byte[IRQ_key_states + rdi], KEY_STATE_RELEASED
 	
 	cmp rdi, KEY_CAPS_LOCK
 	jne .skipCapsLockHandling
@@ -535,22 +543,22 @@ keyboard_get_char:
 update_keyboard_handler:
 global update_keyboard_handler:function
 	; WIP
-	mov rdi, 1
-	call maskout_irq_pic64
 
 	xor rdi, rdi
 	mov rcx, KEY_COUNT
 	.update_loop:
 		mov al, byte[IRQ_key_states + rdi]
-		cmp al, 0
+		cmp al, KEY_STATE_UNKNOWN
 		je .continue_update_loop
-		dec al
 
-		cmp al, true
+		cmp al, KEY_STATE_RELEASED
 		je .handleReleased
 		.handlePressed:
-			cmp byte[key_states + rdi], KEY_STATE_DOWN
-			jg .put_state_pressed
+			cmp byte[key_states + rdi], KEY_STATE_RELEASED
+			je .put_state_pressed
+
+			cmp byte[key_states + rdi], KEY_STATE_UP
+			je .put_state_pressed
 
 			.put_state_down:
 			mov byte[key_states + rdi], KEY_STATE_DOWN
@@ -561,8 +569,11 @@ global update_keyboard_handler:function
 			jmp .continue_update_loop
 
 		.handleReleased:
-			cmp byte[key_states + rdi], KEY_STATE_DOWN
-			jg .put_state_pressed
+			cmp byte[key_states + rdi], KEY_STATE_RELEASED
+			je .put_state_up
+
+			cmp byte[key_states + rdi], KEY_STATE_UP
+			je .put_state_up
 
 			.put_state_released:
 			mov byte[key_states + rdi], KEY_STATE_RELEASED
@@ -588,8 +599,6 @@ global update_keyboard_handler:function
 		inc rdi
 		loop .update_loop
 
-	mov rdi, 1
-	call maskin_irq_pic64
 	ret
 
 ; args : u8 keycode
