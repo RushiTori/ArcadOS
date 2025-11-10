@@ -38,6 +38,10 @@ extern is_key_released
 ; returns : true if 'keycode' is up, otherwise false.
 extern is_key_up
 
+; args : u8 keycode
+; returns : true if 'keycode' is typematic pressed, otherwise false.
+extern is_key_pressed_typematic
+
 extern scancode
 extern scancode_complete
 

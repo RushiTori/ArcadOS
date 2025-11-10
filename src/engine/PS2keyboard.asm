@@ -11,6 +11,7 @@ bits 64
 %define KEY_STATE_DOWN     2
 %define KEY_STATE_RELEASED 3
 %define KEY_STATE_UP       4
+%define KEY_STATE_TYPEMATIC_PRESSED 5
 
 section .rodata
 
@@ -556,13 +557,41 @@ global update_keyboard_handler:function
 		je .handleReleased
 		.handlePressed:
 			.put_state_pressed:
+			cmp byte[key_states + rdi], KEY_STATE_DOWN
+			je .put_state_typematic_pressed
 			mov byte[key_states + rdi], KEY_STATE_PRESSED
+			jmp .continue_update_loop
+
+			.put_state_typematic_pressed
+			mov byte[key_states + rdi], KEY_STATE_TYPEMATIC_PRESSED
 			jmp .continue_update_loop
 
 		.handleReleased:
 			.put_state_released:
 			mov byte[key_states + rdi], KEY_STATE_RELEASED
 			jmp .continue_update_loop
+
+		.put_state_down:
+			mov byte [key_states + rdi], KEY_STATE_DOWN
+			jmp .continue_update_loop
+
+		.put_state_up:
+			mov byte [key_states + rdi], KEY_STATE_UP
+			jmp .continue_update_loop
+
+		.update_key_status:
+			cmp byte[key_states + rdi], KEY_STATE_TYPEMATIC_PRESSED
+			je .put_state_down
+			cmp byte[key_states + rdi], KEY_STATE_PRESSED
+			je .put_state_down
+			cmp byte[key_states + rdi], KEY_STATE_RELEASED
+			je .put_state_up
+		.continue_update_loop:
+		mov byte[IRQ_key_states + rdi], KEY_STATE_UNKNOWN
+		inc rdi
+		loop .update_loop
+
+	ret
 		; Logic to translate
 		;	if (isPressed) {
 		;		if (state == InputState::Pressed)
@@ -575,25 +604,6 @@ global update_keyboard_handler:function
 		;		else if (state == InputState::Pressed || state == InputState::Down)
 		;			state = InputState::Released;
 		;	}
-		.put_state_down:
-			mov byte [key_states + rdi], KEY_STATE_DOWN
-			jmp .continue_update_loop
-
-		.put_state_up:
-			mov byte [key_states + rdi], KEY_STATE_UP
-			jmp .continue_update_loop
-			
-		.update_key_status:
-			cmp byte[key_states + rdi], KEY_STATE_PRESSED
-			je .put_state_down
-			cmp byte[key_states + rdi], KEY_STATE_RELEASED
-			je .put_state_up
-		.continue_update_loop:
-		mov byte[IRQ_key_states + rdi], KEY_STATE_UNKNOWN
-		inc rdi
-		loop .update_loop
-
-	ret
 
 ; args : u8 keycode
 ; returns : true if 'keycode' is pressed, otherwise false.
@@ -614,7 +624,25 @@ global is_key_pressed:function
 	ret
 
 ; args : u8 keycode
-; returns : true if 'keycode' is down, otherwise false.
+; returns : true if 'keycode' is typematic pressed, otherwise false.
+is_key_pressed_typematic:
+global is_key_pressed:function
+	xor rax, rax
+	cmp dil, KEY_COUNT
+	jge .end
+
+	and rdi, 0xFF
+	mov dil, byte[key_states + rdi]
+
+	cmp dil, KEY_STATE_TYPEMATIC_PRESSED
+	jne .end
+	inc rax
+
+	.end:
+	ret
+
+; args : u8 keycode
+; returns : true if 'keycode' is down, otherwise false. (note: typematic pressed state is included as down here, since it is still holding down the key physically)
 is_key_down:
 global is_key_down:function
 	xor rax, rax
@@ -624,8 +652,11 @@ global is_key_down:function
 	and rdi, 0xFF
 	mov dil, byte[key_states + rdi]
 
+	cmp dil, KEY_STATE_TYPEMATIC_PRESSED
+	je .end
 	cmp dil, KEY_STATE_DOWN
 	jne .end
+.true:
 	inc rax
 
 	.end:
