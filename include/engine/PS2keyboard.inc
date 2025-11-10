@@ -17,7 +17,7 @@
 %define PS2_STATUS_PARITY_FLAG			(1 << 7)
 
 extern initPS2
-extern keyboardSetScancodeTable
+extern keyboardInit
 extern keyboardRead
 
 extern update_keyboard_handler
@@ -47,6 +47,25 @@ extern scancode_complete
 
 extern keyboard_char_buffer_flush
 extern keyboard_get_char
+
+%define KB_COMMAND_SET_LEDS 0xED
+%define KB_COMMAND_ECHO 0xEE
+%define KB_COMMAND_GET_SET_SCANCODE_SET 0xF0
+%define KB_COMMAND_IDENTIFY 0xF2
+%define KB_COMMAND_SET_TYPEMATIC_RATE_DELAY 0xF3
+%define KB_COMMAND_ENABLE_SCAN 0xF4
+%define KB_COMMAND_DISABLE_SCAN 0xF5
+%define KB_COMMAND_DEFAULT_PARAM 0xF6
+%define KB_COMMAND_ALL_TYPEMATIC_AUTOREPEAT_ONLY 0xF7 ;scancode set 3 only
+%define KB_COMMAND_ALL_MAKE_RELEASE 0xF8 ;scancode set 3 only
+%define KB_COMMAND_ALL_MAKE_ONLY 0xF9 ;scancode set 3 only
+%define KB_COMMAND_ALL_TYPEMATIC_AUTOREPEAT_MAKE_RELEASE 0xFA ;scancode set 3 only
+%define KB_COMMAND_KEY_TYPEMATIC_MAKE_RELEASE 0xFB ;scancode set 3 only
+%define KB_COMMAND_KEY_TYPEMATIC_AUTOREPEAT_ONLY 0xFC ;scancode set 3 only
+%define KB_COMMAND_KEY_TYPEMATIC_MAKE_ONLY 0xFD ;scancode set 3 only
+%define KB_COMMAND_RESEND 0xFE
+%define KB_COMMAND_RESTART 0xFF
+
 
 %define KEY_ESCAPE			0
 %define KEY_F1				1
@@ -123,7 +142,9 @@ extern keyboard_get_char
 %define KEY_RIGHT_SHIFT		76
 
 %define KEY_LEFT_CTRL		80
+%define KEY_LEFT_ALT        83
 %define KEY_SPACEBAR		84
+%define KEY_RIGHT_ALT       85
 %define KEY_RIGHT_CTRL		87
 %define KEY_UP				88
 %define KEY_DOWN			89

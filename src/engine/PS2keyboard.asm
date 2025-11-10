@@ -110,9 +110,9 @@ static keymap:data
 	dq 0x0014, 0xF014	;left ctrl:						80
 	dq 0, 0				;left fn not mapped
 	dq 0, 0				;win not mapped
-	dq 0, 0				;alt not mapped
+	dq 0x0011, 0xF011	;alt							83
 	dq 0x0029, 0xF029	;space bar:						84
-	dq 0, 0				;alt gr not mapped
+	dq 0xE011, 0xE0F011	;alt gr							85
 	dq 0, 0				;right fn not mapped
 	dq 0xE014, 0xE0F014	;right control:					87
 	dq 0xE075, 0xE0F075	;UP:							88
@@ -139,14 +139,14 @@ key_to_char:
 	db 0	;unused							15
 
 	db 0	;square symbol:					16
-	db '1' 	;one:							17
+	db '&' 	;one:							17
 	db '2' 	;two:							18
-	db '3' 	;three:							19
-	db '4' 	;four:							20
-	db '5' 	;five:							21
-	db '6' 	;six:							22
+	db 0x22 ;three:							19
+	db 0x27	;four:							20
+	db '(' 	;five:							21
+	db '-' 	;six:							22
 	db '7' 	;seven:							23
-	db '8' 	;eight:							24
+	db '_' 	;eight:							24
 	db '9' 	;nine:							25
 	db '0' 	;zero:							26
 	db ')' 	;end parenthesis:				27
@@ -183,7 +183,7 @@ key_to_char:
 	db 'k'	;K:								56
 	db 'l'	;L:								57
 	db 'm'	;M:								58
-	db 0	;u with accent pointing right:	59
+	db '%'	;u with accent pointing right:	59   replaced with % since % is in the ascii table
 	db '*'	;asterisk:						60
 	db 0	;unused							61
 	db 0	;unused							62
@@ -209,9 +209,9 @@ key_to_char:
 	db 0	;left ctrl:						80
 	db 0	;left fn not mapped
 	db 0	;win not mapped
-	db 0	;alt not mapped
+	db 0	;alt							83
 	db ' '	;space bar:						84
-	db 0	;alt gr not mapped
+	db 0	;alt gr							85
 	db 0	;right fn not mapped
 	db 0	;right control:					87
 	db 0	;UP:							88
@@ -273,38 +273,21 @@ static waitForSending:function
 	ret
 
 ;masks all interrupt
-keyboardSetScancodeTable:
+keyboardInit:
 global keyboardSetScancodeTable:function
-	mov rdi, 0xFF
-	mov rsi, 0xFF
+	mov rdi, 0xFE
+	mov rsi, 0xFE
 	call mask_pic64
 
-	call waitForSendingKeyboard
+	mov rdi, KB_COMMAND_GET_SET_SCANCODE_SET
+	call PS2SendCommandToPort1
 
-	mov al, 0xF0
-	out PS2_DATA, al
-
-	call waitForSendingKeyboard
-
-	mov al, 2
-	out PS2_DATA, al
-
-	call waitForResponseKeyboard
-
-	in al, PS2_DATA
-	cmp al, 0xFE
-	je keyboardSetScancodeTable
-
-	cmp al, 0xFF
-	je $
-	cmp al, 0x00
-	je $
+	mov rdi, 2 ;set 2
+	call PS2SendCommandToPort1
 
 	mov al, false
 	mov [isScrollLocked], al
-
 	mov [isCapsLocked], al
-
 	mov [isNumpadLocked], al
 
 	mov rcx, KEY_COUNT
@@ -314,7 +297,27 @@ global keyboardSetScancodeTable:function
 		mov byte [IRQ_key_states + rcx - 1], KEY_STATE_UNKNOWN
 		loop .clearKeys
 
+
+	mov rdi, 0xFF
+	mov rsi, 0xFF
+	call mask_pic64
+
+	mov rdi, KB_COMMAND_SET_TYPEMATIC_RATE_DELAY
+	call PS2SendCommandToPort1
+	cmp rax, -1
+	je .end
+
+			  ;z_dd_rrrrr where z must be zero, d is delay in a range of 250 to 1000ms (0 is 250ms) (included on both ends), and rrrrr is a repeat rate, from 2 Hz to 30Hz (0 is 30Hz) (included on both ends)
+	mov rdi, 0b0_01_00000 ;here 500 ms with a repeat rate of 30Hz, sounds good
+	call PS2SendCommandToPort1
+	cmp rax, -1
+	je .end
+
+.end:
 	ret
+
+.error:
+	jmp $
 
 ;rax: scancode with byte 1 being MSB, and byte 3 being LSB
 keyboardRead:
@@ -461,6 +464,16 @@ keyboard_get_char:
 	mov rax, -1
 	jz .end
 
+	mov rdi, KEY_RIGHT_ALT
+	call is_key_pressed
+	mov rcx, rax
+
+	mov rdi, KEY_RIGHT_ALT
+	call is_key_down
+	or rcx, rax
+	cmp rcx, true
+	je .altGrHandling
+
 	mov rdi, KEY_LEFT_SHIFT
 	call is_key_pressed
 	mov rcx, rax
@@ -485,13 +498,20 @@ keyboard_get_char:
 	je .end
 
 	cmp cl, 0
-	je .skipCapsHandling
+	je .skipSpecialHandling
+
+	cmp al, '<'
+	jne .skipLowerThanHandling
+
+	mov al, '>'
+	jmp .skipSpecialHandling
+.skipLowerThanHandling:
 
 	cmp al, ','
 	jne .skipCommaHandling
 
 	mov al, '?'
-	jmp .skipSpecialCharacters
+	jmp .skipSpecialHandling
 
 .skipCommaHandling:
 
@@ -499,7 +519,7 @@ keyboard_get_char:
 	jne .skipSemicolonHandling
 
 	mov al, '.'
-	jmp .skipSpecialCharacters
+	jmp .skipSpecialHandling
 
 .skipSemicolonHandling:
 
@@ -507,26 +527,140 @@ keyboard_get_char:
 	jne .skipColonHandling
 
 	mov al, '/'
-	jmp .skipSpecialCharacters
+	jmp .skipSpecialHandling
 
 .skipColonHandling:
+
+	cmp al, '&'
+	jne .skipAmpersandHandling
+
+	mov al, '1'
+	jmp .skipSpecialHandling
+.skipAmpersandHandling:
+
+	cmp al, 0x22
+	jne .skipDquoteHandling
+
+	mov al, '3'
+	jmp .skipSpecialHandling
+.skipDquoteHandling:
+
+	cmp al, 0x27
+	jne .skipApostropheHandling
+
+	mov al, '4'
+	jmp .skipSpecialHandling
+.skipApostropheHandling:
+
+	cmp al, '('
+	jne .skipParenthesisStartHandling
+
+	mov al, '5'
+	jmp .skipSpecialHandling
+.skipParenthesisStartHandling:
+
+	cmp al, '-'
+	jne .skipDashHandling
+
+	mov al, '6'
+	jmp .skipSpecialHandling
+.skipDashHandling:
+
+	cmp al, '_'
+	jne .skipUnderscoreHandling
+
+	mov al, '8'
+	jmp .skipSpecialHandling
+.skipUnderscoreHandling:
 
 	cmp al, '='
 	jne .skipEqualHandling
 
 	mov al, '+'
+	jmp .skipSpecialHandling
 
 .skipEqualHandling:
-.skipSpecialCharacters:
 
 	cmp al, 'a'
-	jl .skipCapsHandling
+	jl .skipSpecialHandling
 
 	cmp al, 'z'
-	jg .skipCapsHandling
+	jg .skipSpecialHandling
 
 	sub al, ('a' - 'A')
-.skipCapsHandling:
+	jmp .skipSpecialHandling ;end of caps handling
+
+.altGrHandling:
+	xor rax, rax
+	mov al, [char_buffer]
+
+	cmp al, '2'
+	jne .skipTwoHandling
+
+	mov al, '~'
+	jmp .skipSpecialHandling
+.skipTwoHandling:
+	cmp al, 0x22
+	jne .skipAltDquoteHandling
+
+	mov al, '#'
+	jmp .skipSpecialHandling
+.skipAltDquoteHandling:
+	cmp al, 0x27
+	jne .skipAltApostropheHandling
+
+	mov al, '{'
+	jmp .skipSpecialHandling
+.skipAltApostropheHandling:
+	cmp al, '('
+	jne .skipAltParenthesisStartHandling
+
+	mov al, '['
+	jmp .skipSpecialHandling
+.skipAltParenthesisStartHandling:
+	cmp al, '-'
+	jne .skipAltDashHandling
+
+	mov al, '|'
+	jmp .skipSpecialHandling
+.skipAltDashHandling:
+	cmp al, '7'
+	jne .skipAltSevenHandling
+
+	mov al, '`'
+	jmp .skipSpecialHandling
+.skipAltSevenHandling:
+	cmp al, '_'
+	jne .skipAltUnderscoreHandling
+
+	mov al, '\'
+	jmp .skipSpecialHandling
+.skipAltUnderscoreHandling:
+	cmp al, '9'
+	jne .skipAltNineHandling
+
+	mov al, '^'
+	jmp .skipSpecialHandling
+.skipAltNineHandling:
+	cmp al, '0'
+	jne .skipAltZeroHandling
+
+	mov al, '@'
+	jmp .skipSpecialHandling
+.skipAltZeroHandling:
+	cmp al, ')'
+	jne .skipAltParenthesisEndHandling
+
+	mov al, ']'
+	jmp .skipSpecialHandling
+.skipAltParenthesisEndHandling:
+	cmp al, '='
+	jne .skipAltEqualHandling
+
+	mov al, '}'
+.skipAltEqualHandling:
+	;end of alt gr handling
+.skipSpecialHandling:
 
 	push rax
 
@@ -562,7 +696,7 @@ global update_keyboard_handler:function
 			mov byte[key_states + rdi], KEY_STATE_PRESSED
 			jmp .continue_update_loop
 
-			.put_state_typematic_pressed
+			.put_state_typematic_pressed:
 			mov byte[key_states + rdi], KEY_STATE_TYPEMATIC_PRESSED
 			jmp .continue_update_loop
 
