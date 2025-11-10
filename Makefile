@@ -71,7 +71,7 @@ burn:
 	sudo dd if=$(NAME).img of=/dev/sda
 
 start:
-	qemu-system-x86_64 -drive file=$(NAME).img,format=raw -M accel=tcg,smm=off -d int -no-reboot -no-shutdown
+	qemu-system-x86_64 -drive file=$(NAME).img,format=raw -accel kvm -no-reboot -no-shutdown
 
 restart: build start
 
