@@ -2,10 +2,16 @@ bits         64
 
 %include "engine/font.inc"
 
+section      .bss
+
+res(static,  uint8_t, color_a)
+res(static,  uint8_t, color_b)
+res(static,  uint8_t, color_c)
+
 section      .text
 
 ;
-; typedef void (*DrawGlyphCB)(uint8_t glyph, uint16_t x, uint16_t y);
+; typedef void (*DrawGlyphCB)(uint8_t glyph, uint16_t x, uint16_t y, uint8_t? colA, uint8_t? colB, uint8_t? colC);
 ;
 ; void draw_text_algo(const uint8_t* glyphs, uint16_t x, uint16_t y, DrawGlyphCB call);
 func(static, draw_text_algo)
@@ -21,7 +27,7 @@ func(static, draw_text_algo)
 	;  if (currGlyph == FONT_HORIZONTAL_TAB) goto handle_horizontal_tab;
 	;
 	;  handle_drawing_glyph:
-	;    call(currGlyph, currX, currY);
+	;    call(currGlyph, currX, currY, color_a?, color_b?, color_c?);
 	;    currX += FONT_TILE_WIDTH;
 	;    goto finished_handling_glyph;
 	;
@@ -86,7 +92,10 @@ func(static, draw_text_algo)
 			mov  dil,  al                 ; currGlyph
 			mov  si,   r13w               ; currX
 			mov  dx,   r14w               ; currY
-			call rbx                      ; call(currGlyph, currX, currY);
+			mov  cl,   uint8_p [color_a]  ; cl = color_a
+			mov  r8b,  uint8_p [color_b]  ; r8b = color_b
+			mov  r9b,  uint8_p [color_c]  ; r9b = color_c
+			call rbx                      ; call(currGlyph, currX, currY, color_a?, color_b?, color_c?);
 			add  r13w, FONT_TILE_WIDTH    ; currX += FONT_TILE_WIDTH
 			jmp  .finished_handling_glyph
 
