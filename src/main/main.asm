@@ -16,7 +16,7 @@ static frameCount:data
 section .data
 TextBuffer:
 static TextBuffer:
-	times 41 db 0
+	times 4096 db 0
 TextIndex:
 static TextIndex:
 	dq 0
@@ -242,6 +242,8 @@ global main:function
 	cmp rax, -1
 	je .skipPrint
 	mov rdi, [TextIndex]
+	cmp rdi, 4096
+	je .skipPrint
 	mov byte[TextBuffer + rdi], al
 	inc qword[TextIndex]
 	jmp .printLoop
@@ -276,7 +278,7 @@ global main:function
 	mov rdi, [timerID]
 	call get_timer_ms
 	shr rax, 32
-	cmp rax, 16
+	cmp rax, 32
 	jl .waitForFrameTime
 
 	mov rdi, [timerID]
