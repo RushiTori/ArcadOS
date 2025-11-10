@@ -138,3 +138,23 @@ func(static, draw_text_algo)
 	pop r13 ; restore r13
 	pop r12 ; restore r12
 	ret
+
+; void draw_text(const uint8_t* glyphs, uint16_t x, uint16_t y);
+func(global, draw_text)
+	; WIP
+	ret
+
+; void draw_text_vec(const uint8_t* glyphs, ScreenVec2 pos);
+func(global, draw_text_vec)
+	; WIP
+	ret
+
+; void draw_text_c(const uint8_t* glyphs, uint16_t x, uint16_t y, uint8_t col);
+func(global, draw_text_c)
+	; WIP
+	ret
+
+; void draw_text_c_vec(const uint8_t* glyphs, ScreenVec2 pos, uint8_t col);
+func(global, draw_text_c_vec)
+	; WIP
+	ret
