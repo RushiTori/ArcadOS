@@ -13,12 +13,30 @@ frameCount:
 static frameCount:data
 	resq 1
 
+section .data
+TextBuffer:
+static TextBuffer:
+	times 41 db 0
+TextIndex:
+static TextIndex:
+	dq 0
+
 section .rodata
 
 ArcadOSTitle:
 static ArcadOSTitle:data
 	db "ArcadOS", 0
 ArcadOSTitleLen equ ($ - ArcadOSTitle)
+
+spaces:
+static spaces:data
+	db " ", 0
+spacesLen equ ($ - spaces)
+
+keyPressed:
+static keyPressed:data
+	db "k", 0
+keyPressedLen equ ($ - keyPressed)
 
 seconds_0_padding:
 static seconds_0_padding:data
@@ -177,6 +195,23 @@ static draw_system_time:function
 
 	ret
 
+;rdi: x
+;rsi: y
+;rdx: str
+draw_text_and_shadow:
+static draw_text_and_shadow:function
+	push rdi
+	push rsi
+	push rdx
+	call draw_text_shadow
+
+	pop rdx
+	pop rsi
+	pop rdi
+	call draw_text
+
+	ret
+
 main:
 global main:function
 
@@ -187,23 +222,74 @@ global main:function
 	mov rax, cr4
 	or ax, 3 << 9		;set CR4.OSFXSR and CR4.OSXMMEXCPT at the same time
 	mov cr4, rax
-	; WIP
-	call memory_mover_start
 
 	mov rdi, 0x02
 	call set_color
 
 	call clear_screen
 
-	mov [0], rax
+	mov rdi, 0
+	call maskin_irq_pic64
 
-	jmp $
+	call create_timer
+	mov [timerID], rax
+
+.updateKeyboardMain:
+	call update_keyboard_handler
+
+.printLoop:
+	call keyboard_get_char
+	cmp rax, -1
+	je .skipPrint
+	mov rdi, [TextIndex]
+	mov byte[TextBuffer + rdi], al
+	inc qword[TextIndex]
+	jmp .printLoop
+.skipPrint:
+
+	mov rdi, KEY_BACKSPACE
+	call is_key_pressed
+	cmp rax, true
+	jne .skipBackspace
+
+	mov rdi, [TextIndex]
+	cmp rdi, 0
+	je .skipBackspace
+
+	mov rdi, 0x2
+	call set_color
+
+	dec qword[TextIndex]
+	mov rdi, [TextIndex]
+	mov byte [TextBuffer + rdi], 0
+	call clear_screen
+
+.skipBackspace:
+
+	mov rdi, 0
+	mov rsi, 0
+	mov rdx, TextBuffer
+	call draw_text_and_shadow
+
+.waitForFrameTime
+	hlt
+	mov rdi, [timerID]
+	call get_timer_ms
+	shr rax, 32
+	cmp rax, 16
+	jl .waitForFrameTime
+
+	mov rdi, [timerID]
+	call reset_timer
+
+	jmp .updateKeyboardMain
 
 	mov rbx, fps
 	call init_PIT
 	call create_timer
 	cmp rax, -1
 	je $
+	
 	mov qword[timerID], rax
 
 	dec qword[frameCount]
