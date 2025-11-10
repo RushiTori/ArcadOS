@@ -22,6 +22,7 @@
 %define ICW4_BUF_MASTER	0x08
 %define ICW4_SFNM		0x10
 
+extern mask_pic32
 extern remap_pic32
 extern sendEOI_pic64
 extern mask_pic64
