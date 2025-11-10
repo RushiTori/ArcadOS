@@ -2,7 +2,7 @@ bits 64
 
 %include "string.inc"
 
-%include "engine/keyboard.inc"
+%include "engine/PS2keyboard.inc"
 %include "engine/PS2.inc"
 %include "bootloader/pic.inc"
 
@@ -358,7 +358,7 @@ static keyboardScancodeToKeycode:function
 		cmp rdi, qword[keymap + rcx * 8]
 		je .end
 		inc rcx
-		cmp rcx, 256
+		cmp rcx, KEY_COUNT * 2 ;multiply by 2 because there's pressed key and released key for scancodes
 		jae .end
 		jmp .lookup_loop
 	.end:
@@ -394,16 +394,17 @@ static update_keyboard_handler_IRQ:function
 	cmp al, KEY_COUNT
 	jge .end
 
-	cmp ah, 0
-	jne .writepress
+	cmp ah, false
+	je .writepress
 	.writerelease:
 		movzx rdi, al
-		mov byte[IRQ_key_states + rdi], KEY_STATE_PRESSED
+		mov byte[IRQ_key_states + rdi], KEY_STATE_RELEASED
 		jmp .end
 	.writepress:
 		movzx rdi, al
-		mov byte[IRQ_key_states + rdi], KEY_STATE_RELEASED
+		mov byte[IRQ_key_states + rdi], KEY_STATE_PRESSED
 	
+
 	cmp rdi, KEY_CAPS_LOCK
 	jne .skipCapsLockHandling
 
@@ -431,7 +432,7 @@ keyboardUpdateLEDs:
 	cmp rax, -1
 	je .error
 
-	;ncs where n is numpad lock, c is caps lock, and s is scroll lock
+	;cns where n is numpad lock, c is caps lock, and s is scroll lock
 	mov al, byte [isScrollLocked]
 	mov dil, al
 	mov al, byte [isNumpadLocked]
@@ -447,7 +448,7 @@ keyboardUpdateLEDs:
 	ret
 
 .error:
-
+	jmp $
 keyboard_char_buffer_flush:
 	mov qword [char_buffer_idx], 0
 	ret
@@ -554,6 +555,7 @@ global update_keyboard_handler:function
 		cmp al, KEY_STATE_RELEASED
 		je .handleReleased
 		.handlePressed:
+
 			cmp byte[key_states + rdi], KEY_STATE_RELEASED
 			je .put_state_pressed
 
@@ -595,7 +597,7 @@ global update_keyboard_handler:function
 		;	}
 
 		.continue_update_loop:
-		mov byte[IRQ_key_states + rdi], 0
+		mov byte[IRQ_key_states + rdi], KEY_STATE_UNKNOWN
 		inc rdi
 		loop .update_loop
 

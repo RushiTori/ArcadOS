@@ -12,7 +12,7 @@ bits 64
 %include "bootloader/rsdp.inc"
 %include "main/main.inc"
 
-%include "engine/keyboard.inc"
+%include "engine/PS2keyboard.inc"
 %include "engine/timer.inc"
 
 %define STACK_START                   0x0009FFFF ;lotsa memory to grow down from here
