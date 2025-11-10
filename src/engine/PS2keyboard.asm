@@ -550,39 +550,19 @@ global update_keyboard_handler:function
 	.update_loop:
 		mov al, byte[IRQ_key_states + rdi]
 		cmp al, KEY_STATE_UNKNOWN
-		je .continue_update_loop
+		je .update_key_status
 
 		cmp al, KEY_STATE_RELEASED
 		je .handleReleased
 		.handlePressed:
-
-			cmp byte[key_states + rdi], KEY_STATE_RELEASED
-			je .put_state_pressed
-
-			cmp byte[key_states + rdi], KEY_STATE_UP
-			je .put_state_pressed
-
-			.put_state_down:
-			mov byte[key_states + rdi], KEY_STATE_DOWN
-			jmp .continue_update_loop
-
 			.put_state_pressed:
 			mov byte[key_states + rdi], KEY_STATE_PRESSED
 			jmp .continue_update_loop
 
 		.handleReleased:
-			cmp byte[key_states + rdi], KEY_STATE_RELEASED
-			je .put_state_up
-
-			cmp byte[key_states + rdi], KEY_STATE_UP
-			je .put_state_up
-
 			.put_state_released:
 			mov byte[key_states + rdi], KEY_STATE_RELEASED
 			jmp .continue_update_loop
-
-			.put_state_up:
-			mov byte[key_states + rdi], KEY_STATE_UP
 		; Logic to translate
 		;	if (isPressed) {
 		;		if (state == InputState::Pressed)
@@ -595,7 +575,19 @@ global update_keyboard_handler:function
 		;		else if (state == InputState::Pressed || state == InputState::Down)
 		;			state = InputState::Released;
 		;	}
+		.put_state_down:
+			mov byte [key_states + rdi], KEY_STATE_DOWN
+			jmp .continue_update_loop
 
+		.put_state_up:
+			mov byte [key_states + rdi], KEY_STATE_UP
+			jmp .continue_update_loop
+			
+		.update_key_status:
+			cmp byte[key_states + rdi], KEY_STATE_PRESSED
+			je .put_state_down
+			cmp byte[key_states + rdi], KEY_STATE_RELEASED
+			je .put_state_up
 		.continue_update_loop:
 		mov byte[IRQ_key_states + rdi], KEY_STATE_UNKNOWN
 		inc rdi
