@@ -86,7 +86,7 @@ global  make_idt_64: function
 
 	call init_PIT
 	call initPS2
-	call keyboardSetScancodeTable
+	call keyboardInit
 	mov rdi, 0b11111001 ;enable slave and enable IRQ1
 	mov rsi, 0b11101111 ;enable IRQ12
 	call mask_pic64
