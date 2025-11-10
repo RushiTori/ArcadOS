@@ -41,6 +41,9 @@ extern is_key_up
 extern scancode
 extern scancode_complete
 
+extern keyboard_char_buffer_flush
+extern keyboard_get_char
+
 %define KEY_ESCAPE			0
 %define KEY_F1				1
 %define KEY_F2				2
@@ -124,5 +127,7 @@ extern scancode_complete
 %define KEY_RIGHT			91
 
 %define KEY_COUNT			92
+
+%define CHAR_BUFFER_SIZE    4096
 
 %endif ; KEYBOARD_INC
