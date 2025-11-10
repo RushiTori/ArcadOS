@@ -9,6 +9,7 @@ bits 64
 
 %include "engine/display.inc"
 
+%include "bootloader/rsdp.inc"
 %include "main/main.inc"
 
 %include "engine/keyboard.inc"
@@ -35,8 +36,7 @@ global  make_idt_64: function
 	mov rsp, STACK_START
 	mov rbp, rsp
 
-	call initPS2
-	call keyboardSetScancodeTable
+	;call keyboardSetScancodeTable
 
 	mov rdi, 0
 
@@ -44,32 +44,32 @@ global  make_idt_64: function
 		mov rsi, qword[InterruptHandlerTable + rdi * 8]
 		cmp rsi, 0
 		je .notPresent
-			mov rax, LGATE_DESCRIPTOR_FLAGS(true, 0, GATE_TYPE_TRAP_32, 0)
+			mov rax, LGATE_DESCRIPTOR_FLAGS(true, 0, GATE_TYPE_TRAP_64, 0)
 		jmp .end
 		.notPresent:
-			mov rax,  LGATE_DESCRIPTOR_FLAGS(false, 0, GATE_TYPE_TRAP_32, 0)
+			mov rax,  LGATE_DESCRIPTOR_FLAGS(false, 0, GATE_TYPE_TRAP_64, 0)
 		.end:
-		mov rcx, 0
 		call idt64_SetGate
 		inc rdi
 		cmp rdi, 0x20
 		jl .loop
 
 	mov rdi, 0x20
-	mov rsi, qword[InterruptHandlerTable + rdi * 8]
-	mov rax, LGATE_DESCRIPTOR_FLAGS(true, 0, GATE_TYPE_ISR_64, 0)
-	call idt64_SetGate
+	.loopIRQ:
+		mov rsi, qword[InterruptHandlerTable + rdi * 8]
+		cmp rsi, 0
+		je .notPresentIRQ
+			mov rax, LGATE_DESCRIPTOR_FLAGS(true, 0, GATE_TYPE_ISR_64, 0)
+			jmp .endIfElse
+		.notPresentIRQ:
+			mov rax, LGATE_DESCRIPTOR_FLAGS(false, 0, GATE_TYPE_ISR_64, 0)
+		.endIfElse:
+		call idt64_SetGate
+		inc rdi
+		cmp rdi, 0x30
+		jl .loopIRQ
 
-	mov rdi, 0x21
-	mov rsi, qword[InterruptHandlerTable + rdi * 8]
-	mov rax, LGATE_DESCRIPTOR_FLAGS(true, 0, GATE_TYPE_ISR_64, 0)
-	call idt64_SetGate
-
-	;mov rdi, 0xFC
-	;mov rsi, 0xFF
-	;call mask_pic64
-
-	mov ax, 16 * 0x22 ;16 bytes for a gate's size, 33 gates set
+	mov ax, 16 * 0x30 ;16 bytes for a gate's size, 33 gates set
 	mov word[IDTR_START], ax
 
 	mov rax, IDT_START
@@ -78,33 +78,22 @@ global  make_idt_64: function
 	lidt [IDTR_START]
 	sti
 
+	mov rdi, 0b11111110
+	mov rsi, 0b11111111
+	call mask_pic64
+
+	call memory_mover_start   ;we need to set up memory mover before initializing other stuff
+
+	call init_PIT
+	call initPS2
+	call keyboardSetScancodeTable
+	mov rdi, 0b11111001 ;enable slave and enable IRQ1
+	mov rsi, 0b11101111 ;enable IRQ12
+	call mask_pic64
+
+
 	jmp main
-
-.loop_check:
-	call update_keyboard_handler
-
-	mov rdi, KEY_Z
-	call is_key_pressed
-	cmp rax, 0
-	je .setText
-
-	mov rdi, KEY_S
-	call is_key_pressed
-	cmp rax, 0
-	je .clearText
-	jmp .loop_check
-
-.setText:
-	mov al, 'K'
-	mov ah, 0x0F
-	mov word [0xB8000], ax
-	jmp .loop_check
-
-.clearText:
-	mov al, ' '
-	mov ah, 0x0F
-	mov word [0xB8000], ax
-	jmp .loop_check
+	;jmp find_RSDP
 
 ;rdi = gate index
 ;rsi = handlerPointer
@@ -730,13 +719,14 @@ static idt64_GPF:function
 
 ;IRQ0 aka system timer
 idt64_timerIRQ:
-	push rax
+	push_all
 
 	call timerTick
-	mov al, PIC_EOI
-	out PIC1_COMMAND, al
 
-	pop rax
+	mov rdi, 0 ;IRQ0
+	call sendEOI_pic64	;tell the PIC we finished handling the interrupt
+
+	pop_all
 	iretq
 
 
@@ -745,22 +735,35 @@ idt64_timerIRQ:
 ;.end:	
 %define idt64_keyboard_interrupt_string_len (idt64_keyboard_interrupt_string.end - idt64_keyboard_interrupt_string)
 
-;IRQ1 aka keyboard handler
-idt64_keyboardIRQ:
+;IRQ1 aka PS/2 port1 IRQ
+idt64_PS2Port1IRQ:
 static idt64_keyboardIRQ:function
 	push_all
-	push rbp
-	mov rbp, rsp
 
-	call keyboardRead
+	call keyboardRead ;for now, assuming all ports are populated by keyboard, will change that later
 
 	mov rdi, 1 ;IRQ1
 	call sendEOI_pic64	;tell the PIC we finished handling the interrupt
 
-	mov rsp, rbp
-	pop rbp
 	pop_all
 	iretq	;this is how we return from an interrupt in long mode
+
+;IRQ12 aka PS/2 port2 IRQ
+idt64_PS2Port2IRQ:
+static idt64_keyboardIRQ:function
+	push_all
+
+	mov rdi, 12 ;IRQ12
+	call sendEOI_pic64	;tell the PIC we finished handling the interrupt
+
+	pop_all
+	iretq	;this is how we return from an interrupt in long mode
+
+	call keyboardRead
+
+	
+
+	
 
 
 ;Name   ; IDT64 Trap64 WireFrame
@@ -882,5 +885,20 @@ InterruptHandlerTable:
 	dq 0						;reserved
 
 ;irqs:
-	dq idt64_timerIRQ
-	dq idt64_keyboardIRQ
+	dq idt64_timerIRQ           ;IRQ0  0x20 timer
+	dq idt64_PS2Port1IRQ        ;IRQ1  0x21 PS/2 port 1
+	dq 0						;IRQ2  0x22 doesn't exist since it's the cascade signal for the slave PIC
+	dq 0						;IRQ3  0x23
+	dq 0						;IRQ4  0x24
+	dq 0						;IRQ5  0x25
+	dq 0						;IRQ6  0x26
+	dq 0						;IRQ7  0x27
+
+	dq 0						;IRQ8  0x28
+	dq 0						;IRQ9  0x29
+	dq 0						;IRQ10 0x2A
+	dq 0						;IRQ11 0x2B
+	dq idt64_PS2Port2IRQ        ;IRQ12 0x2C PS/2 port 2
+	dq 0						;IRQ13 0x2D
+	dq 0						;IRQ14 0x2E
+	dq 0						;IRQ15 0x2F
