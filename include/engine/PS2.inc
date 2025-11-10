@@ -1,3 +1,6 @@
+%ifndef PS2_INC
+%define PS2_INC
+
 %include "string.inc"
 
 %include "bootloader/pic.inc"
@@ -58,3 +61,5 @@
 
 extern PS2SendCommandToPort1
 extern PS2SendCommandToPort2
+
+%endif ;PS2_INC
