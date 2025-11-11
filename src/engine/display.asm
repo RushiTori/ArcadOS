@@ -82,9 +82,9 @@ func(global, put_pixel_vec)
 
 	add rsp, 8 ; to re-align the stack
 
-	mov di, ax
-	mov si, dx
-	jmp put_pixel
+	mov di, ax    ; pos.x
+	mov si, dx    ; pos.y
+	jmp put_pixel ; put_pixel(pos.x, pos.y);
 
 ; void put_pixel_c_vec(ScreenVec2 pos, uint8_t col);
 func(global, put_pixel_c_vec)
@@ -92,16 +92,21 @@ func(global, put_pixel_c_vec)
 
 	call screenvec2_unpack ; screenvec2_unpack(pos);
 	
-	mov di, ax    ; pos.x
-	mov si, dx    ; pos.y
-	pop rdx       ; restore col
-	jmp put_pixel
+	mov di, ax      ; pos.x
+	mov si, dx      ; pos.y
+	pop rdx         ; restore col
+	jmp put_pixel_c ; put_pixel_c(pos.x, pos.y, col);
 
 ; void clear_screen(void);
 func(global, clear_screen)
-	call get_color
-	mov  dil, al
-	jmp  clear_screen_c
+	sub rsp, 8 ; to re-align the stack
+
+	call get_display_color ; get_display_color();
+
+	add rsp, 8 ; to re-align the stack
+
+	mov dil, al
+	jmp clear_screen_c ; clear_screen_c(get_display_color());
 
 ; void clear_screen_c(uint8_t col);
 func(global, clear_screen_c)
@@ -352,12 +357,12 @@ func(global, draw_circle_vec)
 ; void draw_circle_line(uint16_t x, uint16_t y, uint8_t r);
 func(global, draw_circle_line)
 	lea rcx, [put_pixel]
-	jmp circle_algo
+	jmp circle_line_algo ; circle_line_algo(x, y, r, put_pixel);
 
 ; void draw_circle_line_vec(ScreenVec2 pos, uint8_t r);
 func(global, draw_circle_line_vec)
 	lea rdx, [put_pixel]
-	jmp circle_algo_vec
+	jmp circle_line_algo_vec ; circle_line_algo_vec(pos, r, put_pixel);
 
 ; void draw_line(uint16_t aX, uint16_t aY, uint16_t bX, uint16_t bY);
 func(global, draw_line)
