@@ -19,6 +19,7 @@ BOOTLOADER_SRC_FILES:=  $(SRC_DIR)/bootloader/bootloader.asm \
 						$(SRC_DIR)/bootloader/idt32.asm \
 						$(SRC_DIR)/bootloader/paging.asm \
 						$(SRC_DIR)/bootloader/idt64.asm \
+						$(SRC_DIR)/bootloader/rsdp.asm \
 
 ENGINE_SRC_FILES:=$(wildcard $(SRC_DIR)/engine/*.asm)
 
