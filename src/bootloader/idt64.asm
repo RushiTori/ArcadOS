@@ -12,7 +12,7 @@ bits 64
 %include "bootloader/rsdp.inc"
 %include "main/main.inc"
 
-%include "engine/PS2keyboard.inc"
+%include "engine/PS2.inc"
 %include "engine/timer.inc"
 
 %define STACK_START                   0x0009FFFF ;lotsa memory to grow down from here
@@ -740,7 +740,8 @@ idt64_PS2Port1IRQ:
 static idt64_keyboardIRQ:function
 	push_all
 
-	call keyboardRead ;for now, assuming all ports are populated by keyboard, will change that later
+	mov rdi, 0 ;port 1, 0 indexed
+	call updatePS2IRQ
 
 	mov rdi, 1 ;IRQ1
 	call sendEOI_pic64	;tell the PIC we finished handling the interrupt
@@ -753,13 +754,14 @@ idt64_PS2Port2IRQ:
 static idt64_keyboardIRQ:function
 	push_all
 
+	mov rdi, 1 ;port 2, 0 indexed
+	call updatePS2IRQ
+
 	mov rdi, 12 ;IRQ12
 	call sendEOI_pic64	;tell the PIC we finished handling the interrupt
 
 	pop_all
 	iretq	;this is how we return from an interrupt in long mode
-
-	call keyboardRead
 
 	
 
