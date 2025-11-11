@@ -1,6 +1,6 @@
 bits 64
 
-%include "engine/screen.inc"
+%include "engine/vectors.inc"
 
 %define SUB_TILE_MASK 0b00000111_00000111
 

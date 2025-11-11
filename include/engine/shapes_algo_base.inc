@@ -1,7 +1,7 @@
 %ifndef SHAPES_ALGO_BASE_INC
 %define SHAPES_ALGO_BASE_INC
 
-%include "LuLib/lutypes.inc"
+%include "engine/vectors.inc"
 
 ; Defined in shapee_algo.asm
 ; Contains the last pos evaluated by a shape algo base that "failed"
