@@ -1,6 +1,6 @@
 bits        64
 
-%include "texture.inc"
+%include "engine/texture.inc"
 
 section     .bss
 
