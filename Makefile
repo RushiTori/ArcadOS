@@ -1,7 +1,7 @@
 COMP:=nasm
 COMP_FLAGS:=-f elf64 -g -F dwarf
 LINK:=ld
-LINK_FLAGS:=-Tlinkerscript.ld
+LINK_FLAGS:=-Tlinkerscript.ld -Map=symbols.map
 
 NAME:=ArcadOS
 
@@ -14,10 +14,11 @@ MIN_FILE_SIZE:=33280
 BOOTLOADER_SRC_FILES:=  $(SRC_DIR)/bootloader/bootloader.asm \
 						$(SRC_DIR)/bootloader/memmap.asm \
 						$(SRC_DIR)/bootloader/lineA20.asm \
-						$(SRC_DIR)/bootloader/gdt.asm \
+						$(SRC_DIR)/bootloader/gdt32.asm \
 						$(SRC_DIR)/bootloader/pic.asm \
 						$(SRC_DIR)/bootloader/idt32.asm \
 						$(SRC_DIR)/bootloader/paging.asm \
+						$(SRC_DIR)/bootloader/idt64.asm \
 
 ENGINE_SRC_FILES:=$(wildcard $(SRC_DIR)/engine/*.asm)
 
@@ -70,7 +71,7 @@ burn:
 	sudo dd if=$(NAME).img of=/dev/sda
 
 start:
-	qemu-system-x86_64 -drive file=$(NAME).img,format=raw -M accel=tcg,smm=off -d int -no-reboot -no-shutdown
+	qemu-system-x86_64 -drive file=$(NAME).img,format=raw -accel kvm -no-reboot -no-shutdown
 
 restart: build start
 

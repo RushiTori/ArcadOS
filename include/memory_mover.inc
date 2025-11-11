@@ -26,24 +26,24 @@
 ; 0x0805000 - 0x0845000 : Page Tables
 
 ; The memory map for the .data sections
-%define DATA_MEMORY_START     0x1000000	;	4096	pages
-%define DATA_MEMORY_END       0x2000000
-%define DATA_MEMORY_SIZE      (DATA_MEMORY_END - DATA_MEMORY_START)         ; 16-ish megabytes
+%define DATA_MEMORY_START     0x100000	;	4096	pages
+%define DATA_MEMORY_END       0x1FFFFF
+%define DATA_MEMORY_SIZE      (DATA_MEMORY_END - DATA_MEMORY_START)         ; 1-ish megabytes
 
 ; The memory map for the .bss sections
-%define BSS_MEMORY_START      0x2000000	;	4096	pages
-%define BSS_MEMORY_END        0x3000000 
-%define BSS_MEMORY_SIZE       (BSS_MEMORY_END - BSS_MEMORY_START)           ; 16-ish megabytes
+%define BSS_MEMORY_START      0x200000	;	4096	pages
+%define BSS_MEMORY_END        0x2FFFFF 
+%define BSS_MEMORY_SIZE       (BSS_MEMORY_END - BSS_MEMORY_START)           ; 1-ish megabytes
 
 ; The memory map for the .rodata sections
-%define RODATA_MEMORY_START   0x3000000	;	4096	pages
-%define RODATA_MEMORY_END     0x4000000 
-%define RODATA_MEMORY_SIZE    (RODATA_MEMORY_END - RODATA_MEMORY_START)     ; 16-ish megabytes
+%define RODATA_MEMORY_START   0x300000	;	4096	pages
+%define RODATA_MEMORY_END     0x3FFFFF 
+%define RODATA_MEMORY_SIZE    (RODATA_MEMORY_END - RODATA_MEMORY_START)     ; 1-ish megabytes
 
 ; We reserve that for the GDT's the IDT, the Paging table, the VGA Memory and the Stack base
-%define RESERVED_MEMORY_START 0x4000000	;	4096	pages
-%define RESERVED_MEMORY_END   0x5000000 	
-%define RESERVED_MEMORY_SIZE  (RESERVED_MEMORY_END - RESERVED_MEMORY_START) ; 16-ish megabytes
+%define RESERVED_MEMORY_START 0x400000	;	4096	pages
+%define RESERVED_MEMORY_END   0x4FFFFF 	
+%define RESERVED_MEMORY_SIZE  (RESERVED_MEMORY_END - RESERVED_MEMORY_START) ; 1-ish megabytes
 
 ; Ideally I want it to look like that
 ; 0x4000000 - 0x4010000 : VGA Memory		16		pages

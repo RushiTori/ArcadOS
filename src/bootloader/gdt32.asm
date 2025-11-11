@@ -7,10 +7,8 @@ section .text
 
 boot_sector_3_start:
 	; change the vga mode to 320x200 8bpp graphics
-	;disabled to have text mode for the 32 bits interrupts
-	;mov ax, 0x0013
-	;int 0x10
-	;jmp $
+	mov ax, 0x0013
+	int 0x10
 
 	mov ax, 0
 	mov ds, ax
@@ -41,8 +39,12 @@ prepare_segment_registers32:
 	mov esp, 0x00020000
 	mov ebp, 0x00020000
 
+	mov edi, 0xFF
+	mov esi, 0xFF
+	call mask_pic32
+
 	mov edi, 0x20
-	mov esi, 0x30
+	mov esi, 0x28
 	call remap_pic32
 
 	jmp make_idt_32

@@ -6,7 +6,7 @@
 
 %define SCREEN_WIDTH       320
 %define SCREEN_HEIGHT      200
-%define VGA_MEMORY_ADDR    0x4000000                          ;0xA0000
+%define VGA_MEMORY_ADDR 0xA0000 ;0x4000000 
 %define VGA_MEMORY_SIZE    (SCREEN_WIDTH * SCREEN_HEIGHT)
 
 %define SCREEN_TILE_SIZE   8
@@ -40,5 +40,8 @@ extern screenvec2_screen_to_tile
 
 ; ScreenVec2 screenvec2_tile_to_screen(ScreenVec2 tilePos);
 extern screenvec2_tile_to_screen
+%define SCREEN_WIDTH    320
+%define SCREEN_HEIGHT   200
+%define VGA_MEMORY_SIZE (SCREEN_WIDTH * SCREEN_HEIGHT)
 
 %endif ; SCREEN_INC
