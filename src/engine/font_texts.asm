@@ -321,7 +321,7 @@ func(global, draw_text_shadow_and_background)
 
 ; void draw_text_shadow_and_background_vec(const uint8_t* glyphs, ScreenVec2 pos);
 func(global, draw_text_shadow_and_background_vec)
-	__base_vec_shadow_and_jump_to draw_text_shadow_and_background
+	__base_vec_and_jump_to draw_text_shadow_and_background
 
 ; void draw_text_shadow_and_background_c(const uint8_t* glyphs, uint16_t x, uint16_t y, uint8_t shadowCol, uint8_t backCol);
 func(global, draw_text_shadow_and_background_c)
@@ -329,7 +329,7 @@ func(global, draw_text_shadow_and_background_c)
 
 ; void draw_text_shadow_and_background_c_vec(const uint8_t* glyphs, ScreenVec2 pos, uint8_t shadowCol, uint8_t backCol);
 func(global, draw_text_shadow_and_background_c_vec)
-	__two_color_base_vec_c_body_shadow_and_jump_to draw_text_shadow_and_background_c
+	__two_color_base_vec_c_body_and_jump_to draw_text_shadow_and_background_c
 
 ; void draw_text_all(const uint8_t* glyphs, uint16_t x, uint16_t y);
 func(global, draw_text_all)
@@ -354,7 +354,7 @@ func(global, draw_text_all)
 
 ; void draw_text_all_vec(const uint8_t* glyphs, ScreenVec2 pos);
 func(global, draw_text_all_vec)
-	__base_vec_shadow_and_jump_to draw_text_all
+	__base_vec_and_jump_to draw_text_all
 
 ; void draw_text_all_c(const uint8_t* glyphs, uint16_t x, uint16_t y, uint8_t fontCol, uint8_t shadowCol, uint8_t backCol);
 func(global, draw_text_all_c)
@@ -376,11 +376,11 @@ func(global, draw_text_all_c_vec)
 	mov  rdi, rsi
 	call screenvec2_unpack ; screenvec2_unpack(pos);
 
-	sub rsp, 8  ; to re-align the stack
-	pop rdi     ; restore glyphs
-	mov si,  ax ; pos.x
-	; mov dx, dx ; pos.y
-	pop rcx     ; restore fontCol
-	pop r8      ; restore shadowCol
-	pop r9      ; restore backCol
-	jmp %1      ; %1(glyphs, pos.x, pos.y, fontCol, shadowCol, backCol);
+	sub rsp, 8          ; to re-align the stack
+	pop rdi             ; restore glyphs
+	mov si,  ax         ; pos.x
+	; mov dx,  dx         ; pos.y
+	pop rcx             ; restore fontCol
+	pop r8              ; restore shadowCol
+	pop r9              ; restore backCol
+	jmp draw_text_all_c ; draw_text_all_c(glyphs, pos.x, pos.y, fontCol, shadowCol, backCol);
