@@ -40,7 +40,7 @@ section     .text
 %endmacro
 
 %macro __one_color_base_c_body_with 1
-	mov uint8_p [color_a], cl ; color_a = col();
+	mov uint8_p [color_a], cl ; color_a = col;
 
 	lea rcx, [%1]      ; call = %1
 	jmp draw_text_algo ; draw_text_algo(glyphs, x, y, %1);
@@ -60,6 +60,50 @@ section     .text
 	; mov dx, dx    ; pos.y
 	pop rcx     ; restore col
 	jmp %1      ; %1(glyphs, pos.x, pos.y, col);
+%endmacro
+
+%macro __two_color_base_body__ 3
+	push rdi ; preserve glyphs
+	push rsi ; preserve x
+	push rdx ; preserve y
+
+	call %1                    ; %1();
+	mov  uint8_p [color_a], al ; color_a = %1();
+
+	call %2                    ; %2();
+	mov  uint8_p [color_b], al ; color_b = %2();
+
+	pop rdx            ; restore y
+	pop rsi            ; restore x
+	pop rdi            ; restore glyphs
+	lea rcx, [%3]      ; call = %3
+	jmp draw_text_algo ; draw_text_algo(glyphs, x, y, %3);
+%endmacro
+
+%define __two_color_base_body(fontColCall, backColCall, drawCall) __two_color_base_body__ fontColCall, backColCall, drawCall
+
+%macro __two_color_base_c_body_with 1
+	mov uint8_p [color_a], cl  ; color_a = frontCol;
+	mov uint8_p [color_b], r8b ; color_b = backCol;
+
+	lea rcx, [%1]      ; call = %1
+	jmp draw_text_algo ; draw_text_algo(glyphs, x, y, %1);
+%endmacro
+
+%macro __two_color_base_vec_c_body_and_jump_to 1
+	push rcx ; preserve backCol
+	push rdx ; preserve frontCol
+	push rdi ; preserve glyphs
+
+	mov  rdi, rsi
+	call screenvec2_unpack ; screenvec2_unpack(pos);
+
+	pop rdi    ; restore glyphs
+	mov si, ax ; pos.x
+	; mov dx, dx ; pos.y
+	pop rcx    ; restore frontCol
+	pop r8     ; restore backCol
+	jmp %1     ; %1(glyphs, pos.x, pos.y, frontCol, backCol);
 %endmacro
 
 ;
@@ -238,3 +282,51 @@ func(global, draw_text_background_c)
 ; void draw_text_background_c_vec(const uint8_t* glyphs, ScreenVec2 pos, uint8_t col);
 func(global, draw_text_background_c_vec)
 	__one_color_base_vec_c_body_and_jump_to draw_text_background_c
+
+; void draw_text_and_shadow(const uint8_t* glyphs, uint16_t x, uint16_t y);
+func(global, draw_text_and_shadow)
+	__two_color_base_body(get_font_color, get_font_shadow_color, draw_glyph_and_shadow_c)
+
+; void draw_text_and_shadow_vec(const uint8_t* glyphs, ScreenVec2 pos);
+func(global, draw_text_and_shadow_vec)
+	__base_vec_and_jump_to draw_text_and_shadow
+
+; void draw_text_and_shadow_c(const uint8_t* glyphs, uint16_t x, uint16_t y, uint8_t fontCol, uint8_t shadowCol);
+func(global, draw_text_and_shadow_c)
+	__two_color_base_c_body_with draw_glyph_and_shadow_c
+
+; void draw_text_and_shadow_c_vec(const uint8_t* glyphs, ScreenVec2 pos, uint8_t fontCol, uint8_t shadowCol);
+func(global, draw_text_and_shadow_c_vec)
+	__two_color_base_vec_c_body_and_jump_to draw_text_and_shadow_c
+
+; void draw_text_and_background(const uint8_t* glyphs, uint16_t x, uint16_t y);
+func(global, draw_text_and_background)
+	__two_color_base_body(get_font_color, get_font_background_color, draw_glyph_and_background_c)
+
+; void draw_text_and_background_vec(const uint8_t* glyphs, ScreenVec2 pos);
+func(global, draw_text_and_background_vec)
+	__base_vec_and_jump_to draw_text_and_background
+
+; void draw_text_and_background_c(const uint8_t* glyphs, uint16_t x, uint16_t y, uint8_t fontCol, uint8_t backCol);
+func(global, draw_text_and_background_c)
+	__two_color_base_c_body_with draw_glyph_and_background_c
+
+; void draw_text_and_background_c_vec(const uint8_t* glyphs, ScreenVec2 pos, uint8_t fontCol, uint8_t backCol);
+func(global, draw_text_and_background_c_vec)
+	__two_color_base_vec_c_body_and_jump_to draw_text_and_background_c
+
+; void draw_text_shadow_and_background(const uint8_t* glyphs, uint16_t x, uint16_t y);
+func(global, draw_text_shadow_and_background)
+	__two_color_base_body(get_font_shadow_color, get_font_background_color, draw_glyph_shadow_and_background_c)
+
+; void draw_text_shadow_and_background_vec(const uint8_t* glyphs, ScreenVec2 pos);
+func(global, draw_text_shadow_and_background_vec)
+	__base_vec_shadow_and_jump_to draw_text_shadow_and_background
+
+; void draw_text_shadow_and_background_c(const uint8_t* glyphs, uint16_t x, uint16_t y, uint8_t shadowCol, uint8_t backCol);
+func(global, draw_text_shadow_and_background_c)
+	__two_color_base_c_body_with draw_glyph_shadow_and_background_c
+
+; void draw_text_shadow_and_background_c_vec(const uint8_t* glyphs, ScreenVec2 pos, uint8_t shadowCol, uint8_t backCol);
+func(global, draw_text_shadow_and_background_c_vec)
+	__two_color_base_vec_c_body_shadow_and_jump_to draw_text_shadow_and_background_c
