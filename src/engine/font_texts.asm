@@ -330,3 +330,57 @@ func(global, draw_text_shadow_and_background_c)
 ; void draw_text_shadow_and_background_c_vec(const uint8_t* glyphs, ScreenVec2 pos, uint8_t shadowCol, uint8_t backCol);
 func(global, draw_text_shadow_and_background_c_vec)
 	__two_color_base_vec_c_body_shadow_and_jump_to draw_text_shadow_and_background_c
+
+; void draw_text_all(const uint8_t* glyphs, uint16_t x, uint16_t y);
+func(global, draw_text_all)
+	push rdi ; preserve glyphs
+	push rsi ; preserve x
+	push rdx ; preserve y
+
+	call get_font_color        ; get_font_color();
+	mov  uint8_p [color_a], al ; color_a = get_font_color();
+
+	call get_font_shadow_color ; get_font_shadow_color();
+	mov  uint8_p [color_b], al ; color_b = get_font_shadow_color();
+
+	call get_font_background_color ; get_font_background_color();
+	mov  uint8_p [color_c], al     ; color_c = get_font_background_color();
+
+	pop rdx                     ; restore y
+	pop rsi                     ; restore x
+	pop rdi                     ; restore glyphs
+	lea rcx, [draw_glyph_all_c] ; call = draw_glyph_all_c
+	jmp draw_text_algo          ; draw_text_algo(glyphs, x, y, draw_glyph_all_c);
+
+; void draw_text_all_vec(const uint8_t* glyphs, ScreenVec2 pos);
+func(global, draw_text_all_vec)
+	__base_vec_shadow_and_jump_to draw_text_all
+
+; void draw_text_all_c(const uint8_t* glyphs, uint16_t x, uint16_t y, uint8_t fontCol, uint8_t shadowCol, uint8_t backCol);
+func(global, draw_text_all_c)
+	mov uint8_p [color_a], cl  ; color_a = fontCol;
+	mov uint8_p [color_b], r8b ; color_b = shadowCol;
+	mov uint8_p [color_c], r9b ; color_c = backCol;
+
+	lea rcx, [draw_glyph_all_c] ; call = draw_glyph_all_c
+	jmp draw_text_algo          ; draw_text_algo(glyphs, x, y, draw_glyph_all_c);
+
+; void draw_text_all_c_vec(const uint8_t* glyphs, ScreenVec2 pos, uint8_t fontCol, uint8_t shadowCol, uint8_t backCol);
+func(global, draw_text_all_c_vec)
+	push r8     ; preserve backCol
+	push rcx    ; preserve shadowCol
+	push rdx    ; preserve fontCol
+	push rdi    ; preserve glyphs
+	sub  rsp, 8 ; to re-align the stack
+
+	mov  rdi, rsi
+	call screenvec2_unpack ; screenvec2_unpack(pos);
+
+	sub rsp, 8  ; to re-align the stack
+	pop rdi     ; restore glyphs
+	mov si,  ax ; pos.x
+	; mov dx, dx ; pos.y
+	pop rcx     ; restore fontCol
+	pop r8      ; restore shadowCol
+	pop r9      ; restore backCol
+	jmp %1      ; %1(glyphs, pos.x, pos.y, fontCol, shadowCol, backCol);
