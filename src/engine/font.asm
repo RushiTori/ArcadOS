@@ -266,10 +266,12 @@ static  default_font_glyphs:data
 default_font:
 static default_font: data
 	istruc TiledBitmap
-        at .tiles,  dq default_font_glyphs
-        at .width,  dw FONT_WIDTH
-        at .height, dw FONT_HEIGHT
-        at .padding db 0, 0, 0, 0
+        at TiledBitmap.tiles,         .tiles:  dq default_font_glyphs
+        at TiledBitmap.width,         .width:  dw FONT_WIDTH
+        at TiledBitmap.height,        .height: dw FONT_HEIGHT
+        at TiledBitmap.main_color,    .main_color: db 0x0F
+        at TiledBitmap.inverse_color, .inverse_color: db 0x00
+        at TiledBitmap.padding,       .padding: dw 0
 	iend
 
 section      .data
@@ -300,11 +302,11 @@ func(global, get_current_font)
 
 ; void set_current_font(const TiledBitmap* font);
 func(global, set_current_font)
-    mov ax, uint16_t [rdi + TiledBitmap.width]
+    mov ax, uint16_p [rdi + TiledBitmap.width]
     cmp ax, FONT_WIDTH
     jne .end                                   ; if (font->width != FONT_WIDTH) return
     
-    mov ax, uint16_t [rdi + TiledBitmap.height]
+    mov ax, uint16_p [rdi + TiledBitmap.height]
     cmp ax, FONT_HEIGHT
     jne .end                                    ; if (font->height != FONT_HEIGHT) return
 
@@ -314,12 +316,12 @@ func(global, set_current_font)
 
 ; uint8_t get_tab_space(void);
 func(global, get_tab_space)
-    mov al, uint8_t [tab_spaces]
+    mov al, uint8_p [tab_spaces]
     ret                          ; return tab_spaces
 
 ; void set_tab_space(uint8_t spaces);
 func(global, set_tab_space)
-    mov uint8_t [tab_spaces], dil ; tab_spaces = spaces
+    mov uint8_p [tab_spaces], dil ; tab_spaces = spaces
     ret
 
 ; bool_t get_make_nl_as_crnl(void);
