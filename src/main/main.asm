@@ -55,6 +55,10 @@ func(global, main)
 		mov  rdi, 0
 		call maskin_irq_pic64
 
+	; Setting up the display buffer
+		mov  rdi, VGA_MEMORY_ADDR
+		call set_display_buffer   ; set_display_buffer(VGA_MEMORY_ADDR);
+
 	.main_loop:
 		call main_update
 		call main_display
