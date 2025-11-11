@@ -20,7 +20,7 @@ section .text
 
 make_idt_32:
 global  make_idt_32: function
-	cli                                   ;0x8360
+	cli                  ;0x8360
 	mov esp, STACK_START
 	mov ebp, esp
 
@@ -28,24 +28,24 @@ global  make_idt_32: function
 
 	.loop:
 
-		mov esi, dword[InterruptHandlerTable + edi * 4]
-		mov eax, GATE_TYPE_TRAP_32
+		mov  esi, dword[InterruptHandlerTable + edi * 4]
+		mov  eax, GATE_TYPE_TRAP_32
 		call idt32_SetGate
-		inc edi
-		cmp edi, 0x20
-		jl .loop
+		inc  edi
+		cmp  edi, 0x20
+		jl   .loop
 
-	mov ax, 8 * 0x20 ;8 bytes for a gate's size, 1 gate set
+	mov ax,               8 * 0x20 ;8 bytes for a gate's size, 1 gate set
 	mov word[IDTR_START], ax
 
-	mov eax, IDT_START
+	mov eax,                   IDT_START
 	mov dword[IDTR_START + 2], eax
 
 	lidt [IDTR_START]
 
 
-	mov al, 'N'
-	mov ah, 0x02
+	mov al,            'N'
+	mov ah,            0x02
 	mov word[0xBFFFE], ax
 
 	jmp paging_start
@@ -57,20 +57,20 @@ idt32_SetGate:
 	mov ecx, esi
 	and ecx, 0xFFFF0000
 	shl eax, 8
-	or ecx, eax
+	or  ecx, eax
 	cmp esi, 0
-	je .notP
+	je  .notP
 
 	or ecx, GATE_P
 
 .notP:
 	mov dword[IDT_START + 4 + edi * 8], ecx
 
-	mov ecx, esi
-	and ecx, 0x0000FFFF
-	mov ax, cs
-	shl eax, 16
-	or ecx, eax
+	mov ecx,                        esi
+	and ecx,                        0x0000FFFF
+	mov ax,                         cs
+	shl eax,                        16
+	or  ecx,                        eax
 	mov dword[IDT_START + edi * 8], ecx
 	ret
 
@@ -88,114 +88,112 @@ static idt32_bindigits:data
 		db "0123456789ABCDEF"
 	
 equal_msg:
-	static equal_msg:data
-		db " = "
+static equal_msg: data
+	db " = "
 .end: 
 %define equal_msg_len (equal_msg.end - equal_msg)
 
 ; Register Names
-%define REG_NAME_LEN 3
-
-reg_EIP_name:
-	static reg_EIP_name:data
+%define REG_NAME_LEN  3
+	reg_EIP_name:
+	static reg_EIP_name: data
 		db "EIP"
-reg_EAX_name:
-	static reg_EAX_name:data
+	reg_EAX_name:
+	static reg_EAX_name: data
 		db "EAX"
-reg_EBX_name:
-	static reg_EBX_name:data
+	reg_EBX_name:
+	static reg_EBX_name: data
 		db "EBX"
-reg_ECX_name:
-	static reg_ECX_name:data
+	reg_ECX_name:
+	static reg_ECX_name: data
 		db "ECX"
-reg_EDX_name:
-	static reg_EDX_name:data
+	reg_EDX_name:
+	static reg_EDX_name: data
 		db "EDX"
-reg_ESI_name:
-	static reg_ESI_name:data
+	reg_ESI_name:
+	static reg_ESI_name: data
 		db "ESI"
-reg_EDI_name:
-	static reg_EDI_name:data
+	reg_EDI_name:
+	static reg_EDI_name: data
 		db "EDI"
-reg_ESP_name:
-	static reg_ESP_name:data
+	reg_ESP_name:
+	static reg_ESP_name: data
 		db "ESP"
-reg_EBP_name:
-	static reg_EBP_name:data
+	reg_EBP_name:
+	static reg_EBP_name: data
 		db "EBP"
-reg_CS_name:
-	static reg_CS_name:data
+	reg_CS_name:
+	static reg_CS_name: data
 		db " CS"
-reg_DS_name:
-	static reg_DS_name:data
+	reg_DS_name:
+	static reg_DS_name: data
 		db " DS"
-reg_SS_name:
-	static reg_SS_name:data
+	reg_SS_name:
+	static reg_SS_name: data
 		db " SS"
-reg_ES_name:
-	static reg_ES_name:data
+	reg_ES_name:
+	static reg_ES_name: data
 		db " ES"
-reg_FS_name:
-	static reg_FS_name:data
+	reg_FS_name:
+	static reg_FS_name: data
 		db " FS"
-reg_GS_name:
-	static reg_GS_name:data
+	reg_GS_name:
+	static reg_GS_name: data
 		db " GS"
 
 ; Register Banks
-reg_EIP_bank:
-	static reg_EIP_bank:data
-		resd 1
-reg_EAX_bank:
-	static reg_EAX_bank:data
-		resd 1
-reg_EBX_bank:
-	static reg_EBX_bank:data
-		resd 1
-reg_ECX_bank:
-	static reg_ECX_bank:data
-		resd 1
-reg_EDX_bank:
-	static reg_EDX_bank:data
-		resd 1
-reg_ESI_bank:
-	static reg_ESI_bank:data
-		resd 1
-reg_EDI_bank:
-	static reg_EDI_bank:data
-		resd 1
-reg_ESP_bank:
-	static reg_ESP_bank:data
-		resd 1
-reg_EBP_bank:
-	static reg_EBP_bank:data
-		resd 1
-reg_CS_bank:
-	static reg_CS_bank:data
-		resd 1
-reg_DS_bank:
-	static reg_DS_bank:data
-		resd 1
-reg_SS_bank:
-	static reg_SS_bank:data
-		resd 1
-reg_ES_bank:
-	static reg_ES_bank:data
-		resd 1
-reg_FS_bank:
-	static reg_FS_bank:data
-		resd 1
-reg_GS_bank:
-	static reg_GS_bank:data
-		resd 1
-
-Error_Code_bank:
-	static Error_Code_bank:data
-		resd 1
+	reg_EIP_bank:
+	static reg_EIP_bank: data
+		dd 0
+	reg_EAX_bank:
+	static reg_EAX_bank: data
+		dd 0
+	reg_EBX_bank:
+	static reg_EBX_bank: data
+		dd 0
+	reg_ECX_bank:
+	static reg_ECX_bank: data
+		dd 0
+	reg_EDX_bank:
+	static reg_EDX_bank: data
+		dd 0
+	reg_ESI_bank:
+	static reg_ESI_bank: data
+		dd 0
+	reg_EDI_bank:
+	static reg_EDI_bank: data
+		dd 0
+	reg_ESP_bank:
+	static reg_ESP_bank: data
+		dd 0
+	reg_EBP_bank:
+	static reg_EBP_bank: data
+		dd 0
+	reg_CS_bank:
+	static reg_CS_bank: data
+		dd 0
+	reg_DS_bank:
+	static reg_DS_bank: data
+		dd 0
+	reg_SS_bank:
+	static reg_SS_bank: data
+		dd 0
+	reg_ES_bank:
+	static reg_ES_bank: data
+		dd 0
+	reg_FS_bank:
+	static reg_FS_bank: data
+		dd 0
+	reg_GS_bank:
+	static reg_GS_bank: data
+		dd 0
+	Error_Code_bank:
+	static Error_Code_bank: data
+		dd 0
 
 idt32_buffer:
 static idt32_buffer: data
-resb   IDT32_BUFFER_LEN
+	times IDT32_BUFFER_LEN db 0
 
 ; void idt32_putchar(char toPut);
 ;
@@ -238,8 +236,8 @@ static idt32_clrscrn: function
 	mov ecx, TEXT_WIDTH_IN_BYTES * 25
 	mov edi, 0
 	.clearLoop:
-		mov word[TEXT_ADDR_START + edi * 2], ax
-		inc edi
+		mov  word[TEXT_ADDR_START + edi * 2], ax
+		inc  edi
 		loop .clearLoop
 	ret
 
@@ -259,10 +257,10 @@ static idt32_putnchar: function
 	mov edx, edi
 
 	.put_loop:
-		movzx  edi, byte [edx]
-		call idt32_putchar
-		inc  edx
-		loop .put_loop
+		movzx edi, byte [edx]
+		call  idt32_putchar
+		inc   edx
+		loop  .put_loop
 
 	ret
 
@@ -296,10 +294,10 @@ static idt32_puthex: function
 
 	mov ecx, esi
 	.cvt_loop:
-		mov eax,  edi
+		mov eax, edi
 		and eax, 0xF
 
-		mov al, byte [idt32_hexdigits + eax]
+		mov al,                                byte [idt32_hexdigits + eax]
 		mov byte [idt32_buffer + ecx + 2 - 1], al
 
 		shr  edi, 4
@@ -325,11 +323,11 @@ static idt32_putbin: function
 
 	mov ecx, esi
 	.cvt_loop:
-		mov eax,  edi
+		mov eax, edi
 		and eax, 0b1
 
-		mov al, byte [idt32_bindigits + eax]
-		mov byte [idt32_buffer + ecx + 2 - 1], al ;add 2 for the prefix, remove 1 because ecx gets decremented only when the instruction loop is executed
+		mov al,                                byte [idt32_bindigits + eax]
+		mov byte [idt32_buffer + ecx + 2 - 1], al                           ;add 2 for the prefix, remove 1 because ecx gets decremented only when the instruction loop is executed
 
 		shr  edi, 1
 		loop .cvt_loop
@@ -408,84 +406,84 @@ static idt32_regdump:function
 	call idt32_putnl
 
 	; Putting line 1
-	mov edi, '|'
-	mov esi, 2
+	mov  edi, '|'
+	mov  esi, 2
 	call idt32_putchar_repeat
 
-	mov edi, ' '
+	mov  edi, ' '
 	call idt32_putchar
 
-	mov edi, idt32_fault_string
-	mov esi, idt32_fault_string_len
+	mov  edi, idt32_fault_string
+	mov  esi, idt32_fault_string_len
 	call idt32_putnchar
 
-	mov edi, reg_EIP_name
-	mov esi, reg_EIP_bank
-	mov ecx, 8
+	mov  edi, reg_EIP_name
+	mov  esi, reg_EIP_bank
+	mov  ecx, 8
 	call idt32_putreg
 
-	mov edi, '|'
-	mov esi, 2
+	mov  edi, '|'
+	mov  esi, 2
 	call idt32_putchar_repeat
 
 	call idt32_putnl
 
 	;putting line 2
-	mov edi, '|'
-	mov esi, 2
+	mov  edi, '|'
+	mov  esi, 2
 	call idt32_putchar_repeat
 
 	mov  edi, '='
 	mov  esi, IDT32_TRAP32_WIREFRAME_WIDTH - 4
 	call idt32_putchar_repeat
 
-	mov edi, '|'
-	mov esi, 2
+	mov  edi, '|'
+	mov  esi, 2
 	call idt32_putchar_repeat
 
 	call idt32_putnl
 
 	;putting line 3
-	mov edi, '|'
-	mov esi, 2
+	mov  edi, '|'
+	mov  esi, 2
 	call idt32_putchar_repeat
 
-	mov edi, idt32_allpurposereg_string
-	mov esi, idt32_allpurposereg_string_len
+	mov  edi, idt32_allpurposereg_string
+	mov  esi, idt32_allpurposereg_string_len
 	call idt32_putnchar
 
-	mov edi, '|'
-	mov esi, 2
+	mov  edi, '|'
+	mov  esi, 2
 	call idt32_putchar_repeat
 
-	mov edi, idt32_segmentregs_string
-	mov esi, idt32_segmentregs_string_len
+	mov  edi, idt32_segmentregs_string
+	mov  esi, idt32_segmentregs_string_len
 	call idt32_putnchar
 
-	mov edi, '|'
-	mov esi, 2
+	mov  edi, '|'
+	mov  esi, 2
 	call idt32_putchar_repeat
 
 	call idt32_putnl
 
-	mov edi, '|'
-	mov esi, 2
+	mov  edi, '|'
+	mov  esi, 2
 	call idt32_putchar_repeat
 
-	mov edi, ' '
-	mov esi, (IDT32_TRAP32_WIREFRAME_WIDTH - 6)/2
+	mov  edi, ' '
+	mov  esi, (IDT32_TRAP32_WIREFRAME_WIDTH - 6)/2
 	call idt32_putchar_repeat
 
-	mov edi, '|'
-	mov esi, 2
+	mov  edi, '|'
+	mov  esi, 2
 	call idt32_putchar_repeat
 
-	mov edi, ' '
-	mov esi, (IDT32_TRAP32_WIREFRAME_WIDTH - 6)/2
+	mov  edi, ' '
+	mov  esi, (IDT32_TRAP32_WIREFRAME_WIDTH - 6)/2
 	call idt32_putchar_repeat
 
-	mov edi, '|'
-	mov esi, 2
+	mov  edi, '|'
+	mov  esi, 2
 	call idt32_putchar_repeat
 
 	call idt32_putnl
@@ -493,34 +491,34 @@ static idt32_regdump:function
 
 	
 	;EAX and CS
-	mov edi, '|'
-	mov esi, 2
+	mov  edi, '|'
+	mov  esi, 2
 	call idt32_putchar_repeat
 
-	mov edi, reg_EAX_name
-	mov esi, reg_EAX_bank
-	mov ecx, 8
+	mov  edi, reg_EAX_name
+	mov  esi, reg_EAX_bank
+	mov  ecx, 8
 	call idt32_putreg
 
-	mov edi, '|'
-	mov esi, 2
+	mov  edi, '|'
+	mov  esi, 2
 	call idt32_putchar_repeat
 
-	mov edi, ' '
-	mov esi, 2
+	mov  edi, ' '
+	mov  esi, 2
 	call idt32_putchar_repeat
 
-	mov edi, reg_CS_name
-	mov esi, reg_CS_bank
-	mov ecx, 4
+	mov  edi, reg_CS_name
+	mov  esi, reg_CS_bank
+	mov  ecx, 4
 	call idt32_putreg
 
-	mov edi, ' '
-	mov esi, 2
+	mov  edi, ' '
+	mov  esi, 2
 	call idt32_putchar_repeat
 
-	mov edi, '|'
-	mov esi, 2
+	mov  edi, '|'
+	mov  esi, 2
 	call idt32_putchar_repeat
 
 	call idt32_putnl
@@ -528,34 +526,34 @@ static idt32_regdump:function
 
 
 	;EBX and DS
-	mov edi, '|'
-	mov esi, 2
+	mov  edi, '|'
+	mov  esi, 2
 	call idt32_putchar_repeat
 
-	mov edi, reg_EBX_name
-	mov esi, reg_EBX_bank
-	mov ecx, 8
+	mov  edi, reg_EBX_name
+	mov  esi, reg_EBX_bank
+	mov  ecx, 8
 	call idt32_putreg
 
-	mov edi, '|'
-	mov esi, 2
+	mov  edi, '|'
+	mov  esi, 2
 	call idt32_putchar_repeat
 
-	mov edi, ' '
-	mov esi, 2
+	mov  edi, ' '
+	mov  esi, 2
 	call idt32_putchar_repeat
 
-	mov edi, reg_DS_name
-	mov esi, reg_DS_bank
-	mov ecx, 4
+	mov  edi, reg_DS_name
+	mov  esi, reg_DS_bank
+	mov  ecx, 4
 	call idt32_putreg
 
-	mov edi, ' '
-	mov esi, 2
+	mov  edi, ' '
+	mov  esi, 2
 	call idt32_putchar_repeat
 
-	mov edi, '|'
-	mov esi, 2
+	mov  edi, '|'
+	mov  esi, 2
 	call idt32_putchar_repeat
 
 	call idt32_putnl
@@ -563,34 +561,34 @@ static idt32_regdump:function
 
 
 	;ECX and SS
-	mov edi, '|'
-	mov esi, 2
+	mov  edi, '|'
+	mov  esi, 2
 	call idt32_putchar_repeat
 
-	mov edi, reg_ECX_name
-	mov esi, reg_ECX_bank
-	mov ecx, 8
+	mov  edi, reg_ECX_name
+	mov  esi, reg_ECX_bank
+	mov  ecx, 8
 	call idt32_putreg
 
-	mov edi, '|'
-	mov esi, 2
+	mov  edi, '|'
+	mov  esi, 2
 	call idt32_putchar_repeat
 
-	mov edi, ' '
-	mov esi, 2
+	mov  edi, ' '
+	mov  esi, 2
 	call idt32_putchar_repeat
 
-	mov edi, reg_SS_name
-	mov esi, reg_SS_bank
-	mov ecx, 4
+	mov  edi, reg_SS_name
+	mov  esi, reg_SS_bank
+	mov  ecx, 4
 	call idt32_putreg
 
-	mov edi, ' '
-	mov esi, 2
+	mov  edi, ' '
+	mov  esi, 2
 	call idt32_putchar_repeat
 
-	mov edi, '|'
-	mov esi, 2
+	mov  edi, '|'
+	mov  esi, 2
 	call idt32_putchar_repeat
 
 	call idt32_putnl
@@ -598,34 +596,34 @@ static idt32_regdump:function
 
 
 	;EDX and ES
-	mov edi, '|'
-	mov esi, 2
+	mov  edi, '|'
+	mov  esi, 2
 	call idt32_putchar_repeat
 
-	mov edi, reg_EDX_name
-	mov esi, reg_EDX_bank
-	mov ecx, 8
+	mov  edi, reg_EDX_name
+	mov  esi, reg_EDX_bank
+	mov  ecx, 8
 	call idt32_putreg
 
-	mov edi, '|'
-	mov esi, 2
+	mov  edi, '|'
+	mov  esi, 2
 	call idt32_putchar_repeat
 
-	mov edi, ' '
-	mov esi, 2
+	mov  edi, ' '
+	mov  esi, 2
 	call idt32_putchar_repeat
 
-	mov edi, reg_ES_name
-	mov esi, reg_ES_bank
-	mov ecx, 4
+	mov  edi, reg_ES_name
+	mov  esi, reg_ES_bank
+	mov  ecx, 4
 	call idt32_putreg
 
-	mov edi, ' '
-	mov esi, 2
+	mov  edi, ' '
+	mov  esi, 2
 	call idt32_putchar_repeat
 
-	mov edi, '|'
-	mov esi, 2
+	mov  edi, '|'
+	mov  esi, 2
 	call idt32_putchar_repeat
 
 	call idt32_putnl
@@ -633,34 +631,34 @@ static idt32_regdump:function
 
 
 	;ESI and FS
-	mov edi, '|'
-	mov esi, 2
+	mov  edi, '|'
+	mov  esi, 2
 	call idt32_putchar_repeat
 
-	mov edi, reg_ESI_name
-	mov esi, reg_ESI_bank
-	mov ecx, 8
+	mov  edi, reg_ESI_name
+	mov  esi, reg_ESI_bank
+	mov  ecx, 8
 	call idt32_putreg
 
-	mov edi, '|'
-	mov esi, 2
+	mov  edi, '|'
+	mov  esi, 2
 	call idt32_putchar_repeat
 
-	mov edi, ' '
-	mov esi, 2
+	mov  edi, ' '
+	mov  esi, 2
 	call idt32_putchar_repeat
 
-	mov edi, reg_FS_name
-	mov esi, reg_FS_bank
-	mov ecx, 4
+	mov  edi, reg_FS_name
+	mov  esi, reg_FS_bank
+	mov  ecx, 4
 	call idt32_putreg
 
-	mov edi, ' '
-	mov esi, 2
+	mov  edi, ' '
+	mov  esi, 2
 	call idt32_putchar_repeat
 
-	mov edi, '|'
-	mov esi, 2
+	mov  edi, '|'
+	mov  esi, 2
 	call idt32_putchar_repeat
 
 	call idt32_putnl
@@ -668,34 +666,34 @@ static idt32_regdump:function
 
 
 	;EDI and GS
-	mov edi, '|'
-	mov esi, 2
+	mov  edi, '|'
+	mov  esi, 2
 	call idt32_putchar_repeat
 
-	mov edi, reg_EDI_name
-	mov esi, reg_EDI_bank
-	mov ecx, 8
+	mov  edi, reg_EDI_name
+	mov  esi, reg_EDI_bank
+	mov  ecx, 8
 	call idt32_putreg
 
-	mov edi, '|'
-	mov esi, 2
+	mov  edi, '|'
+	mov  esi, 2
 	call idt32_putchar_repeat
 
-	mov edi, ' '
-	mov esi, 2
+	mov  edi, ' '
+	mov  esi, 2
 	call idt32_putchar_repeat
 
-	mov edi, reg_GS_name
-	mov esi, reg_GS_bank
-	mov ecx, 4
+	mov  edi, reg_GS_name
+	mov  esi, reg_GS_bank
+	mov  ecx, 4
 	call idt32_putreg
 
-	mov edi, ' '
-	mov esi, 2
+	mov  edi, ' '
+	mov  esi, 2
 	call idt32_putchar_repeat
 
-	mov edi, '|'
-	mov esi, 2
+	mov  edi, '|'
+	mov  esi, 2
 	call idt32_putchar_repeat
 
 	call idt32_putnl
@@ -703,25 +701,25 @@ static idt32_regdump:function
 
 
 	;ESP
-	mov edi, '|'
-	mov esi, 2
+	mov  edi, '|'
+	mov  esi, 2
 	call idt32_putchar_repeat
 
-	mov edi, reg_ESP_name
-	mov esi, reg_ESP_bank
-	mov ecx, 8
+	mov  edi, reg_ESP_name
+	mov  esi, reg_ESP_bank
+	mov  ecx, 8
 	call idt32_putreg
 
-	mov edi, '|'
-	mov esi, 2
+	mov  edi, '|'
+	mov  esi, 2
 	call idt32_putchar_repeat
 
-	mov edi, ' '
-	mov esi, (IDT32_TRAP32_WIREFRAME_WIDTH - 6)/2
+	mov  edi, ' '
+	mov  esi, (IDT32_TRAP32_WIREFRAME_WIDTH - 6)/2
 	call idt32_putchar_repeat
 
-	mov edi, '|'
-	mov esi, 2
+	mov  edi, '|'
+	mov  esi, 2
 	call idt32_putchar_repeat
 
 	call idt32_putnl
@@ -729,87 +727,87 @@ static idt32_regdump:function
 
 
 	;EBP
-	mov edi, '|'
-	mov esi, 2
+	mov  edi, '|'
+	mov  esi, 2
 	call idt32_putchar_repeat
 
-	mov edi, reg_EBP_name
-	mov esi, reg_EBP_bank
-	mov ecx, 8
+	mov  edi, reg_EBP_name
+	mov  esi, reg_EBP_bank
+	mov  ecx, 8
 	call idt32_putreg
 
-	mov edi, '|'
-	mov esi, 2
+	mov  edi, '|'
+	mov  esi, 2
 	call idt32_putchar_repeat
 
-	mov edi, idt32_signature_string
-	mov esi, idt32_signature_string_len
+	mov  edi, idt32_signature_string
+	mov  esi, idt32_signature_string_len
 	call idt32_putnchar
 
-	mov edi, '|'
-	mov esi, 2
+	mov  edi, '|'
+	mov  esi, 2
 	call idt32_putchar_repeat
 
 	call idt32_putnl
 
 
-	mov edi, '|'
-	mov esi, 2
+	mov  edi, '|'
+	mov  esi, 2
 	call idt32_putchar_repeat
 
 	mov  edi, '='
 	mov  esi, IDT32_TRAP32_WIREFRAME_WIDTH - 4
 	call idt32_putchar_repeat
 
-	mov edi, '|'
-	mov esi, 2
+	mov  edi, '|'
+	mov  esi, 2
 	call idt32_putchar_repeat
 
 	call idt32_putnl
 
 
 
-	mov edi, '|'
-	mov esi, 2
+	mov  edi, '|'
+	mov  esi, 2
 	call idt32_putchar_repeat
 
-	mov edi, idt32_errorcode_string
-	mov esi, idt32_errorcode_string_len
+	mov  edi, idt32_errorcode_string
+	mov  esi, idt32_errorcode_string_len
 	call idt32_putnchar
 
-	mov edi, ' '
-	mov esi,  IDT32_TRAP32_WIREFRAME_WIDTH - 4 - idt32_errorcode_string_len
+	mov  edi, ' '
+	mov  esi, IDT32_TRAP32_WIREFRAME_WIDTH - 4 - idt32_errorcode_string_len
 	call idt32_putchar_repeat
 
-	mov edi, '|'
-	mov esi, 2
+	mov  edi, '|'
+	mov  esi, 2
 	call idt32_putchar_repeat
 
 	call idt32_putnl
 
 
-	mov edi, '|'
-	mov esi, 2
+	mov  edi, '|'
+	mov  esi, 2
 	call idt32_putchar_repeat
 
 	pop edi
 	cmp edi, 0
-	je .noErrorCode
+	je  .noErrorCode
 
-		mov edi, dword [Error_Code_bank]
-		mov esi, 32
+		mov  edi, dword [Error_Code_bank]
+		mov  esi, 32
 		call idt32_putbin
-		jmp .endErrorCode
+		jmp  .endErrorCode
 
 	.noErrorCode:
 
-		mov edi, idt32_noerrorcode_string
-		mov esi, idt32_noerrorcode_string_len
+		mov  edi, idt32_noerrorcode_string
+		mov  esi, idt32_noerrorcode_string_len
 		call idt32_putnchar
 	.endErrorCode:
 
-	mov edi, '|'
-	mov esi, 2
+	mov  edi, '|'
+	mov  esi, 2
 	call idt32_putchar_repeat
 
 	call idt32_putnl
@@ -832,12 +830,12 @@ static idt32_trap32:function
 	mov dword [reg_EDI_bank], edi
 	mov dword [reg_ESP_bank], esp
 	mov dword [reg_EBP_bank], ebp
-	mov word [reg_CS_bank],  cs
-	mov word [reg_DS_bank],  ds
-	mov word [reg_SS_bank],  ss
-	mov word [reg_ES_bank],  es
-	mov word [reg_FS_bank],  fs
-	mov word [reg_GS_bank],  gs
+	mov word [reg_CS_bank],   cs
+	mov word [reg_DS_bank],   ds
+	mov word [reg_SS_bank],   ss
+	mov word [reg_ES_bank],   es
+	mov word [reg_FS_bank],   fs
+	mov word [reg_GS_bank],   gs
 
 	pop eax
 	mov dword [Error_Code_bank], eax
@@ -845,7 +843,7 @@ static idt32_trap32:function
 	pop eax
 	mov dword [reg_EIP_bank], eax
 
-	mov edi, 1
+	mov  edi, 1
 	call idt32_regdump
 	
 	; TODO: put all the other lines
@@ -869,17 +867,17 @@ static idt32_trap32:function
 	mov dword [reg_EDI_bank], edi
 	mov dword [reg_ESP_bank], esp
 	mov dword [reg_EBP_bank], ebp
-	mov word [reg_CS_bank],  cs
-	mov word [reg_DS_bank],  ds
-	mov word [reg_SS_bank],  ss
-	mov word [reg_ES_bank],  es
-	mov word [reg_FS_bank],  fs
-	mov word [reg_GS_bank],  gs
+	mov word [reg_CS_bank],   cs
+	mov word [reg_DS_bank],   ds
+	mov word [reg_SS_bank],   ss
+	mov word [reg_ES_bank],   es
+	mov word [reg_FS_bank],   fs
+	mov word [reg_GS_bank],   gs
 
 	pop eax
 	mov dword [reg_EIP_bank], eax
 
-	mov edi, 0
+	mov  edi, 0
 	call idt32_regdump
 	
 	; TODO: put all the other lines
@@ -905,12 +903,12 @@ static idt32_trap32:function
 	mov dword [reg_EDI_bank], edi
 	mov dword [reg_ESP_bank], esp
 	mov dword [reg_EBP_bank], ebp
-	mov word [reg_CS_bank],  cs
-	mov word [reg_DS_bank],  ds
-	mov word [reg_SS_bank],  ss
-	mov word [reg_ES_bank],  es
-	mov word [reg_FS_bank],  fs
-	mov word [reg_GS_bank],  gs
+	mov word [reg_CS_bank],   cs
+	mov word [reg_DS_bank],   ds
+	mov word [reg_SS_bank],   ss
+	mov word [reg_ES_bank],   es
+	mov word [reg_FS_bank],   fs
+	mov word [reg_GS_bank],   gs
 
 	pop eax
 	mov dword [Error_Code_bank], eax
@@ -918,14 +916,14 @@ static idt32_trap32:function
 	pop eax
 	mov dword [reg_EIP_bank], eax
 
-	mov edi, 1
+	mov  edi, 1
 	call idt32_regdump
 
-	mov edi, 0xB8000 + TEXT_WIDTH_IN_BYTES + (3 * 2) ;line 1 (zero indexed), column 2 (zero indexed), multiplied by 2 since 1 byte out of two controls color
+	mov edi,            0xB8000 + TEXT_WIDTH_IN_BYTES + (3 * 2) ;line 1 (zero indexed), column 2 (zero indexed), multiplied by 2 since 1 byte out of two controls color
 	mov [idt32_cursor], edi
 
-	mov edi, idt32_exception_GPF_string
-	mov esi, idt32_exception_GPF_string_len
+	mov  edi, idt32_exception_GPF_string
+	mov  esi, idt32_exception_GPF_string_len
 	call idt32_putnchar
 	
 	; TODO: put all the other lines
@@ -955,36 +953,36 @@ static idt32_trap32:function
 ;	 alt;
 
 InterruptHandlerTable:
-	dd idt32_trap32    			;division
-	dd idt32_trap32    			;debug
-	dd idt32_trap32	   			;NMI
-	dd idt32_trap32    			;breakpoint
-	dd idt32_trap32    			;overflow
-	dd idt32_trap32    			;bound range exceeded
-	dd idt32_trap32    			;invalid opcode
-	dd idt32_trap32 			;device not available
-	dd idt32_trap32_error_code	;double fault
-	dd 0			   			;coprocessor segment overrun (doesn't happen anymore)
-	dd idt32_trap32_error_code 	;invalid tss
-	dd idt32_trap32_error_code  ;segment not present
-	dd idt32_trap32_error_code	;stack segment fault
-	dd idt32_GPF				;GPF
-	dd idt32_trap32_error_code	;page fault
-	dd 0						;reserved
+	dd idt32_trap32            ;division
+	dd idt32_trap32            ;debug
+	dd idt32_trap32            ;NMI
+	dd idt32_trap32            ;breakpoint
+	dd idt32_trap32            ;overflow
+	dd idt32_trap32            ;bound range exceeded
+	dd idt32_trap32            ;invalid opcode
+	dd idt32_trap32            ;device not available
+	dd idt32_trap32_error_code ;double fault
+	dd 0                       ;coprocessor segment overrun (doesn't happen anymore)
+	dd idt32_trap32_error_code ;invalid tss
+	dd idt32_trap32_error_code ;segment not present
+	dd idt32_trap32_error_code ;stack segment fault
+	dd idt32_GPF               ;GPF
+	dd idt32_trap32_error_code ;page fault
+	dd 0                       ;reserved
 
-	dd idt32_trap32				;x87 floating point exception
-	dd idt32_trap32_error_code	;alignment check
-	dd idt32_trap32				;machine check
-	dd idt32_trap32				;SIMD floating point exception
-	dd idt32_trap32				;virtualization exception
-	dd idt32_trap32_error_code	;control protection exception
-	dd 0						;reserved
+	dd idt32_trap32            ;x87 floating point exception
+	dd idt32_trap32_error_code ;alignment check
+	dd idt32_trap32            ;machine check
+	dd idt32_trap32            ;SIMD floating point exception
+	dd idt32_trap32            ;virtualization exception
+	dd idt32_trap32_error_code ;control protection exception
+	dd 0                       ;reserved
 	dd 0
 	dd 0
 	dd 0
 	dd 0
-	dd 0						;all the way until there
-	dd idt32_trap32				;hypervisor injection exception
-	dd idt32_trap32_error_code	;VMM communication exception
-	dd idt32_trap32_error_code	;security exception
-	dd 0						;reserved
+	dd 0                       ;all the way until there
+	dd idt32_trap32            ;hypervisor injection exception
+	dd idt32_trap32_error_code ;VMM communication exception
+	dd idt32_trap32_error_code ;security exception
+	dd 0                       ;reserved
