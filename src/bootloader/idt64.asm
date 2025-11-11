@@ -132,16 +132,15 @@ idt64_hexdigits:
 static idt64_hexdigits:data
 idt64_bindigits:
 static idt64_bindigits:data
-		db "0123456789ABCDEF"
-	
+	db "0123456789ABCDEF"
+
 equal_msg:
 static equal_msg: data
-		db " = ", 0
-.end: 
-%define equal_msg_len (equal_msg.end - equal_msg - 1)
+	db                " = ", 0
+	equal_msg_len equ $ - equal_msg
 
 ; Register Names
-%define REG_NAME_LEN  3
+%define REG_NAME_LEN 3
 	reg_RIP_name:
 	static reg_RIP_name: data
 		db "RIP", 0
