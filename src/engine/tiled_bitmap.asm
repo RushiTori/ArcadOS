@@ -7,12 +7,12 @@ section .data
 tile_as_bitmap:
 static  tile_as_bitmap: data
 	istruc Bitmap
-        at .bits,          dq tile_data
-        at .width,         dw 8
-        at .height,        dw 8
-        at .main_color,    db 0x0F
-        at .inverse_color, db 0x00
-        at .padding,             db 0, 0
+        at Bitmap.bits,          .bits:          dq tile_data
+        at Bitmap.width,         .width:         dw 8
+        at Bitmap.height,        .height:        dw 8
+        at Bitmap.main_color,    .main_color:    db 0x0F
+        at Bitmap.inverse_color, .inverse_color: db 0x00
+        at Bitmap.padding,       .padding:       dw 0
 	iend
 
 section      .bss
@@ -169,7 +169,7 @@ func(global, draw_tiled_bitmap_indexed_vec)
 
     push rdx ; preserve screenPos
 
-    call tiled_bitmap_get_tile_indexed_vec ; tiled_bitmap_get_tile_indexed_vec(tile_map, idx);
+    call tiled_bitmap_get_tile_indexed ; tiled_bitmap_get_tile_indexed(tile_map, idx);
 
     pop rsi ; restore screenPos
 
@@ -264,7 +264,7 @@ func(global, draw_tiled_bitmap_inverse_indexed_vec)
 
     push rdx ; preserve screenPos
 
-    call tiled_bitmap_get_tile_indexed_vec ; tiled_bitmap_get_tile_indexed_vec(tile_map, idx);
+    call tiled_bitmap_get_tile_indexed ; tiled_bitmap_get_tile_indexed(tile_map, idx);
 
     pop rsi ; restore screenPos
 
