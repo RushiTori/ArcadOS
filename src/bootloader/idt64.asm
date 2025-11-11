@@ -7,7 +7,7 @@ bits 64
 
 %include "bootloader/pic.inc"
 
-%include "engine/display.inc"
+%include "engine/font.inc"
 
 %include "bootloader/rsdp.inc"
 %include "main/main.inc"
