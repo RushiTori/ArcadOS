@@ -7,12 +7,12 @@ section .data
 current_font_data:
 static  current_font_data: data
 	istruc TiledBitmap
-        at .tiles,         dq NULL
-        at .width,         dw FONT_WIDTH
-        at .height,        dw FONT_HEIGHT
-        at .main_color,    db 0x0F
-        at .inverse_color, db 0x00
-        at .padding,       db 0, 0
+        at TiledBitmap.tiles,         .tiles:         dq NULL
+        at TiledBitmap.width,         .width:         dw FONT_WIDTH
+        at TiledBitmap.height,        .height:        dw FONT_HEIGHT
+        at TiledBitmap.main_color,    .main_color:    db 0x0F
+        at TiledBitmap.inverse_color, .inverse_color: db 0x00
+        at TiledBitmap.padding,       .padding:       dw 0
 	iend
 
 section .text
