@@ -1,407 +1,127 @@
-bits 64
+bits    64
 
 %include "main/main.inc"
-%include "engine/timer.inc"
-
-section .bss
-
-timerID:
-static timerID:data
-	resq 1
-
-frameCount:
-static frameCount:data
-	resq 1
 
 section .data
-TextBuffer:
-static TextBuffer:
-	times 4096 db 0
-TextIndex:
-static TextIndex:
-	dq 0
 
-section .rodata
+%define TEXT_BUFFER_LEN 4096
 
-ArcadOSTitle:
-static ArcadOSTitle:data
-	db "ArcadOS", 0
-ArcadOSTitleLen equ ($ - ArcadOSTitle)
+text_buffer:
+static text_buffer:
+	times TEXT_BUFFER_LEN db 0
 
-spaces:
-static spaces:data
-	db " ", 0
-spacesLen equ ($ - spaces)
+var(static, uint64_t, text_index, 0)
 
-keyPressed:
-static keyPressed:data
-	db "k", 0
-keyPressedLen equ ($ - keyPressed)
+section      .rodata
 
-seconds_0_padding:
-static seconds_0_padding:data
-	db ".000'000'000 seconds", 0
+string(static, ArcadOSTitle, "ArcadOS", 0)
 
-section .text
+section      .text
 
-%define fps 600
+; void main_update(void);
+func(static, main_update)
+	sub rsp, 8 ; to re-align the stack
 
-convert_system_time:
-static convert_system_time:function
-	mov rax, 1
-	cvtsi2sd xmm2, rax
-	shl rax, 32
-	cvtsi2sd xmm1, rax
-	divsd xmm2, xmm1
-	mov rax, 1000000
-	cvtsi2sd xmm3, rax
+	call PS2KB_update ; PS2KB_update();
 
-	; mov eax, dword[system_timer_ms]
-	; xor rdx, rdx
-	; mov r12, 1000
-	; div r12
-	; mov r12, rax ; seconds
-	; mov r13, rdx ; millis
-	; mov eax, dword[system_timer_fractions]
-	; cvtsi2sd xmm1, rax
-	; mulsd xmm1, xmm2
-	; mulsd xmm1, xmm3
-	; cvtsd2si rax, xmm1
-	; xor rdx, rdx
-	; mov r14, 1000
-	; div r14
-	; mov r14, rax ; micros
-	; mov r15, rdx ; nanos
-	; ret
-	call get_system_time_ms
-	mov r14, rax
-	shr rax, 32
-	xor rdx, rdx
-	mov r12, 1000
-	div r12
-	mov r12, rax ; seconds
-	mov r13, rdx ; millis
+	call update_kb_buffer ; update_kb_buffer();
 
-	mov r15, 0xFFFFFFFF
-	and r14, r15
-	mov rax, r14
-	cvtsi2sd xmm1, rax
-	mulsd xmm1, xmm2
-	mulsd xmm1, xmm3
-	cvtsd2si rax, xmm1
-	xor rdx, rdx
-	mov r14, 1000
-	div r14
-	mov r14, rax ; micros
-	mov r15, rdx ; nanos
+	add rsp, 8 ; to re-align the stack
 	ret
 
-draw_system_time:
-static draw_system_time:function
-	mov rdi, r12
-	xor rsi, rsi
-	mov rdx, 10
-	call utoa
+; void main_display(void);
+func(static, main_display)
+	sub rsp, 8 ; to re-align the stack
 
-	mov rdi, rax
-	call strlen
-	push rax
-	push rax
-	push rax
-	push rax
+	mov  dil, 0x02
+	call clear_screen ; green screen
 
-	mov rdx, rdi
-	xor rdi, rdi
-	mov rsi, SCREEN_HEIGHT - 8
-	push rdx
-	push rdx
-	call draw_text_background
-	pop rdx
-	call draw_text_shadow
-	pop rdx
-	call draw_text
+	call display_kb_buffer ; display_kb_buffer();
 
-	pop rdi
-	shl rdi, 3
-	mov rsi, SCREEN_HEIGHT - 8
-	mov rdx, seconds_0_padding
-	call draw_text_background
-	mov rdx, seconds_0_padding
-	call draw_text_shadow
-	mov rdx, seconds_0_padding
-	call draw_text
-
-	mov rdi, r13
-	xor rsi, rsi
-	mov rdx, 10
-	call utoa
-	mov rdi, rax
-	call strlen
-	mov rdx, rdi
-	pop rdi
-	add rdi, 1 + 3
-	sub rdi, rax
-	shl rdi, 3
-	mov rsi, SCREEN_HEIGHT - 8
-	push rdx
-	push rdx
-	call draw_text_background
-	pop rdx
-	call draw_text_shadow
-	pop rdx
-	call draw_text
-
-
-	mov rdi, r14
-	xor rsi, rsi
-	mov rdx, 10
-	call utoa
-	mov rdi, rax
-	call strlen
-	mov rdx, rdi
-	pop rdi
-	add rdi, 1 + 3 + 1 + 3
-	sub rdi, rax
-	shl rdi, 3
-	mov rsi, SCREEN_HEIGHT - 8
-	push rdx
-	push rdx
-	call draw_text_background
-	pop rdx
-	call draw_text_shadow
-	pop rdx
-	call draw_text
-
-
-	mov rdi, r15
-	xor rsi, rsi
-	mov rdx, 10
-	call utoa
-	mov rdi, rax
-	call strlen
-	mov rdx, rdi
-	pop rdi
-	add rdi, 1 + 3 + 1 + 3 + 1 + 3
-	sub rdi, rax
-	shl rdi, 3
-	mov rsi, SCREEN_HEIGHT - 8
-	push rdx
-	push rdx
-	call draw_text_background
-	pop rdx
-	call draw_text_shadow
-	pop rdx
-	call draw_text
-
+	add rsp, 8 ; to re-align the stack
 	ret
 
-;rdi: x
-;rsi: y
-;rdx: str
-draw_text_and_shadow:
-static draw_text_and_shadow:function
-	push rdi
-	push rsi
-	push rdx
-	call draw_text_shadow
+func(global, main)
+	; Setting up the xmm registers and flloat instructions
+		mov rax, cr0
+		and ax,  0xFFFB ;clear coprocessor emulation CR0.EM
+		or  ax,  0x2    ;set coprocessor monitoring  CR0.MP
+		mov cr0, rax
+		mov rax, cr4
+		or  ax,  3 << 9 ;set CR4.OSFXSR and CR4.OSXMMEXCPT at the same time
+		mov cr4, rax
 
-	pop rdx
-	pop rsi
-	pop rdi
-	call draw_text
+	; Activating timer
+		mov  rdi, 0
+		call maskin_irq_pic64
 
-	ret
+	.main_loop:
+		call main_update
+		call main_display
 
-main:
-global main:function
+		.waitForFrameTime:
+			mov  rdi, 16
+			shl  rdi, 32  ; literal 16 as 32.32 fixed point
+			call sleep_ms ; sleep_ms(16.0);
 
-	mov rax, cr0
-	and ax, 0xFFFB		;clear coprocessor emulation CR0.EM
-	or ax, 0x2			;set coprocessor monitoring  CR0.MP
-	mov cr0, rax
-	mov rax, cr4
-	or ax, 3 << 9		;set CR4.OSFXSR and CR4.OSXMMEXCPT at the same time
-	mov cr4, rax
+		jmp .main_loop
 
-	mov rdi, 0x02
-	call set_color
+; void update_kb_buffer(void);
+func(static, update_kb_buffer)
+	sub rsp, 8 ; to re-align the stack
 
-	call clear_screen
+	.add_to_buffer_loop:
+		call PS2KB_get_char          ; PS2KB_get_char();
+		cmp  rax, -1
+		je   .add_to_buffer_loop_end ; if (PS2KB_get_char() == EOF) break;
 
-	mov rdi, 0
-	call maskin_irq_pic64
+		; if (text_index >= TEXT_BUFFER_LEN) break;
+		mov rdi,                   uint64_p [text_index]
+		cmp uint64_p [text_index], TEXT_BUFFER_LEN
+		jge .add_to_buffer_loop_end
 
-.updateKeyboardMain:
-	call PS2KB_update
+		; text_buffer[text_index++] = PS2KB_get_char();
+		mov uint8_p [text_buffer + rdi], al
+		inc uint64_p [text_index]
 
-.printLoop:
-	call PS2KB_get_char
-	cmp rax, -1
-	je .skipPrint
-	mov rdi, [TextIndex]
-	cmp rdi, 4096
-	je .skipPrint
-	mov byte[TextBuffer + rdi], al
-	inc qword[TextIndex]
-	jmp .printLoop
-.skipPrint:
+		jmp .add_to_buffer_loop
+	.add_to_buffer_loop_end:
 
-	mov rdi, KEY_BACKSPACE
-	call PS2KB_is_key_pressed
-	cmp rax, true
-	je .handleBackspace
+	mov  rdi, KEY_BACKSPACE
+	call PS2KB_is_key_pressed ; PS2KB_is_key_pressed(KEY_BACKSPACE);
+	cmp  rax, true
+	je   .handle_backspace
 
-	mov rdi, KEY_BACKSPACE
-	call PS2KB_is_key_pressed_typematic
-	cmp rax, true
-	je .handleBackspace
+	mov  rdi, KEY_BACKSPACE
+	call PS2KB_is_key_pressed_typematic ; PS2KB_is_key_pressed_typematic(KEY_BACKSPACE);
+	cmp  rax, true
+	je   .handle_backspace
+
 	jmp .skipBackspace
 
-.handleBackspace:
-	mov rdi, [TextIndex]
-	cmp rdi, 0
-	je .skipBackspace
+	.handle_backspace:
+		; if (!text_index) goto skip_handle_backspace;
+		mov rdi, uint64_p [text_index]
+		cmp rdi, 0
+		je  .skipBackspace
 
-	mov rdi, 0x2
-	call set_color
+		; text_buffer[--text_index] = '\0';
+		dec qword[text_index]
+		mov byte [text_buffer + rdi], 0
 
-	dec qword[TextIndex]
-	mov rdi, [TextIndex]
-	mov byte [TextBuffer + rdi], 0
-	call clear_screen
+	.skipBackspace:
 
-.skipBackspace:
+	add rsp, 8 ; to re-align the stack
+	ret
 
-	mov rdi, 0
-	mov rsi, 0
-	mov rdx, TextBuffer
+; void display_kb_buffer(void);
+func(static, display_kb_buffer)
+	sub rsp, 8 ; to re-align the stack
+
+	lea  rdi, [text_buffer]
+	xor  rsi, rsi
+	xor  rdx, rdx
 	call draw_text_and_shadow
 
-.waitForFrameTime:
-	;hlt
-	;mov rdi, [timerID]
-	;call get_timer_ms
-	;shr rax, 32
-	;cmp rax, 32
-	;jl .waitForFrameTime
-
-	;mov rdi, [timerID]
-	;call reset_timer
-	mov rdi, 16
-	shl rdi, 32
-	call sleep_ms
-	jmp .updateKeyboardMain
-
-	mov rbx, fps
-	call init_PIT
-	call create_timer
-	cmp rax, -1
-	je $
-	
-	mov qword[timerID], rax
-
-	dec qword[frameCount]
-
-	.draw_loop:
-	mov rdi, qword[timerID]
-	call reset_timer
-	inc qword[frameCount]
-
-	; mov rdi, 0x2C
-	; call set_color
-	; call clear_screen
-
-	mov rdi, qword[frameCount]
-	xor rsi, rsi
-	mov rdx, 10
-	call utoa
-	push rax
-	push rax
-	push rax
-
-	xor rdi, rdi
-	mov rsi, SCREEN_HEIGHT - 40
-	pop rdx
-	call draw_text_background
-	pop rdx
-	call draw_text_shadow
-	pop rdx
-	call draw_text
-
-	mov rax, qword[frameCount]
-	mov rdi, 60
-	xor rdx, rdx
-	div rdi
-	mov rdi, rax
-	xor rsi, rsi
-	mov rdx, 10
-	call utoa
-	push rax
-	push rax
-	push rax
-
-	xor rdi, rdi
-	mov rsi, SCREEN_HEIGHT - 32
-	pop rdx
-	call draw_text_background
-	pop rdx
-	call draw_text_shadow
-	pop rdx
-	call draw_text
-
-
-	call get_system_ticks
-	mov rdi, rax
-	xor rsi, rsi
-	mov rdx, 10
-	call utoa
-	push rax
-	push rax
-	push rax
-
-	xor rdi, rdi
-	mov rsi, SCREEN_HEIGHT - 24
-	pop rdx
-	call draw_text_background
-	pop rdx
-	call draw_text_shadow
-	pop rdx
-	call draw_text
-
-	call get_system_ticks
-	mov rdi, IRQ0_FREQUENCY
-	mov rdx, 0
-	div rdi
-
-	mov rdi, rax
-	xor rsi, rsi
-	mov rdx, 10
-	call utoa
-	push rax
-	push rax
-	push rax
-
-	xor rdi, rdi
-	mov rsi, SCREEN_HEIGHT - 16
-	pop rdx
-	call draw_text_background
-	pop rdx
-	call draw_text_shadow
-	pop rdx
-	call draw_text
-	
-	call convert_system_time
-	call draw_system_time
-
-	call PS2KB_update
-
-	mov rdi, qword[timerID]
-	call get_timer_ms
-
-	mov rdi, FRAME_TIME
-	sub rdi, rax
-	jc .draw_loop
-	call sleep_ms
-
-
-	jmp .draw_loop
+	add rsp, 8 ; to re-align the stack
+	ret
