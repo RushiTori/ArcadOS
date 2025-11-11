@@ -356,7 +356,7 @@ global  PS2_init:function
 	mov  rdi, 0
 	call PS2KB_init
 
-.end_init_port1
+.end_init_port1:
 	mov ax, word [PS2_port_2_device]
 		;mices
 	cmp ax, 0x0000
