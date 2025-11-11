@@ -1,7 +1,7 @@
 %ifndef LUTYPES_INC
 %define LUTYPES_INC
 
-%include "lutypes_utils.inc"
+%include "LuLib/lutypes_utils.inc"
 
 define_type(int8,    b, byte)
 define_type(int16,   w, word)
