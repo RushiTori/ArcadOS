@@ -110,7 +110,14 @@ func(global, clear_screen)
 
 ; void clear_screen_c(uint8_t col);
 func(global, clear_screen_c)
-	mov al,  dil
+	push rdi ; preserve col
+
+	call get_display_buffer ; get_display_buffer();
+
+	mov rdi, rax ; rdi = get_display_buffer();
+	
+	pop rax ; restore col
+
 	mov rcx, DISPLAY_BUFFER_SIZE
 	rep stosb
 	ret
