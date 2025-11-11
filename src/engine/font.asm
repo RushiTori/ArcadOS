@@ -276,7 +276,7 @@ static default_font: data
 
 section      .data
 
-var(static, pointer_p, current_font, default_font)
+var(static, pointer_t, current_font, default_font)
 var(static, uint8_t, font_color, 0x1F)
 var(static, uint8_t, shadow_color, 0x1B)
 var(static, uint8_t, background_color, 0x13)
