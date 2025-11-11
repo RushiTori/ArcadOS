@@ -104,7 +104,7 @@ func(global, texture_get_pixel_vec)
 ; uint8_t texture_get_pixel_indexed(const Texture* tex, uint32_t idx);
 func(global, texture_get_pixel_indexed)
     mov rdi, pointer_p [rdi + Texture.pixels] ; rdi = tex->pixels
-    and rsi, 0xFFFFFFFF                       ; rsi = (uint64_t)idx
+    mov esi, esi                              ; rsi = (uint64_t)idx
 
     mov al, uint8_p [rdi + rsi] ; al = tex->pixels[(uint64_t)idx];
     ret
@@ -139,7 +139,7 @@ func(global, texture_set_pixel_vec)
 ; void texture_set_pixel_indexed(const Texture* tex, uint32_t idx, uint8_t col);
 func(global, texture_set_pixel_indexed)
     mov rdi, pointer_p [rdi + Texture.pixels] ; rdi = tex->pixels
-    and rsi, 0xFFFFFFFF                       ; rsi = (uint64_t)idx
+    mov esi, esi                              ; rsi = (uint64_t)idx
 
     mov uint8_p [rdi + rsi], dl ; tex->pixels[(uint64_t)idx] = col;
     ret
