@@ -11,6 +11,7 @@ bits 64
 
 %include "bootloader/rsdp.inc"
 %include "main/main.inc"
+%include "memory_mover.inc"
 
 %include "engine/PS2.inc"
 %include "engine/timer.inc"
