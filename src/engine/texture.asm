@@ -10,15 +10,15 @@ res(static, pointer_t, mask)
 screen_pos:
 static      screen_pos: data
 	istruc ScreenVec2
-		at .x, resw 1
-		at .y, resw 1
+		at ScreenVec2.x, .x: resw 1
+		at ScreenVec2.y, .y: resw 1
 	iend
 
 tex_pos:
 static tex_pos: data
 	istruc ScreenVec2
-		at .x, resw 1
-		at .y, resw 1
+		at ScreenVec2.x, .x: resw 1
+		at ScreenVec2.y, .y: resw 1
 	iend
 
 res(static,  bool_t, use_mask)
