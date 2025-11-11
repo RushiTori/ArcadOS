@@ -200,10 +200,10 @@ func(global, draw_tiled_bitmap_inverse)
 
     lea rdi, [tile_as_bitmap] ; rdi = &tile_as_bitmap
 
-    add rsp, 8              ; to re-align the stack
-    pop rsi                 ; restore posX
-    pop rdx                 ; restore posY
-    jmp draw_bitmap_inverse ; draw_bitmap_inverse(&tile_as_bitmap, posX, posY);
+    add rsp, 8               ; to re-align the stack
+    pop rsi                  ; restore posX
+    pop rdx                  ; restore posY
+    jmp draw_bitmap_inversed ; draw_bitmap_inversed(&tile_as_bitmap, posX, posY);
 
 ; void draw_tiled_bitmap_inverse_vec(const TiledBitmap* tile_map, ScreenVec2 tilePos, ScreenVec2 screenPos);
 func(global, draw_tiled_bitmap_inverse_vec)
@@ -225,7 +225,7 @@ func(global, draw_tiled_bitmap_inverse_vec)
 
     lea rdi, [tile_as_bitmap] ; rdi = &tile_as_bitmap;
 
-    jmp draw_bitmap_inverse_vec ; draw_bitmap_inverse_vec(&tile_as_bitmap, screenPos);
+    jmp draw_bitmap_inversed_vec ; draw_bitmap_inversed_vec(&tile_as_bitmap, screenPos);
 
 ; void draw_tiled_bitmap_inverse_indexed(const TiledBitmap* tile_map, uint32_t idx, uint16_t posX, uint16_t posY);
 func(global, draw_tiled_bitmap_inverse_indexed)
@@ -247,10 +247,10 @@ func(global, draw_tiled_bitmap_inverse_indexed)
 
     lea rdi, [tile_as_bitmap] ; rdi = &tile_as_bitmap
 
-    add rsp, 8              ; to re-align the stack
-    pop rsi                 ; restore posX
-    pop rdx                 ; restore posY
-    jmp draw_bitmap_inverse ; draw_bitmap_inverse(&tile_as_bitmap, posX, posY);
+    add rsp, 8               ; to re-align the stack
+    pop rsi                  ; restore posX
+    pop rdx                  ; restore posY
+    jmp draw_bitmap_inversed ; draw_bitmap_inversed(&tile_as_bitmap, posX, posY);
 
 ; void draw_tiled_bitmap_inverse_indexed_vec(const TiledBitmap* tile_map, uint32_t idx, ScreenVec2 screenPos);
 func(global, draw_tiled_bitmap_inverse_indexed_vec)
@@ -272,4 +272,4 @@ func(global, draw_tiled_bitmap_inverse_indexed_vec)
 
     lea rdi, [tile_as_bitmap] ; rdi = &tile_as_bitmap;
 
-    jmp draw_bitmap_inverse_vec ; draw_bitmap_inverse_vec(&tile_as_bitmap, screenPos);
+    jmp draw_bitmap_inversed_vec ; draw_bitmap_inversed_vec(&tile_as_bitmap, screenPos);
