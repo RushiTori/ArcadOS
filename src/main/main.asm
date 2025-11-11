@@ -281,16 +281,18 @@ global main:function
 	call draw_text_and_shadow
 
 .waitForFrameTime
-	hlt
-	mov rdi, [timerID]
-	call get_timer_ms
-	shr rax, 32
-	cmp rax, 32
-	jl .waitForFrameTime
+	;hlt
+	;mov rdi, [timerID]
+	;call get_timer_ms
+	;shr rax, 32
+	;cmp rax, 32
+	;jl .waitForFrameTime
 
-	mov rdi, [timerID]
-	call reset_timer
-
+	;mov rdi, [timerID]
+	;call reset_timer
+	mov rdi, 16
+	shl rdi, 32
+	call sleep_ms
 	jmp .updateKeyboardMain
 
 	mov rbx, fps
