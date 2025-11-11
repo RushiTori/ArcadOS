@@ -10,15 +10,15 @@ res(static, pointer_t, mask)
 screen_pos:
 static      screen_pos: data
 	istruc ScreenVec2
-		at .x, resw 1
-		at .y, resw 1
+		at ScreenVec2.x, .x: resw 1
+		at ScreenVec2.y, .y: resw 1
 	iend
 
 map_pos:
 static map_pos: data
 	istruc ScreenVec2
-		at .x, resw 1
-		at .y, resw 1
+		at ScreenVec2.x, .x: resw 1
+		at ScreenVec2.y, .y: resw 1
 	iend
 
 res(static,  bool_t, use_mask)
@@ -63,7 +63,7 @@ func(static, put_bitmap_bit)
     mov  si,  di                ; si = x
     mov  rdi, pointer_p [map]   ; rdi = map
     call bitmap_get_bit         ; bitmap_get_bit(map, x, y);
-    xor  al,  bool_t [inversed] ; bitmap_get_bit(map, x, y) ^ inversed
+    xor  al,  bool_p [inversed] ; bitmap_get_bit(map, x, y) ^ inversed
     cmp  al,  false
     je   .end
 
@@ -79,7 +79,7 @@ func(static, put_bitmap_bit)
 
     mov rdx,               pointer_p [map]           ; rdx = map
     mov dl,                [rdx + Bitmap.main_color] ; dl = map->main_color
-    cmp bool_t [inversed], false
+    cmp bool_p [inversed], false
     je  .skip_load_inverse_col
         mov dl, [rdx + Bitmap.inverse_color] ; if (inversed) dl = map->inverse_color
     .skip_load_inverse_col:
@@ -122,17 +122,18 @@ func(global, bitmap_get_bit_indexed)
     ; bool_t res = (bool_t)(map->bits[byteIdx] & bitMask);
     ;
 
-    and rsi, 0xFFFFFFFF ; rsi = (uint64_t)idx
-    mov rdx, rsi        ; rdx = (uint64_t)idx
-    and rdx, 0b111      ; rdx = bitIdx
-    shr rsi, 3          ; rsi = byteIdx
+    mov esi, esi   ; rsi = (uint64_t)idx
+    mov rdx, rsi   ; rdx = (uint64_t)idx
+    and rdx, 0b111 ; rdx = bitIdx
+    shr rsi, 3     ; rsi = byteIdx
 
     mov rdi, pointer_p [rdi + Bitmap.bits] ; rdi = map->bits
     mov al,  uint8_p [rdi + rsi]           ; al = map->bits[(uint64_t)idx];
 
-    mov   cl, 1
-    shl   cl, dl ; cl = bitMask
-    and   al, cl ; al = map->bits[byteIdx] & bitMask
+    mov   cl, dl
+    mov   dl, 1
+    shl   dl, cl ; dl = bitMask
+    and   al, dl ; al = map->bits[byteIdx] & bitMask
     setnz al     ; al = (bool_t)(map->bits[byteIdx] & bitMask)
     ret
 
@@ -172,17 +173,18 @@ func(global, bitmap_set_bit_indexed)
     ; map->bits[byteIdx] = map->bits[byteIdx] | bitMask;
     ;
 
-    and rsi, 0xFFFFFFFF ; rsi = (uint64_t)idx
-    mov rdx, rsi        ; rdx = (uint64_t)idx
-    and rdx, 0b111      ; rdx = bitIdx
-    shr rsi, 3          ; rsi = byteIdx
+    mov esi, esi   ; rsi = (uint64_t)idx
+    mov rdx, rsi   ; rdx = (uint64_t)idx
+    and rdx, 0b111 ; rdx = bitIdx
+    shr rsi, 3     ; rsi = byteIdx
 
     mov rdi, pointer_p [rdi + Bitmap.bits] ; rdi = map->bits
     mov al,  uint8_p [rdi + rsi]           ; al = map->bits[(uint64_t)idx];
 
-    mov cl, 1
-    shl cl, dl ; cl = bitMask
-    or  al, cl ; al = map->bits[byteIdx] | bitMask
+    mov cl, dl
+    mov dl, 1
+    shl dl, cl ; dl = bitMask
+    or  al, dl ; al = map->bits[byteIdx] | bitMask
     
     mov uint8_p [rdi + rsi], al ; map->bits[byteIdx] = map->bits[byteIdx] | bitMask
     ret
@@ -223,18 +225,19 @@ func(global, bitmap_unset_bit_indexed)
     ; map->bits[byteIdx] = map->bits[byteIdx] & bitMask;
     ;
 
-    and rsi, 0xFFFFFFFF ; rsi = (uint64_t)idx
-    mov rdx, rsi        ; rdx = (uint64_t)idx
-    and rdx, 0b111      ; rdx = bitIdx
-    shr rsi, 3          ; rsi = byteIdx
+    mov esi, esi   ; rsi = (uint64_t)idx
+    mov rdx, rsi   ; rdx = (uint64_t)idx
+    and rdx, 0b111 ; rdx = bitIdx
+    shr rsi, 3     ; rsi = byteIdx
 
     mov rdi, pointer_p [rdi + Bitmap.bits] ; rdi = map->bits
     mov al,  uint8_p [rdi + rsi]           ; al = map->bits[(uint64_t)idx];
 
-    mov cl, 1
-    shl cl, dl ; cl = 1 << bitIdx
-    not cl     ; cl = bitMask
-    and al, cl ; al = map->bits[byteIdx] & bitMask
+    mov cl, dl
+    mov dl, 1
+    shl dl, cl ; dl = 1 << bitIdx
+    not dl     ; dl = bitMask
+    and al, dl ; al = map->bits[byteIdx] & bitMask
     
     mov uint8_p [rdi + rsi], al ; map->bits[byteIdx] = map->bits[byteIdx] & bitMask
     ret
