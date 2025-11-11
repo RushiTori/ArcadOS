@@ -256,6 +256,10 @@ isNumpadLocked:
 static isNumpadLocked:data
 	resb 1
 
+currentPortID:
+static currentPortID:data
+	resb 1
+
 section .text
 
 waitForResponseKeyboard:
@@ -275,15 +279,19 @@ static waitForSending:function
 ;masks all interrupt
 keyboardInit:
 global keyboardSetScancodeTable:function
+	mov byte [currentPortID], dil ;store the port we're initializing for
+
 	mov rdi, 0xFE
 	mov rsi, 0xFE
 	call mask_pic64
 
-	mov rdi, KB_COMMAND_GET_SET_SCANCODE_SET
-	call PS2SendCommandToPort1
+	mov dil, byte [currentPortID]
+	mov rsi, KB_COMMAND_GET_SET_SCANCODE_SET
+	call PS2SendCommandToDeviceKB
 
-	mov rdi, 2 ;set 2
-	call PS2SendCommandToPort1
+	mov dil, byte [currentPortID]
+	mov rsi, 2 ;set 2
+	call PS2SendCommandToDeviceKB
 
 	mov al, false
 	mov [isScrollLocked], al
@@ -302,14 +310,16 @@ global keyboardSetScancodeTable:function
 	mov rsi, 0xFF
 	call mask_pic64
 
-	mov rdi, KB_COMMAND_SET_TYPEMATIC_RATE_DELAY
-	call PS2SendCommandToPort1
+	mov dil, byte [currentPortID]
+	mov rsi, KB_COMMAND_SET_TYPEMATIC_RATE_DELAY
+	call PS2SendCommandToDeviceKB
 	cmp rax, -1
 	je .end
 
+	mov dil, byte [currentPortID]
 			  ;z_dd_rrrrr where z must be zero, d is delay in a range of 250 to 1000ms (0 is 250ms) (included on both ends), and rrrrr is a repeat rate, from 2 Hz to 30Hz (0 is 30Hz) (included on both ends)
-	mov rdi, 0b0_01_00000 ;here 500 ms with a repeat rate of 30Hz, sounds good
-	call PS2SendCommandToPort1
+	mov rsi, 0b0_01_00000 ;here 500 ms with a repeat rate of 30Hz, sounds good
+	call PS2SendCommandToDeviceKB
 	cmp rax, -1
 	je .end
 
@@ -320,8 +330,11 @@ global keyboardSetScancodeTable:function
 	jmp $
 
 ;rax: scancode with byte 1 being MSB, and byte 3 being LSB
+;rdi: u8, port ID
 keyboardRead:
 global keyboardRead:function
+	mov byte [currentPortID], dil
+
 	xor rax, rax
 
 	cmp byte[scancode_complete], false
@@ -431,21 +444,23 @@ static update_keyboard_handler_IRQ:function
 	ret
 
 keyboardUpdateLEDs:
-	mov dil, 0xED
-	call PS2SendCommandToPort1KB
+	mov dil, byte [currentPortID]
+	mov sil, 0xED
+	call PS2SendCommandToDeviceKB
 	cmp rax, -1
 	je .error
 
 	;cns where n is numpad lock, c is caps lock, and s is scroll lock
 	mov al, byte [isScrollLocked]
-	mov dil, al
+	mov sil, al
 	mov al, byte [isNumpadLocked]
 	shl al, 1
-	or dil, al
+	or sil, al
 	mov al, byte [isCapsLocked]
 	shl al, 2
-	or dil, al
-	call PS2SendCommandToPort1KB
+	or sil, al
+	mov dil, byte [currentPortID]
+	call PS2SendCommandToDeviceKB
 	cmp rax, -1
 	je .error
 
@@ -832,10 +847,51 @@ global is_key_up:function
 	.end:
 	ret
 
+;rdi: port of device
+;rsi: command
+PS2SendCommandToDeviceKB:
+	cmp rdi, 1
+	je .handlePort2
+
+	mov rdi, rsi
+	call PS2SendCommandToPort1KB
+	jmp .end
+.handlePort2:
+	mov rdi, rsi
+	call PS2SendCommandToPort2KB
+.end:
+	ret
 
 PS2SendCommandToPort1KB:
 	xor rcx, rcx
 .resend:
+	mov al, dil
+	out PS2_DATA, al
+	call waitForSendingKeyboard
+	call waitForResponseKeyboard
+
+	in al, PS2_DATA
+	cmp al, RESPONSE_RESEND
+	je .resend_handler
+	cmp al, RESPONSE_ACK
+	mov rax, 0
+	je .end
+	jmp .error
+.resend_handler:
+	inc rcx
+	cmp rcx, 3
+	jl .resend
+	jmp .error
+.end:
+	ret
+.error:
+	jmp $
+
+PS2SendCommandToPort2KB:
+	xor rcx, rcx
+.resend:
+	mov al, PS2_COMMAND_WRITE_BYTE_PORT2
+	out PS2_COMMAND, al
 	mov al, dil
 	out PS2_DATA, al
 	call waitForSendingKeyboard

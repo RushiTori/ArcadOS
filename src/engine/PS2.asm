@@ -1,4 +1,5 @@
 %include "engine/PS2.inc"
+%include "engine/PS2keyboard.inc"
 %include "engine/display.inc"
 %include "engine/timer.inc"
 
@@ -45,6 +46,7 @@ PS2_Port_1_state:
 PS2_Port_2_state:
 	resb 1   ;successs
 
+PS2_Device_Array:
 PS2_Port_1_Device:
 	resw 1   ;MF2 keyboard
 PS2_Port_2_Device:
@@ -314,6 +316,88 @@ global initPS2:function
 
 	;mov al, cl
 	;out PS2_DATA, al
+
+	mov ax, word [PS2_Port_1_Device]
+		;mices
+	cmp ax, 0x0000
+	je .mouseInit1
+	cmp ax, 0x0300
+	je .mouseInit1
+	cmp ax, 0x0400
+	je .mouseInit1
+
+	;keyboards
+	cmp ax, 0xFFFE
+	je .KBInit1
+	cmp ax, 0xAB83
+	je .KBInit1
+	cmp ax, 0xABC1
+	je .KBInit1
+	cmp ax, 0xAB84
+	je .KBInit1
+	cmp ax, 0xAB85
+	je .KBInit1
+	cmp ax, 0xAB86
+	je .KBInit1
+	cmp ax, 0xAB90
+	je .KBInit1
+	cmp ax, 0xAB91
+	je .KBInit1
+	cmp ax, 0xAB92
+	je .KBInit1
+	cmp ax, 0xACA1
+	je .KBInit1
+	jmp .end_init_port1 ;unsupported device
+
+.mouseInit1:
+	jmp .end_init_port1 ;not supported yet, no driver
+
+.KBInit1:
+	mov rdi, 0
+	call keyboardInit
+
+.end_init_port1
+	mov ax, word [PS2_Port_2_Device]
+		;mices
+	cmp ax, 0x0000
+	je .mouseInit2
+	cmp ax, 0x0300
+	je .mouseInit2
+	cmp ax, 0x0400
+	je .mouseInit2
+
+	;keyboards
+	cmp ax, 0xFFFE
+	je .KBInit2
+	cmp ax, 0xAB83
+	je .KBInit2
+	cmp ax, 0xABC1
+	je .KBInit2
+	cmp ax, 0xAB84
+	je .KBInit2
+	cmp ax, 0xAB85
+	je .KBInit2
+	cmp ax, 0xAB86
+	je .KBInit2
+	cmp ax, 0xAB90
+	je .KBInit2
+	cmp ax, 0xAB91
+	je .KBInit2
+	cmp ax, 0xAB92
+	je .KBInit2
+	cmp ax, 0xACA1
+	je .KBInit2
+	jmp .end_init_port2 ;unsupported device
+
+.mouseInit2:
+	jmp .end_init_port2 ;not supported yet, no driver
+
+.KBInit2:
+	mov rdi, 1
+	call keyboardInit
+.end_init_port2:
+	;todo: call the init driver functions for each port
+	;for instance, if both port 1 and port 2 hold a keyboard, you call initkeyboard with port 1 and then with port 2, that way both keyboards are set up
 
 	ret
 .error_controller_test:
@@ -690,4 +774,49 @@ static flushBuffer:function
 ;handles figuring out which device's plugged in, and selects the driver depending on that
 ;rdi: port ID
 updatePS2IRQ:
+	mov ax, [PS2_Device_Array + rdi * 2]
+	cmp ax, 0xFFFF
+	je .end
+
+	;mices
+	cmp ax, 0x0000
+	je .mouseSupport
+	cmp ax, 0x0300
+	je .mouseSupport
+	cmp ax, 0x0400
+	je .mouseSupport
+
+	;keyboards
+	cmp ax, 0xFFFE
+	je .KBSupport
+	cmp ax, 0xAB83
+	je .KBSupport
+	cmp ax, 0xABC1
+	je .KBSupport
+	cmp ax, 0xAB84
+	je .KBSupport
+	cmp ax, 0xAB85
+	je .KBSupport
+	cmp ax, 0xAB86
+	je .KBSupport
+	cmp ax, 0xAB90
+	je .KBSupport
+	cmp ax, 0xAB91
+	je .KBSupport
+	cmp ax, 0xAB92
+	je .KBSupport
+	cmp ax, 0xACA1
+	je .KBSupport
+
+	;unknown device
+	jmp .end
+
+	.mouseSupport:
+		;no drivers yet
+		jmp .end
+	.KBSupport:
+		;rdi already holds port ID
+		call keyboardRead
+
+.end:
 	ret

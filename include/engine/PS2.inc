@@ -62,4 +62,6 @@
 extern PS2SendCommandToPort1
 extern PS2SendCommandToPort2
 
+extern updatePS2IRQ
+
 %endif ;PS2_INC
