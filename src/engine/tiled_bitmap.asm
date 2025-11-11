@@ -47,7 +47,7 @@ func(global, tiled_bitmap_get_tile_vec)
 ; uint64_t tiled_bitmap_get_tile_indexed(const TiledBitmap* tile_map, uint32_t idx);
 func(global, tiled_bitmap_get_tile_indexed)
     mov rdi, pointer_p [rdi + TiledBitmap.tiles] ; rdi = tile_map->tiles
-    and rsi, 0xFFFFFFFF                          ; rsi = (uint64_t)idx
+    mov esi, esi                                 ; rsi = (uint64_t)idx
     mov rax, uint64_p [rdi + rsi]                ; return tile_map->tiles[idx];
     ret
 
