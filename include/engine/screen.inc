@@ -2,7 +2,6 @@
 %define SCREEN_INC
 
 %include "engine/vectors.inc"
-%include "engine/colors.inc"
 
 %define SCREEN_WIDTH       320
 %define SCREEN_HEIGHT      200
