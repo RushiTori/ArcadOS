@@ -138,69 +138,69 @@ key_to_char:
 	db 0	;delete:						14
 	db 0	;unused							15
 
-	db 0	;square symbol:					16
-	db '&' 	;one:							17
-	db '2' 	;two:							18
-	db 0x22 ;three:							19
-	db 0x27	;four:							20
-	db '(' 	;five:							21
-	db '-' 	;six:							22
-	db '7' 	;seven:							23
-	db '_' 	;eight:							24
-	db '9' 	;nine:							25
-	db '0' 	;zero:							26
-	db ')' 	;end parenthesis:				27
-	db '=' 	;equal sign:					28
+	db  0	;²:								16
+	db '&' 	;ampersand:						17	caps becomes 1
+	db '2'	;é:								18	caps becomes 2		alt gr becomes ~
+	db 0x22 ;dquote:						19	caps becomes 3		alt gr becomes #
+	db 0x27	;apostrophe:					20	caps becomes 4		alt gr becomes {
+	db '(' 	;paren start:					21	caps becomes 5		alt gr becomes [
+	db '-' 	;dash:							22	caps becomes 6		alt gr becomes |
+	db '7'	;è: 							23	caps becomes 7		alt gr becomes `
+	db '8' 	;underscore:					24	caps becomes 8		alt gr becomes backslash
+	db '9' 	;c with cedille:				25	caps becomes 9		alt gr becomes caret
+	db '0'	;à:								26	caps becomes 0		alt gr becomes @
+	db ')' 	;paren end:						27	caps becomes °		alt gr becomes ]
+	db '=' 	;equal sign:					28	caps becomes +		alt gr becomes }
 	db 0	;backspace:						29
 	db 0	;unused							30
 	db 0	;unused							31
 	
 	db 0x9	;tab:							32
-	db 'a'	;A:								33
-	db 'z'	;Z:								34
-	db 'e'	;E:								35
-	db 'r'	;R:								36
-	db 't'	;T:								37
-	db 'y'	;Y:								38
-	db 'u'	;U:								39
-	db 'i'	;I:								40
-	db 'o'	;O:								41
-	db 'p'	;P:								42
-	db '^'	;caret:							43
-	db '$'	;dollar sign:					44
+	db 'a'	;a:								33
+	db 'z'	;z:								34
+	db 'e'	;e:								35						alt gr becomes €=0X81
+	db 'r'	;r:								36
+	db 't'	;t:								37
+	db 'y'	;y:								38						alt gr becomes yen=0x82
+	db 'u'	;u:								39
+	db 'i'	;i:								40
+	db 'o'	;o:								41
+	db 'p'	;p:								42
+	db '^'	;caret:							43	caps becomes "
+	db '$'	;dollar sign:					44	caps becomes £=0x80	alt gr becomes ¤=0x7F
 	db 0xA	;enter:							45
 	db 0	;unused							46
 	db 0	;unused							47
 
 	db 0	;caps lock:						48
-	db 'q'	;Q:								49
-	db 's'	;S:								50
-	db 'd'	;D:								51
-	db 'f'	;F:								52
-	db 'g'	;G:								53
-	db 'h'	;H:								54
-	db 'j'	;J:								55
-	db 'k'	;K:								56
-	db 'l'	;L:								57
-	db 'm'	;M:								58
-	db '%'	;u with accent pointing right:	59   replaced with % since % is in the ascii table
-	db '*'	;asterisk:						60
+	db 'q'	;q:								49
+	db 's'	;s:								50
+	db 'd'	;d:								51
+	db 'f'	;f:								52
+	db 'g'	;g:								53
+	db 'h'	;h:								54
+	db 'j'	;j:								55
+	db 'k'	;k:								56
+	db 'l'	;l:								57
+	db 'm'	;m:								58
+	db  0	;ù with accent pointing right:	59	caps becomes %
+	db '*'	;asterisk:						60	caps becomes µ
 	db 0	;unused							61
 	db 0	;unused							62
 	db 0	;unused							63
 	
 	db 0	;left shift:					64
 	db '<'	;lower than:					65
-	db 'w'	;W:								66
-	db 'x'	;X:								67
-	db 'c'	;C:								68
-	db 'v'	;V:								69
-	db 'b'	;B:								70
-	db 'n'	;N:								71
-	db ','	;comma:							72
-	db ';'	;semicolon:						73
-	db ':'	;colon:							74
-	db '!'	;exclamation mark:				75
+	db 'w'	;w:								66
+	db 'x'	;x:								67
+	db 'c'	;c:								68						alt gr becomes cent=0x82
+	db 'v'	;v:								69
+	db 'b'	;b:								70
+	db 'n'	;n:								71
+	db ','	;comma:							72	caps becomes ?
+	db ';'	;semicolon:						73	caps becomes .
+	db ':'	;colon:							74	caps becomes /
+	db '!'	;exclamation mark:				75	caps becomes §
 	db 0	;right shift:					76
 	db 0	;unused							77
 	db 0	;unused							78
@@ -218,6 +218,203 @@ key_to_char:
 	db 0	;DOWN:							89
 	db 0	;LEFT:							90
 	db 0	;RIGHT:							91
+
+key_to_char_caps:
+	db 0	;escape:						0
+	db 0	;F1:							1
+	db 0	;F2:							2
+	db 0	;F3:							3
+	db 0	;F4:							4
+	db 0	;F5:							5
+	db 0	;F6:							6
+	db 0	;F7:							7
+	db 0	;F8:							8
+	db 0	;F9:							9
+	db 0	;F10:							10
+	db 0	;F11:							11
+	db 0	;F12:							12
+	db 0	;insert:						13
+	db 0	;delete:						14
+	db 0	;unused							15
+
+	db  0	;²:								16
+	db '1' 	;one:							17
+	db '2'	;two:							18	alt gr becomes ~
+	db '3' 	;three:							19	alt gr becomes #
+	db '4'	;four:							20	alt gr becomes {
+	db '5' 	;five:							21	alt gr becomes [
+	db '6' 	;six:							22	alt gr becomes |
+	db '7'	;seven:							23	alt gr becomes `
+	db '8' 	;eight:							24	alt gr becomes \
+	db '9' 	;nine:							25	alt gr becomes caret
+	db '0'	;zero:							26	alt gr becomes @
+	db  0 	;paren end:						27	alt gr becomes ]
+	db '+' 	;plus sign:						28	alt gr becomes }
+	db 0	;backspace:						29
+	db 0	;unused							30
+	db 0	;unused							31
+	
+	db 0x9	;tab:							32
+	db 'A'	;A:								33
+	db 'Z'	;Z:								34
+	db 'E'	;E:								35	alt gr becomes €=0X81
+	db 'R'	;R:								36
+	db 'T'	;T:								37
+	db 'Y'	;Y:								38	alt gr becomes yen=0x82
+	db 'U'	;U:								39
+	db 'I'	;I:								40
+	db 'O'	;O:								41
+	db 'P'	;P:								42
+	db  0 	;":								43
+	db  0	;dollar sign:					44	alt gr becomes ¤=0x7F
+	db 0xA	;enter:							45
+	db  0	;unused							46
+	db  0	;unused							47
+
+	db  0	;caps lock:						48
+	db 'Q'	;Q:								49
+	db 'S'	;S:								50
+	db 'D'	;D:								51
+	db 'F'	;F:								52
+	db 'G'	;G:								53
+	db 'H'	;H:								54
+	db 'J'	;J:								55
+	db 'K'	;K:								56
+	db 'L'	;L:								57
+	db 'M'	;M:								58
+	db '%'	;ù with accent pointing right:	59	
+	db  0	;asterisk:						60	
+	db  0	;unused							61
+	db  0	;unused							62
+	db  0	;unused							63
+	
+	db  0	;left shift:					64
+	db '>'	;lower than:					65
+	db 'W'	;W:								66
+	db 'X'	;X:								67
+	db 'C'	;C:								68						alt gr becomes cent=0x82
+	db 'V'	;V:								69
+	db 'B'	;B:								70
+	db 'N'	;N:								71
+	db '?'	;comma:							72	
+	db '.'	;semicolon:						73	
+	db '/'	;colon:							74	
+	db  0	;exclamation mark:				75	
+	db  0	;right shift:					76
+	db  0	;unused							77
+	db  0	;unused							78
+	db  0	;unused							79
+
+	db  0	;left ctrl:						80
+	db  0	;left fn not mapped
+	db  0	;win not mapped
+	db  0	;alt							83
+	db ' '	;space bar:						84
+	db  0	;alt gr							85
+	db  0	;right fn not mapped
+	db  0	;right control:					87
+	db  0	;UP:							88
+	db  0	;DOWN:							89
+	db  0 	;LEFT:							90
+	db  0	;RIGHT:							91
+
+key_to_char_alt_gr:
+	db 0	;escape:						0
+	db 0	;F1:							1
+	db 0	;F2:							2
+	db 0	;F3:							3
+	db 0	;F4:							4
+	db 0	;F5:							5
+	db 0	;F6:							6
+	db 0	;F7:							7
+	db 0	;F8:							8
+	db 0	;F9:							9
+	db 0	;F10:							10
+	db 0	;F11:							11
+	db 0	;F12:							12
+	db 0	;insert:						13
+	db 0	;delete:						14
+	db 0	;unused							15
+
+	db  0	;²:								16
+	db '&' 	;ampersand:						17	caps becomes 1
+	db '2'	;é:								18	caps becomes 2		alt gr becomes ~
+	db 0x22 ;dquote:						19	caps becomes 3		alt gr becomes #
+	db 0x27	;apostrophe:					20	caps becomes 4		alt gr becomes {
+	db '(' 	;paren start:					21	caps becomes 5		alt gr becomes [
+	db '-' 	;dash:							22	caps becomes 6		alt gr becomes |
+	db '7'	;è: 							23	caps becomes 7		alt gr becomes `
+	db '_' 	;underscore:					24	caps becomes 8		alt gr becomes \
+	db '9' 	;c with cedille:				25	caps becomes 9		alt gr becomes ^
+	db '0'	;à:								26	caps becomes 0		alt gr becomes @
+	db ')' 	;paren end:						27	caps becomes °		alt gr becomes ]
+	db '=' 	;equal sign:					28	caps becomes +		alt gr becomes }
+	db 0	;backspace:						29
+	db 0	;unused							30
+	db 0	;unused							31
+	
+	db 0x9	;tab:							32
+	db 'a'	;a:								33
+	db 'z'	;z:								34
+	db 'e'	;e:								35						alt gr becomes €=0X81
+	db 'r'	;r:								36
+	db 't'	;t:								37
+	db 'y'	;y:								38						alt gr becomes yen=0x82
+	db 'u'	;u:								39
+	db 'i'	;i:								40
+	db 'o'	;o:								41
+	db 'p'	;p:								42
+	db '^'	;caret:							43	caps becomes "
+	db '$'	;dollar sign:					44	caps becomes £=0x80	alt gr becomes ¤=0x7F
+	db 0xA	;enter:							45
+	db 0	;unused							46
+	db 0	;unused							47
+
+	db 0	;caps lock:						48
+	db 'q'	;q:								49
+	db 's'	;s:								50
+	db 'd'	;d:								51
+	db 'f'	;f:								52
+	db 'g'	;g:								53
+	db 'h'	;h:								54
+	db 'j'	;j:								55
+	db 'k'	;k:								56
+	db 'l'	;l:								57
+	db 'm'	;m:								58
+	db  0	;ù with accent pointing right:	59	caps becomes %
+	db '*'	;asterisk:						60	caps becomes µ
+	db 0	;unused							61
+	db 0	;unused							62
+	db 0	;unused							63
+	
+	db 0	;left shift:					64
+	db '<'	;lower than:					65
+	db 'w'	;w:								66
+	db 'x'	;x:								67
+	db 'c'	;c:								68						alt gr becomes cent=0x82
+	db 'v'	;v:								69
+	db 'b'	;b:								70
+	db 'n'	;n:								71
+	db ','	;comma:							72	caps becomes ?
+	db ';'	;semicolon:						73	caps becomes .
+	db ':'	;colon:							74	caps becomes /
+	db '!'	;exclamation mark:				75	caps becomes §
+	db 0	;right shift:					76
+	db 0	;unused							77
+	db 0	;unused							78
+	db 0	;unused							79
+
+	db 0	;left ctrl:						80
+	db 0	;left fn not mapped
+	db 0	;win not mapped
+	db 0	;alt							83
+	db ' '	;space bar:						84
+	db 0	;alt gr							85
+	db 0	;right fn not mapped
+	db 0	;right control:					87
+	db 0	;UP:							88
+	db 0	;DOWN:							89
+	db 0	;LEFT:							90
 
 section .bss
 
@@ -244,82 +441,82 @@ char_buffer_idx:
 static char_buffer_idx:data
 	resq 1
 
-isScrollLocked:
-static isScrollLocked:data
+is_scroll_locked:
+static is_scroll_locked:data
 	resb 1
 
-isCapsLocked:
-static isCapsLocked:data
+is_caps_locked:
+static is_caps_locked:data
 	resb 1
 
-isNumpadLocked:
-static isNumpadLocked:data
+is_numpad_locked:
+static is_numpad_locked:data
 	resb 1
 
-currentPortID:
-static currentPortID:data
+current_port_ID:
+static current_port_ID:data
 	resb 1
 
 section .text
 
-waitForResponseKeyboard:
+PS2KB_wait_for_response:
 static waitForResponse:function
 	in al, PS2_STATUS
 	and al, PS2_STATUS_INPUT_BUFFER_FULL
-	jz waitForResponseKeyboard
+	jz PS2KB_wait_for_response
 	ret
 
-waitForSendingKeyboard:
+PS2KB_wait_for_sending:
 static waitForSending:function
 	in al, PS2_STATUS
 	and al, PS2_STATUS_OUTPUT_BUFFER_FULL
-	jnz waitForSendingKeyboard
+	jnz PS2KB_wait_for_sending
 	ret
 
 ;masks all interrupt
-keyboardInit:
+PS2KB_init:
 global keyboardSetScancodeTable:function
-	mov byte [currentPortID], dil ;store the port we're initializing for
+	mov byte [current_port_ID], dil ;store the port we're initializing for
 
 	mov rdi, 0xFE
 	mov rsi, 0xFE
 	call mask_pic64
 
-	mov dil, byte [currentPortID]
+	mov dil, byte [current_port_ID]
 	mov rsi, KB_COMMAND_GET_SET_SCANCODE_SET
-	call PS2SendCommandToDeviceKB
+	call PS2KB_send_command_to_device
 
-	mov dil, byte [currentPortID]
+	mov dil, byte [current_port_ID]
 	mov rsi, 2 ;set 2
-	call PS2SendCommandToDeviceKB
+	call PS2KB_send_command_to_device
 
 	mov al, false
-	mov [isScrollLocked], al
-	mov [isCapsLocked], al
-	mov [isNumpadLocked], al
+	mov [is_scroll_locked], al
+	mov [is_caps_locked], al
+	mov [is_numpad_locked], al
 
 	mov rcx, KEY_COUNT
 
-	.clearKeys:
+	.clear_keys:
 		mov byte [key_states + rcx - 1], KEY_STATE_UP
 		mov byte [IRQ_key_states + rcx - 1], KEY_STATE_UNKNOWN
-		loop .clearKeys
+		loop .clear_keys
 
 
 	mov rdi, 0xFF
 	mov rsi, 0xFF
 	call mask_pic64
 
-	mov dil, byte [currentPortID]
+	mov dil, byte [current_port_ID]
 	mov rsi, KB_COMMAND_SET_TYPEMATIC_RATE_DELAY
-	call PS2SendCommandToDeviceKB
+	call PS2KB_send_command_to_device
 	cmp rax, -1
 	je .end
 
-	mov dil, byte [currentPortID]
+	mov dil, byte [current_port_ID]
 			  ;z_dd_rrrrr where z must be zero, d is delay in a range of 250 to 1000ms (0 is 250ms) (included on both ends), and rrrrr is a repeat rate, from 2 Hz to 30Hz (0 is 30Hz) (included on both ends)
 	mov rsi, 0b0_01_00000 ;here 500 ms with a repeat rate of 30Hz, sounds good
-	call PS2SendCommandToDeviceKB
+	call PS2KB_send_command_to_device
 	cmp rax, -1
 	je .end
 
@@ -331,16 +528,16 @@ global keyboardSetScancodeTable:function
 
 ;rax: scancode with byte 1 being MSB, and byte 3 being LSB
 ;rdi: u8, port ID
-keyboardRead:
-global keyboardRead:function
-	mov byte [currentPortID], dil
+PS2KB_read:
+global PS2KB_read:function
+	mov byte [current_port_ID], dil
 
 	xor rax, rax
 
 	cmp byte[scancode_complete], false
-	je .skipResetScancode
+	je .skip_reset_scancode
 	mov qword[scancode], false
-	.skipResetScancode:
+	.skip_reset_scancode:
 
 	in al, PS2_DATA
 	cmp al, 0xFA
@@ -352,15 +549,15 @@ global keyboardRead:function
 	mov qword[scancode], rax
 
 	cmp al, 0xE0
-	je .awaitNextKeyState
+	je .await_next_keystate
 	cmp al, 0xF0
-	je .awaitNextKeyState
+	je .await_next_keystate
 
 	mov byte[scancode_complete], true
-	call update_keyboard_handler_IRQ
+	call PS2KB_IRQ_handler_update
 	jmp .endRead
 
-	.awaitNextKeyState:
+	.await_next_keystate:
 		mov byte[scancode_complete], false
 	.endRead:
 	
@@ -368,8 +565,8 @@ global keyboardRead:function
 
 ;rdi: scancode
 ;return al: keycode, ah: isReleased
-keyboardScancodeToKeycode:
-static keyboardScancodeToKeycode:function
+PS2KB_scancode_to_keycode:
+static PS2KB_scancode_to_keycode:function
 	xor rcx, rcx
 	.lookup_loop:
 		cmp rdi, qword[keymap + rcx * 8]
@@ -389,25 +586,66 @@ static keyboardScancodeToKeycode:function
 
 ;rdi: keycode
 ;return 
-keyboardKeycodeToChar:
-static keyboardKeycodeToChar:function
+PS2KB_keycode_to_char:
+static PS2KB_keycode_to_char:function
+	push rdi
+
+	mov rdi, KEY_RIGHT_ALT
+	call PS2KB_is_key_pressed
+	mov rcx, rax
+
+	mov rdi, KEY_RIGHT_ALT
+	call PS2KB_is_key_down
+	or rcx, rax
+	jnz .alt_gr_handling
+
+	mov rdi, KEY_LEFT_SHIFT
+	call PS2KB_is_key_pressed
+	mov rcx, rax
+
+	mov rdi, KEY_LEFT_SHIFT
+	call PS2KB_is_key_down
+	or rcx, rax
+
+	mov rdi, KEY_RIGHT_SHIFT
+	call PS2KB_is_key_pressed
+	or rcx, rax
+
+	mov rdi, KEY_RIGHT_SHIFT
+	call PS2KB_is_key_down
+	or rcx, rax
+	jnz .caps_handling
+
+.regular_handling:
+	pop rdi
 	movzx rax, byte[key_to_char + rdi]
+	jmp .end
+
+.caps_handling:
+	pop rdi
+	movzx rax, byte[key_to_char_caps + rdi]
+	jmp .end
+
+.alt_gr_handling:
+	pop rdi
+	movzx rax, byte[key_to_char_alt_gr + rdi]
+.end:
 	ret
 
-keyboardFlushBuffer:
-static keyboardFlushBuffer:function
+PS2KB_flush:
+static PS2KB_flush:function
 	in al, PS2_STATUS
 	and al, PS2_STATUS_INPUT_BUFFER_FULL
 	je .end
 	in al, PS2_DATA
-	jmp keyboardFlushBuffer
+	jmp PS2KB_flush
 	.end:
 	ret
 
-update_keyboard_handler_IRQ:
-static update_keyboard_handler_IRQ:function
+PS2KB_IRQ_handler_update:
+static PS2KB_IRQ_handler_update:function
 	mov rdi, qword[scancode]
-	call keyboardScancodeToKeycode
+	call PS2KB_scancode_to_keycode
 	cmp al, KEY_COUNT
 	jge .end
 
@@ -425,12 +663,12 @@ static update_keyboard_handler_IRQ:function
 	cmp rdi, KEY_CAPS_LOCK
 	jne .skipCapsLockHandling
 
-	xor byte [isCapsLocked], 1
-	call keyboardUpdateLEDs
+	xor byte [is_caps_locked], 1
+	call PS2KB_LEDs_update
 .skipCapsLockHandling:
 
 	;rdi already holds keycode
-	call keyboardKeycodeToChar
+	call PS2KB_keycode_to_char
 	cmp rax, 0
 	je .skipTextWrite
 	mov rsi, [char_buffer_idx]
@@ -443,24 +681,24 @@ static update_keyboard_handler_IRQ:function
 	.end:
 	ret
 
-keyboardUpdateLEDs:
-	mov dil, byte [currentPortID]
+PS2KB_LEDs_update:
+	mov dil, byte [current_port_ID]
 	mov sil, 0xED
-	call PS2SendCommandToDeviceKB
+	call PS2KB_send_command_to_device
 	cmp rax, -1
 	je .error
 
 	;cns where n is numpad lock, c is caps lock, and s is scroll lock
-	mov al, byte [isScrollLocked]
+	mov al, byte [is_scroll_locked]
 	mov sil, al
-	mov al, byte [isNumpadLocked]
+	mov al, byte [is_numpad_locked]
 	shl al, 1
 	or sil, al
-	mov al, byte [isCapsLocked]
+	mov al, byte [is_caps_locked]
 	shl al, 2
 	or sil, al
-	mov dil, byte [currentPortID]
-	call PS2SendCommandToDeviceKB
+	mov dil, byte [current_port_ID]
+	call PS2KB_send_command_to_device
 	cmp rax, -1
 	je .error
 
@@ -468,215 +706,18 @@ keyboardUpdateLEDs:
 
 .error:
 	jmp $
-keyboard_char_buffer_flush:
+PS2KB_char_buffer_flush:
 	mov qword [char_buffer_idx], 0
 	ret
 
-keyboard_get_char:
+PS2KB_get_char:
 	mov al, 0
 	mov rsi, [char_buffer_idx]
 	cmp rsi, 0
 	mov rax, -1
 	jz .end
 
-	mov rdi, KEY_RIGHT_ALT
-	call is_key_pressed
-	mov rcx, rax
-
-	mov rdi, KEY_RIGHT_ALT
-	call is_key_down
-	or rcx, rax
-	cmp rcx, true
-	je .altGrHandling
-
-	mov rdi, KEY_LEFT_SHIFT
-	call is_key_pressed
-	mov rcx, rax
-
-	mov rdi, KEY_LEFT_SHIFT
-	call is_key_down
-	or rcx, rax
-
-	mov rdi, KEY_RIGHT_SHIFT
-	call is_key_pressed
-	or rcx, rax
-
-	mov rdi, KEY_RIGHT_SHIFT
-	call is_key_down
-	or rcx, rax
-
-	xor cl, byte [isCapsLocked]
-
-	xor rax, rax
-	mov al, [char_buffer]
-	cmp al, 0
-	je .end
-
-	cmp cl, 0
-	je .skipSpecialHandling
-
-	cmp al, '<'
-	jne .skipLowerThanHandling
-
-	mov al, '>'
-	jmp .skipSpecialHandling
-.skipLowerThanHandling:
-
-	cmp al, ','
-	jne .skipCommaHandling
-
-	mov al, '?'
-	jmp .skipSpecialHandling
-
-.skipCommaHandling:
-
-	cmp al, ';'
-	jne .skipSemicolonHandling
-
-	mov al, '.'
-	jmp .skipSpecialHandling
-
-.skipSemicolonHandling:
-
-	cmp al, ':'
-	jne .skipColonHandling
-
-	mov al, '/'
-	jmp .skipSpecialHandling
-
-.skipColonHandling:
-
-	cmp al, '&'
-	jne .skipAmpersandHandling
-
-	mov al, '1'
-	jmp .skipSpecialHandling
-.skipAmpersandHandling:
-
-	cmp al, 0x22
-	jne .skipDquoteHandling
-
-	mov al, '3'
-	jmp .skipSpecialHandling
-.skipDquoteHandling:
-
-	cmp al, 0x27
-	jne .skipApostropheHandling
-
-	mov al, '4'
-	jmp .skipSpecialHandling
-.skipApostropheHandling:
-
-	cmp al, '('
-	jne .skipParenthesisStartHandling
-
-	mov al, '5'
-	jmp .skipSpecialHandling
-.skipParenthesisStartHandling:
-
-	cmp al, '-'
-	jne .skipDashHandling
-
-	mov al, '6'
-	jmp .skipSpecialHandling
-.skipDashHandling:
-
-	cmp al, '_'
-	jne .skipUnderscoreHandling
-
-	mov al, '8'
-	jmp .skipSpecialHandling
-.skipUnderscoreHandling:
-
-	cmp al, '='
-	jne .skipEqualHandling
-
-	mov al, '+'
-	jmp .skipSpecialHandling
-
-.skipEqualHandling:
-
-	cmp al, 'a'
-	jl .skipSpecialHandling
-
-	cmp al, 'z'
-	jg .skipSpecialHandling
-
-	sub al, ('a' - 'A')
-	jmp .skipSpecialHandling ;end of caps handling
-
-.altGrHandling:
-	xor rax, rax
-	mov al, [char_buffer]
-
-	cmp al, '2'
-	jne .skipTwoHandling
-
-	mov al, '~'
-	jmp .skipSpecialHandling
-.skipTwoHandling:
-	cmp al, 0x22
-	jne .skipAltDquoteHandling
-
-	mov al, '#'
-	jmp .skipSpecialHandling
-.skipAltDquoteHandling:
-	cmp al, 0x27
-	jne .skipAltApostropheHandling
-
-	mov al, '{'
-	jmp .skipSpecialHandling
-.skipAltApostropheHandling:
-	cmp al, '('
-	jne .skipAltParenthesisStartHandling
-
-	mov al, '['
-	jmp .skipSpecialHandling
-.skipAltParenthesisStartHandling:
-	cmp al, '-'
-	jne .skipAltDashHandling
-
-	mov al, '|'
-	jmp .skipSpecialHandling
-.skipAltDashHandling:
-	cmp al, '7'
-	jne .skipAltSevenHandling
-
-	mov al, '`'
-	jmp .skipSpecialHandling
-.skipAltSevenHandling:
-	cmp al, '_'
-	jne .skipAltUnderscoreHandling
-
-	mov al, '\'
-	jmp .skipSpecialHandling
-.skipAltUnderscoreHandling:
-	cmp al, '9'
-	jne .skipAltNineHandling
-
-	mov al, '^'
-	jmp .skipSpecialHandling
-.skipAltNineHandling:
-	cmp al, '0'
-	jne .skipAltZeroHandling
-
-	mov al, '@'
-	jmp .skipSpecialHandling
-.skipAltZeroHandling:
-	cmp al, ')'
-	jne .skipAltParenthesisEndHandling
-
-	mov al, ']'
-	jmp .skipSpecialHandling
-.skipAltParenthesisEndHandling:
-	cmp al, '='
-	jne .skipAltEqualHandling
-
-	mov al, '}'
-.skipAltEqualHandling:
-	;end of alt gr handling
-.skipSpecialHandling:
-
+	mov rax, [char_buffer]
 	push rax
 
 	mov rdi, char_buffer
@@ -684,15 +725,15 @@ keyboard_get_char:
 	sub rdx, rsi
 	add rsi, char_buffer
 	call memmove
-	
-	mov qword [char_buffer_idx], 0
 
 	pop rax
+
+	mov qword [char_buffer_idx], 0
 .end:
 	ret
 
-update_keyboard_handler:
-global update_keyboard_handler:function
+PS2KB_update:
+global PS2KB_update:function
 	; WIP
 
 	xor rdi, rdi
@@ -703,8 +744,8 @@ global update_keyboard_handler:function
 		je .update_key_status
 
 		cmp al, KEY_STATE_RELEASED
-		je .handleReleased
-		.handlePressed:
+		je .handle_released
+		.handle_pressed:
 			.put_state_pressed:
 			cmp byte[key_states + rdi], KEY_STATE_DOWN
 			je .put_state_typematic_pressed
@@ -715,7 +756,7 @@ global update_keyboard_handler:function
 			mov byte[key_states + rdi], KEY_STATE_TYPEMATIC_PRESSED
 			jmp .continue_update_loop
 
-		.handleReleased:
+		.handle_released:
 			.put_state_released:
 			mov byte[key_states + rdi], KEY_STATE_RELEASED
 			jmp .continue_update_loop
@@ -756,8 +797,8 @@ global update_keyboard_handler:function
 
 ; args : u8 keycode
 ; returns : true if 'keycode' is pressed, otherwise false.
-is_key_pressed:
-global is_key_pressed:function
+PS2KB_is_key_pressed:
+global PS2KB_is_key_pressed:function
 	xor rax, rax
 	cmp dil, KEY_COUNT
 	jge .end
@@ -774,8 +815,8 @@ global is_key_pressed:function
 
 ; args : u8 keycode
 ; returns : true if 'keycode' is typematic pressed, otherwise false.
-is_key_pressed_typematic:
-global is_key_pressed:function
+PS2KB_is_key_pressed_typematic:
+global PS2KB_is_key_pressed:function
 	xor rax, rax
 	cmp dil, KEY_COUNT
 	jge .end
@@ -792,8 +833,8 @@ global is_key_pressed:function
 
 ; args : u8 keycode
 ; returns : true if 'keycode' is down, otherwise false. (note: typematic pressed state is included as down here, since it is still holding down the key physically)
-is_key_down:
-global is_key_down:function
+PS2KB_is_key_down:
+global PS2KB_is_key_down:function
 	xor rax, rax
 	cmp dil, KEY_COUNT
 	jge .end
@@ -813,8 +854,8 @@ global is_key_down:function
 
 ; args : u8 keycode
 ; returns : true if 'keycode' is released, otherwise false.
-is_key_released:
-global is_key_released:function
+PS2KB_is_key_released:
+global PS2KB_is_key_released:function
 	xor rax, rax
 	cmp dil, KEY_COUNT
 	jge .end
@@ -831,8 +872,8 @@ global is_key_released:function
 
 ; args : u8 keycode
 ; returns : true if 'keycode' is up, otherwise false.
-is_key_up:
-global is_key_up:function
+PS2KB_is_key_up:
+global PS2KB_is_key_up:function
 	xor rax, rax
 	cmp dil, KEY_COUNT
 	jge .end
@@ -849,26 +890,26 @@ global is_key_up:function
 
 ;rdi: port of device
 ;rsi: command
-PS2SendCommandToDeviceKB:
+PS2KB_send_command_to_device:
 	cmp rdi, 1
-	je .handlePort2
+	je .handle_port2
 
 	mov rdi, rsi
-	call PS2SendCommandToPort1KB
+	call PS2KB_send_command_to_port1
 	jmp .end
-.handlePort2:
+.handle_port2:
 	mov rdi, rsi
-	call PS2SendCommandToPort2KB
+	call PS2KB_send_command_to_port2
 .end:
 	ret
 
-PS2SendCommandToPort1KB:
+PS2KB_send_command_to_port1:
 	xor rcx, rcx
 .resend:
 	mov al, dil
 	out PS2_DATA, al
-	call waitForSendingKeyboard
-	call waitForResponseKeyboard
+	call PS2KB_wait_for_sending
+	call PS2KB_wait_for_response
 
 	in al, PS2_DATA
 	cmp al, RESPONSE_RESEND
@@ -887,15 +928,15 @@ PS2SendCommandToPort1KB:
 .error:
 	jmp $
 
-PS2SendCommandToPort2KB:
+PS2KB_send_command_to_port2:
 	xor rcx, rcx
 .resend:
 	mov al, PS2_COMMAND_WRITE_BYTE_PORT2
 	out PS2_COMMAND, al
 	mov al, dil
 	out PS2_DATA, al
-	call waitForSendingKeyboard
-	call waitForResponseKeyboard
+	call PS2KB_wait_for_sending
+	call PS2KB_wait_for_response
 
 	in al, PS2_DATA
 	cmp al, RESPONSE_RESEND

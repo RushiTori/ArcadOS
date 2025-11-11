@@ -49,7 +49,7 @@ global  make_idt_64: function
 		.notPresent:
 			mov rax,  LGATE_DESCRIPTOR_FLAGS(false, 0, GATE_TYPE_TRAP_64, 0)
 		.end:
-		call idt64_SetGate
+		call idt64_set_gate
 		inc rdi
 		cmp rdi, 0x20
 		jl .loop
@@ -64,7 +64,7 @@ global  make_idt_64: function
 		.notPresentIRQ:
 			mov rax, LGATE_DESCRIPTOR_FLAGS(false, 0, GATE_TYPE_ISR_64, 0)
 		.endIfElse:
-		call idt64_SetGate
+		call idt64_set_gate
 		inc rdi
 		cmp rdi, 0x30
 		jl .loopIRQ
@@ -85,8 +85,7 @@ global  make_idt_64: function
 	call memory_mover_start   ;we need to set up memory mover before initializing other stuff
 
 	call init_PIT
-	call initPS2
-	call keyboardInit
+	call PS2_init ;automatically initializes the drivers for the devices plugged in
 	mov rdi, 0b11111001 ;enable slave and enable IRQ1
 	mov rsi, 0b11101111 ;enable IRQ12
 	call mask_pic64
@@ -98,7 +97,7 @@ global  make_idt_64: function
 ;rdi = gate index
 ;rsi = handlerPointer
 ;rax = gate type and flags
-idt64_SetGate:
+idt64_set_gate:
 	shl rdi, 1 ;multiply by 2 so that indexing is correct (want *16 instead of *8)
 
 	mov rdx, rsi
@@ -681,7 +680,7 @@ static idt64_PF:function
 	mov qword [reg_RIP_bank], rax
 
 	mov rdi, true
-	mov rsi, InterruptCodeTable.PageFault
+	mov rsi, interrupt_code_table.PageFault
 	call idt64_regdump_gfx_mode
 
 	jmp $
@@ -712,13 +711,13 @@ static idt64_GPF:function
 	mov qword [reg_RIP_bank], rax
 
 	mov rdi, true
-	mov rsi, InterruptCodeTable.GeneralProtectionFault
+	mov rsi, interrupt_code_table.GeneralProtectionFault
 	call idt64_regdump_gfx_mode
 
 	jmp $
 
 ;IRQ0 aka system timer
-idt64_timerIRQ:
+idt64_IRQ_PIT:
 	push_all
 
 	call timerTick
@@ -736,12 +735,12 @@ idt64_timerIRQ:
 %define idt64_keyboard_interrupt_string_len (idt64_keyboard_interrupt_string.end - idt64_keyboard_interrupt_string)
 
 ;IRQ1 aka PS/2 port1 IRQ
-idt64_PS2Port1IRQ:
+idt64_IRQ_port1:
 static idt64_keyboardIRQ:function
 	push_all
 
 	mov rdi, 0 ;port 1, 0 indexed
-	call updatePS2IRQ
+	call PS2_IRQ_update
 
 	mov rdi, 1 ;IRQ1
 	call sendEOI_pic64	;tell the PIC we finished handling the interrupt
@@ -750,12 +749,12 @@ static idt64_keyboardIRQ:function
 	iretq	;this is how we return from an interrupt in long mode
 
 ;IRQ12 aka PS/2 port2 IRQ
-idt64_PS2Port2IRQ:
+idt64_IRQ_port2:
 static idt64_keyboardIRQ:function
 	push_all
 
 	mov rdi, 1 ;port 2, 0 indexed
-	call updatePS2IRQ
+	call PS2_IRQ_update
 
 	mov rdi, 12 ;IRQ12
 	call sendEOI_pic64	;tell the PIC we finished handling the interrupt
@@ -791,8 +790,8 @@ static idt64_keyboardIRQ:function
 ;	 alt;
 
 
-%define interruptCodeSize 4
-InterruptCodeTable:
+%define interrupt_code_size 4
+interrupt_code_table:
 .DivisionError:
 	db "#DE", 0
 .Debug:
@@ -887,8 +886,8 @@ InterruptHandlerTable:
 	dq 0						;reserved
 
 ;irqs:
-	dq idt64_timerIRQ           ;IRQ0  0x20 timer
-	dq idt64_PS2Port1IRQ        ;IRQ1  0x21 PS/2 port 1
+	dq idt64_IRQ_PIT           ;IRQ0  0x20 timer
+	dq idt64_IRQ_port1        ;IRQ1  0x21 PS/2 port 1
 	dq 0						;IRQ2  0x22 doesn't exist since it's the cascade signal for the slave PIC
 	dq 0						;IRQ3  0x23
 	dq 0						;IRQ4  0x24
@@ -900,7 +899,7 @@ InterruptHandlerTable:
 	dq 0						;IRQ9  0x29
 	dq 0						;IRQ10 0x2A
 	dq 0						;IRQ11 0x2B
-	dq idt64_PS2Port2IRQ        ;IRQ12 0x2C PS/2 port 2
+	dq idt64_IRQ_port2        ;IRQ12 0x2C PS/2 port 2
 	dq 0						;IRQ13 0x2D
 	dq 0						;IRQ14 0x2E
 	dq 0						;IRQ15 0x2F

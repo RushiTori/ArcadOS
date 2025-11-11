@@ -16,37 +16,36 @@
 %define PS2_STATUS_TIMEOUT_FLAG			(1 << 6)
 %define PS2_STATUS_PARITY_FLAG			(1 << 7)
 
-extern initPS2
-extern keyboardInit
-extern keyboardRead
+extern PS2KB_init
+extern PS2KB_read
 
-extern update_keyboard_handler
+extern PS2KB_update
 
 ; args : u8 keycode
 ; returns : true if 'keycode' is pressed, otherwise false.
-extern is_key_pressed
+extern PS2KB_is_key_pressed
 
 ; args : u8 keycode
 ; returns : true if 'keycode' is down, otherwise false.
-extern is_key_down
+extern PS2KB_is_key_down
 
 ; args : u8 keycode
 ; returns : true if 'keycode' is released, otherwise false.
-extern is_key_released
+extern PS2KB_is_key_released
 
 ; args : u8 keycode
 ; returns : true if 'keycode' is up, otherwise false.
-extern is_key_up
+extern PS2KB_is_key_up
 
 ; args : u8 keycode
 ; returns : true if 'keycode' is typematic pressed, otherwise false.
-extern is_key_pressed_typematic
+extern PS2KB_is_key_pressed_typematic
 
 extern scancode
 extern scancode_complete
 
-extern keyboard_char_buffer_flush
-extern keyboard_get_char
+extern PS2KB_char_buffer_flush
+extern PS2KB_get_char
 
 %define KB_COMMAND_SET_LEDS 0xED
 %define KB_COMMAND_ECHO 0xEE

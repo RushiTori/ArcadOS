@@ -231,14 +231,11 @@ global main:function
 	mov rdi, 0
 	call maskin_irq_pic64
 
-	call create_timer
-	mov [timerID], rax
-
 .updateKeyboardMain:
-	call update_keyboard_handler
+	call PS2KB_update
 
 .printLoop:
-	call keyboard_get_char
+	call PS2KB_get_char
 	cmp rax, -1
 	je .skipPrint
 	mov rdi, [TextIndex]
@@ -250,17 +247,17 @@ global main:function
 .skipPrint:
 
 	mov rdi, KEY_BACKSPACE
-	call is_key_pressed
+	call PS2KB_is_key_pressed
 	cmp rax, true
 	je .handleBackspace
 
 	mov rdi, KEY_BACKSPACE
-	call is_key_pressed_typematic
+	call PS2KB_is_key_pressed_typematic
 	cmp rax, true
 	je .handleBackspace
 	jmp .skipBackspace
 
-.handleBackspace
+.handleBackspace:
 	mov rdi, [TextIndex]
 	cmp rdi, 0
 	je .skipBackspace
@@ -280,7 +277,7 @@ global main:function
 	mov rdx, TextBuffer
 	call draw_text_and_shadow
 
-.waitForFrameTime
+.waitForFrameTime:
 	;hlt
 	;mov rdi, [timerID]
 	;call get_timer_ms
@@ -396,7 +393,7 @@ global main:function
 	call convert_system_time
 	call draw_system_time
 
-	call update_keyboard_handler
+	call PS2KB_update
 
 	mov rdi, qword[timerID]
 	call get_timer_ms

@@ -59,9 +59,11 @@
 %define PORT_STATE_DATA_STUCK_LOW 3
 %define PORT_STATE_DATA_STUCK_HIGH 4
 
-extern PS2SendCommandToPort1
-extern PS2SendCommandToPort2
+extern PS2_init
 
-extern updatePS2IRQ
+extern PS2_send_command_to_port1
+extern PS2_send_command_to_port2
+
+extern PS2_IRQ_update
 
 %endif ;PS2_INC
