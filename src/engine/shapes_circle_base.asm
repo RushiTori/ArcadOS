@@ -119,15 +119,15 @@ func(global, circle_line_algo_base)
 		jle .skip_adjust_y_offset
 			inc r15w ; yOff++;
 
-			shl r15w     ; r15w = yOff * 2
-			add bx, r15w ; p += 2 * yOff
-			shr r15w     ; r15w = yOff
+			shl r15w, 1    ; r15w = yOff * 2
+			add bx,   r15w ; p += 2 * yOff
+			shr r15w, 1    ; r15w = yOff
 		.skip_adjust_y_offset:
 
-		shl r14w     ; r14w = xOff * 2
-		add bx, r14w ; p += 2 * xOff
-		shr r14w     ; r14w = xOff
-		inc bx       ; p++;
+		shl r14w, 1    ; r14w = xOff * 2
+		add bx,   r14w ; p += 2 * xOff
+		shr r14w, 1    ; r14w = xOff
+		inc bx         ; p++;
 
 		mov           di, r12w ; di = cX
 		add           di, r14w ; di = cX + xOff
