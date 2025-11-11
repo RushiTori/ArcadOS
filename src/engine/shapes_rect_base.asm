@@ -4,7 +4,7 @@ bits    64
 
 section .text
 
-%macro check_for_fail_pos
+%macro check_for_fail_pos 0
 	cmp bpl, false
 	je  %%skip_check_fail
 		cmp al, false

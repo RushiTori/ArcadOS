@@ -9,15 +9,15 @@ res(static, pointer_t, sub_call)
 anchor:
 static      anchor: data
 	istruc ScreenVec2
-		at .x, resw 1
-		at .y, resw 1
+		at ScreenVec2.x, .x: resw 1
+		at ScreenVec2.y, .y: resw 1
 	iend
 
 res(static, bool_t, is_cond)
 
 section     .text
 
-%macro check_for_fail_pos
+%macro check_for_fail_pos 0
 	cmp bl, false
 	je  %%skip_check_fail
 		cmp al, false
