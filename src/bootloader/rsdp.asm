@@ -1,6 +1,10 @@
+bits    64
+
 %include "bootloader/rsdp.inc"
 
 %include "main/main.inc"
+
+%include "engine/font.inc"
 
 %include "string.inc"
 
@@ -40,22 +44,22 @@ find_RSDP:
     .search_ebda_loop:
         mov rdx, [rsi]
         cmp rax, rdx
-        je .validate
+        je  .validate
 
         add rsi, 0x10
         cmp rsi, EBDA_MEMORY_END
-        je .search_bios_memory_region
+        je  .search_bios_memory_region
         jmp .search_ebda_loop
     .search_bios_memory_region:
     mov rsi, BIOS_MEMORY_REGION
     .search_bios_memory_region_loop:
         mov rdx, [rsi]
         cmp rax, rdx
-        je .validate
+        je  .validate
 
         add rsi, 0x10
         cmp rsi, BIOS_MEMORY_REGION_END
-        je .error
+        je  .error
         jmp .search_bios_memory_region_loop
 
     .validate:
@@ -66,7 +70,7 @@ find_RSDP:
         mov rdi, 0
         mov rcx, XSDP_size
         .checksumLoop2:    
-            add dil, byte [rsi + rcx - 1]
+            add  dil, byte [rsi + rcx - 1]
             loop .checksumLoop2
         jnz .error
         jmp .success2
@@ -74,56 +78,49 @@ find_RSDP:
         mov rdi, 0
         mov rcx, RSDP_size
         .checksumLoop1:    
-            add dil, byte [rsi + rcx - 1]
+            add  dil, byte [rsi + rcx - 1]
             loop .checksumLoop1
         jnz .error
         jmp .success1
     .success2:
-        mov rdi, RSDP_COPY_MEMORY_BOUNDARY
-        mov rdx, XSDP_size
+        mov  rdi, RSDP_COPY_MEMORY_BOUNDARY
+        mov  rdx, XSDP_size
         call memcpy
-        jmp .end_xsdp
+        jmp  .end_xsdp
     .success1:
-        mov rdi, RSDP_COPY_MEMORY_BOUNDARY
-        mov rdx, RSDP_size
+        mov  rdi, RSDP_COPY_MEMORY_BOUNDARY
+        mov  rdx, RSDP_size
         call memcpy
     .end_rsdp:
 
     call find_dsdt
-    jmp .end
+    jmp  .end
 
     .end_xsdp:
 
     call find_dsdt_extended
     ;now that we got our dsdt where we want it, we're good
     .end:
-    jmp main
+    jmp  main
     .error:
-        mov rdi, 0x01
-        call set_color
+        mov  dil, 0x01
+        call clear_screen_c ; blue screen due to error
 
-        call clear_screen
-
-        mov rdi, 0
-        mov rsi, 0
-        mov rdx, RSDP_error_string
+        mov  rdi, 0
+        mov  rsi, 0
+        mov  rdx, RSDP_error_string
         call rsdp_draw_text_and_shadow
     .error_loop:
         jmp .error_loop
 
+;rdi: x
+;rsi: y
+;rdx: str
 rsdp_draw_text_and_shadow:
-static draw_text_and_shadow:function
-	push rdi
-	push rsi
-	push rdx
-	call draw_text_shadow
-
-	pop rdx
-	pop rsi
-	pop rdi
-	call draw_text
-
-	ret
+static rsdp_draw_text_and_shadow:function
+	xchg rdi, rdx             ; rdi = str, rdx = x
+	xchg rsi, rdx             ; rsi = x, rdx = y
+	jmp  draw_text_and_shadow ; draw_text_and_shadow(x, y, str);
 
 ;screw rdi
 ;rsi: pointer
@@ -132,18 +129,18 @@ static draw_text_and_shadow:function
 validateChecksum:
     mov rax, 0
     .checksumLoop2:    
-        add al, byte [rsi + rcx - 1]
+        add  al, byte [rsi + rcx - 1]
         loop .checksumLoop2
     ret
 
 ;copies
 
 find_dsdt:
-    mov esi, dword [RSDP_COPY_MEMORY_BOUNDARY + RSDP.RsdtAddress]
-    mov ecx, dword [rsi + RSDT.Length]
+    mov  esi, dword [RSDP_COPY_MEMORY_BOUNDARY + RSDP.RsdtAddress]
+    mov  ecx, dword [rsi + RSDT.Length]
     call validateChecksum
-    cmp rax, 0
-    jnz .error_rsdt
+    cmp  rax, 0
+    jnz  .error_rsdt
 
     mov ecx, dword [rsi + RSDT.Length]
     sub rcx, ACPISDTHeader_size
@@ -154,7 +151,7 @@ find_dsdt:
         mov edx, dword [rsi] ;address to table
         mov edx, dword [edx] ;header identifier normally
         cmp edx, eax
-        je .found
+        je  .found
         add rsi, 4
         sub rcx, 4
         jne .loop
@@ -162,76 +159,68 @@ find_dsdt:
     jmp .error_fadt_not_found
 
     .found:
-    mov esi, dword [rsi]
-    mov ecx, dword [rsi + ACPISDTHeader.Length]
+    mov  esi, dword [rsi]
+    mov  ecx, dword [rsi + ACPISDTHeader.Length]
     call validateChecksum
-    cmp rax, 0
-    jnz .error_fadt_not_valid
+    cmp  rax, 0
+    jnz  .error_fadt_not_valid
 
-    mov edi, dword [rsi + ACPISDTHeader.Length]
-    mov rdx, FADT_size
+    mov  edi, dword [rsi + ACPISDTHeader.Length]
+    mov  rdx, FADT_size
     call memcpy
 
-    mov esi, dword [rsi + FADT.Dsdt]
-    mov ecx, dword [rsi + ACPISDTHeader.Length]
+    mov  esi, dword [rsi + FADT.Dsdt]
+    mov  ecx, dword [rsi + ACPISDTHeader.Length]
     call validateChecksum
-    cmp rax, 0
-    jnz .error_dsdt_not_valid
+    cmp  rax, 0
+    jnz  .error_dsdt_not_valid
 
-    mov rdi, DSDT_COPY_MEMORY_BOUNDARY
-    mov edx, dword [rsi + ACPISDTHeader.Length]
+    mov  rdi, DSDT_COPY_MEMORY_BOUNDARY
+    mov  edx, dword [rsi + ACPISDTHeader.Length]
     call memcpy
 
     jmp $
 
 .error_rsdt:
-        mov rdi, 0x01
-        call set_color
+    mov  dil, 0x01
+    call clear_screen_c ; blue screen due to error
 
-        call clear_screen
-
-        mov rdi, 0
-        mov rsi, 0
-        mov rdx, RSDT_error_string
+        mov  rdi, 0
+        mov  rsi, 0
+        mov  rdx, RSDT_error_string
         call rsdp_draw_text_and_shadow
     .error_rsdt_loop:
         jmp .error_rsdt_loop
 
 .error_fadt_not_found:
-    mov rdi, 0x01
-    call set_color
+    mov  dil, 0x01
+    call clear_screen_c ; blue screen due to error
 
-    call clear_screen
-
-    mov rdi, 0
-    mov rsi, 0
-    mov rdx, FADT_not_found_error_string
+    mov  rdi, 0
+    mov  rsi, 0
+    mov  rdx, FADT_not_found_error_string
     call rsdp_draw_text_and_shadow
 .error_fadt_not_found_loop:
     jmp .error_fadt_not_found_loop
 
 .error_fadt_not_valid:
-        mov rdi, 0x01
-        call set_color
+    mov  dil, 0x01
+    call clear_screen_c ; blue screen due to error
 
-        call clear_screen
-
-        mov rdi, 0
-        mov rsi, 0
-        mov rdx, FADT_checksum_error_string
+        mov  rdi, 0
+        mov  rsi, 0
+        mov  rdx, FADT_checksum_error_string
         call rsdp_draw_text_and_shadow
     .error_fadt_invalid_loop:
         jmp .error_fadt_invalid_loop
 
 .error_dsdt_not_valid:
-        mov rdi, 0x01
-        call set_color
+    mov  dil, 0x01
+    call clear_screen_c ; blue screen due to error
 
-        call clear_screen
-
-        mov rdi, 0
-        mov rsi, 0
-        mov rdx, DSDT_checksum_error_string
+        mov  rdi, 0
+        mov  rsi, 0
+        mov  rdx, DSDT_checksum_error_string
         call rsdp_draw_text_and_shadow
     .error_dsdt_invalid_loop:
         jmp .error_dsdt_invalid_loop
