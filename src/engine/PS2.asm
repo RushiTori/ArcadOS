@@ -1,6 +1,6 @@
 %include "engine/PS2.inc"
 %include "engine/PS2keyboard.inc"
-%include "engine/display.inc"
+%include "engine/font.inc"
 %include "engine/timer.inc"
 
 section .data
@@ -39,18 +39,18 @@ warning_no_PS2_devices:
 section .bss
 
 PS2_port_2:
-	resb 1   ;true
+	resb 1 ;true
 
 PS2_port_1_state:
-	resb 1   ;success
+	resb 1 ;success
 PS2_port_2_state:
-	resb 1   ;successs
+	resb 1 ;successs
 
 PS2_device_array:
 PS2_port_1_device:
-	resw 1   ;MF2 keyboard
+	resw 1 ;MF2 keyboard
 PS2_port_2_device:
-	resw 1   ;mouse
+	resw 1 ;mouse
 
 PS2_timeout_timer:
 	resq 1
@@ -58,18 +58,18 @@ PS2_timeout_timer:
 section .text
 
 PS2_init:
-global PS2_init:function
+global  PS2_init:function
 	;skipping step 1 and step 2, too lazy to rewrite ACPI stuff
 
 	;step 3
     ;disable devices
 
     ;call PS2_wait_for_sending
-    mov al, PS2_COMMAND_DISABLE_PORT1
+    mov al,          PS2_COMMAND_DISABLE_PORT1
     out PS2_COMMAND, al
 
     ;call PS2_wait_for_sending
-    mov al, PS2_COMMAND_DISABLE_PORT2
+    mov al,          PS2_COMMAND_DISABLE_PORT2
     out PS2_COMMAND, al
 
     ;call PS2_wait_for_sending
@@ -77,44 +77,44 @@ global PS2_init:function
     call PS2_flush
 
 	;step 5
-    mov al, PS2_COMMAND_READ_CONFIG_BYTE
-	out PS2_COMMAND, al 
+    mov al,          PS2_COMMAND_READ_CONFIG_BYTE
+	out PS2_COMMAND, al
     ;call PS2_wait_for_sending
 
 	call PS2_wait_for_response
-    in al, PS2_DATA     
+    in   al, PS2_DATA
 
 	and al, ~(PS2_CONFIGURATION_PORT1_INTERRUPT | PS2_CONFIGURATION_PORT1_CLOCK | PS2_CONFIGURATION_PORT1_TRANSLATE)
 	mov ah, al
 
-	mov al, PS2_COMMAND_WRITE_CONFIG_BYTE
+	mov al,          PS2_COMMAND_WRITE_CONFIG_BYTE
 	out PS2_COMMAND, al
 	;call PS2_wait_for_sending
 
-	mov al, ah
-	out PS2_DATA, al
+	mov  al,       ah
+	out  PS2_DATA, al
 	call PS2_wait_for_sending ;send back new flags
 
 	;now do step 6
-	mov al, PS2_COMMAND_TEST_CONTROLLER
+	mov al,          PS2_COMMAND_TEST_CONTROLLER
 	out PS2_COMMAND, al
 
 	call PS2_wait_for_response
-	in al, PS2_DATA
-	cmp al, PS2_CONTROLLER_TEST_SUCCESSFUL
-	jne .error_controller_test
+	in   al, PS2_DATA
+	cmp  al, PS2_CONTROLLER_TEST_SUCCESSFUL
+	jne  .error_controller_test
 
 	;step 7
-	mov al, PS2_COMMAND_ENABLE_PORT2
+	mov al,          PS2_COMMAND_ENABLE_PORT2
 	out PS2_COMMAND, al
 
-	mov al, PS2_COMMAND_READ_CONFIG_BYTE
+	mov al,          PS2_COMMAND_READ_CONFIG_BYTE
 	out PS2_COMMAND, al
 
 	call PS2_wait_for_response
-	in al, PS2_DATA
-	and al, PS2_CONFIGURATION_PORT2_CLOCK
-	jz .dual_port
+	in   al, PS2_DATA
+	and  al, PS2_CONFIGURATION_PORT2_CLOCK
+	jz   .dual_port
 		mov byte [PS2_port_2], false
 		jmp .end_port_check
 	.dual_port:
@@ -122,113 +122,113 @@ global PS2_init:function
 	.end_port_check:
 
 	;step 8
-	mov al, PS2_COMMAND_TEST_PORT1
-	out PS2_COMMAND, al
+	mov  al,                      PS2_COMMAND_TEST_PORT1
+	out  PS2_COMMAND,             al
 	call PS2_wait_for_response
-	in al, PS2_DATA
-	mov byte [PS2_port_1_state], al
-	cmp al, PORT_STATE_SUCCESS
-	jne .error_port1_failed
-	cmp byte [PS2_port_2], true
-	jne .skip_port2_test
+	in   al,                      PS2_DATA
+	mov  byte [PS2_port_1_state], al
+	cmp  al,                      PORT_STATE_SUCCESS
+	jne  .error_port1_failed
+	cmp  byte [PS2_port_2],       true
+	jne  .skip_port2_test
 
-		mov al, PS2_COMMAND_TEST_PORT2
-		out PS2_COMMAND, al
+		mov  al,                      PS2_COMMAND_TEST_PORT2
+		out  PS2_COMMAND,             al
 		call PS2_wait_for_response
-		in al, PS2_DATA
-		mov byte [PS2_port_2_state], al
-		cmp al, PORT_STATE_SUCCESS
-		jne .error_port2_failed
+		in   al,                      PS2_DATA
+		mov  byte [PS2_port_2_state], al
+		cmp  al,                      PORT_STATE_SUCCESS
+		jne  .error_port2_failed
 	.skip_port2_test:
 
 	;step 9
-	mov al, PS2_COMMAND_ENABLE_PORT1
+	mov al,          PS2_COMMAND_ENABLE_PORT1
 	out PS2_COMMAND, al
 
-	mov al, PS2_COMMAND_READ_CONFIG_BYTE
+	mov al,          PS2_COMMAND_READ_CONFIG_BYTE
 	out PS2_COMMAND, al
 
 	call PS2_wait_for_response
-	in al, PS2_DATA
-	or al, PS2_CONFIGURATION_PORT1_INTERRUPT
-	mov ah, al
+	in   al, PS2_DATA
+	or   al, PS2_CONFIGURATION_PORT1_INTERRUPT
+	mov  ah, al
 
 	cmp byte [PS2_port_2], true
 	jne .skip_port2_enable
-		mov al, PS2_COMMAND_ENABLE_PORT2
+		mov al,          PS2_COMMAND_ENABLE_PORT2
 		out PS2_COMMAND, al
 
 		or ah, PS2_CONFIGURATION_PORT2_INTERRUPT
 	.skip_port2_enable:
-	mov al, PS2_COMMAND_WRITE_CONFIG_BYTE
+	mov al,          PS2_COMMAND_WRITE_CONFIG_BYTE
 	out PS2_COMMAND, al
 
-	mov al, ah
-	out PS2_DATA, al
+	mov  al,       ah
+	out  PS2_DATA, al
 	call PS2_wait_for_sending
 
 	;step 10
-	mov al, PS2_DEVICE_COMMAND_RESET
-	out PS2_DATA, al 
+	mov  al,       PS2_DEVICE_COMMAND_RESET
+	out  PS2_DATA, al
 	call PS2_wait_for_sending
 
 	call PS2_wait_for_response
-	cmp rax, -1
-	je .no_ID_port1
-	in al, PS2_DATA
+	cmp  rax, -1
+	je   .no_ID_port1
+	in   al,  PS2_DATA
 
 	cmp al, 0xFA
-	je .check_AA_Port1
+	je  .check_AA_Port1
 
 	cmp al, 0xAA
-	je .check_FA_Port1
+	je  .check_FA_Port1
 
 	cmp al, 0xFC
-	je .error_port1_id
+	je  .error_port1_id
 
 	;port not populated
-	mov ax, 0xFFFF
+	mov ax,                  0xFFFF
 	mov [PS2_port_1_device], ax
 	jmp .end_get_device_ID_port1
 
 	.check_AA_Port1:
 		call PS2_wait_for_response
-		cmp rax, -1
-		je .no_ID_port1
-		in al, PS2_DATA
+		cmp  rax, -1
+		je   .no_ID_port1
+		in   al,  PS2_DATA
 
 		cmp al, 0xAA
 		jne .error_port1_id
 		jmp .get_device_id_port1
 	.check_FA_Port1:
 		call PS2_wait_for_response
-		in al, PS2_DATA
+		in   al, PS2_DATA
 
 		cmp al, 0xFA
 		jne .error_port1_id
 		jmp .get_device_id_port1
 	.get_device_id_port1:
 		call PS2_wait_for_response
-		in al, PS2_DATA
+		in   al, PS2_DATA
 		
-		mov ah, al
-		xor al, al
+		mov  ah,  al
+		xor  al,  al
 		push rax
 		call PS2_wait_for_response
-		cmp rax, -1
-		pop rax
-		je .write_data_port1
+		cmp  rax, -1
+		pop  rax
+		je   .write_data_port1
 
 		in al, PS2_DATA
 	.write_data_port1:
 		mov [PS2_port_1_device], ax
 		jmp .end_get_device_ID_port1
 	.nothing_port1:
-		mov ax, 0xFFFF
+		mov ax,                  0xFFFF
 		mov [PS2_port_1_device], ax
 		jmp .end_get_device_ID_port1
 	.no_ID_port1:
-		mov ax, 0xFFFE
+		mov ax,                  0xFFFE
 		mov [PS2_port_1_device], ax
 	.end_get_device_ID_port1:
 
@@ -236,69 +236,69 @@ global PS2_init:function
 	cmp al, true
 	jne .end_get_device_ID_port2
 
-	mov al, PS2_COMMAND_WRITE_BYTE_PORT2
-	out PS2_COMMAND, al
-	mov al, PS2_DEVICE_COMMAND_RESET
-	out PS2_DATA, al
+	mov  al,          PS2_COMMAND_WRITE_BYTE_PORT2
+	out  PS2_COMMAND, al
+	mov  al,          PS2_DEVICE_COMMAND_RESET
+	out  PS2_DATA,    al
 	call PS2_wait_for_sending
 
 	call PS2_wait_for_response
-	cmp rax, -1
-	je .nothing_port2
-	in al, PS2_DATA
+	cmp  rax, -1
+	je   .nothing_port2
+	in   al,  PS2_DATA
 
 	cmp al, 0xFA
-	je .check_AA_port2
+	je  .check_AA_port2
 
 	cmp al, 0xAA
-	je .check_FA_port2
+	je  .check_FA_port2
 
 	cmp al, 0xFC
-	je .error_port2_id
+	je  .error_port2_id
 
 	;port not populated
-	mov ax, 0xFFFF
+	mov ax,                  0xFFFF
 	mov [PS2_port_2_device], ax
 	jmp .end_get_device_ID_port2
 
 	.check_AA_port2:
 		call PS2_wait_for_response
-		cmp rax, -1
-		je .no_ID_port2
-		in al, PS2_DATA
+		cmp  rax, -1
+		je   .no_ID_port2
+		in   al,  PS2_DATA
 
 		cmp al, 0xAA
 		jne .error_port2_id
 		jmp .get_device_ID_port2
 	.check_FA_port2:
 		call PS2_wait_for_response
-		in al, PS2_DATA
+		in   al, PS2_DATA
 
 		cmp al, 0xFA
 		jne .error_port2_id
 		jmp .get_device_ID_port2
 	.get_device_ID_port2:
 		call PS2_wait_for_response
-		in al, PS2_DATA
+		in   al, PS2_DATA
 		
-		mov ah, al
-		xor al, al
+		mov  ah,  al
+		xor  al,  al
 		push rax
 		call PS2_wait_for_response
-		cmp rax, -1
-		pop rax
-		je .write_data_port2
+		cmp  rax, -1
+		pop  rax
+		je   .write_data_port2
 
 		in al, PS2_DATA
 	.write_data_port2:
 		mov [PS2_port_2_device], ax
 		jmp .end_get_device_ID_port2
 	.nothing_port2:
-		mov ax, 0xFFFF
+		mov ax,                  0xFFFF
 		mov [PS2_port_2_device], ax
 		jmp .end_get_device_ID_port2
 	.no_ID_port2:
-		mov ax, 0xFFFE
+		mov ax,                  0xFFFE
 		mov [PS2_port_2_device], ax
 	.end_get_device_ID_port2:
 	call PS2_get_devices_ID
@@ -320,80 +320,80 @@ global PS2_init:function
 	mov ax, word [PS2_port_1_device]
 		;mices
 	cmp ax, 0x0000
-	je .mouse_init1
+	je  .mouse_init1
 	cmp ax, 0x0300
-	je .mouse_init1
+	je  .mouse_init1
 	cmp ax, 0x0400
-	je .mouse_init1
+	je  .mouse_init1
 
 	;keyboards
 	cmp ax, 0xFFFE
-	je .KB_init1
+	je  .KB_init1
 	cmp ax, 0xAB83
-	je .KB_init1
+	je  .KB_init1
 	cmp ax, 0xABC1
-	je .KB_init1
+	je  .KB_init1
 	cmp ax, 0xAB84
-	je .KB_init1
+	je  .KB_init1
 	cmp ax, 0xAB85
-	je .KB_init1
+	je  .KB_init1
 	cmp ax, 0xAB86
-	je .KB_init1
+	je  .KB_init1
 	cmp ax, 0xAB90
-	je .KB_init1
+	je  .KB_init1
 	cmp ax, 0xAB91
-	je .KB_init1
+	je  .KB_init1
 	cmp ax, 0xAB92
-	je .KB_init1
+	je  .KB_init1
 	cmp ax, 0xACA1
-	je .KB_init1
+	je  .KB_init1
 	jmp .end_init_port1 ;unsupported device
 
 .mouse_init1:
 	jmp .end_init_port1 ;not supported yet, no driver
 
 .KB_init1:
-	mov rdi, 0
+	mov  rdi, 0
 	call PS2KB_init
 
 .end_init_port1
 	mov ax, word [PS2_port_2_device]
 		;mices
 	cmp ax, 0x0000
-	je .mouse_init2
+	je  .mouse_init2
 	cmp ax, 0x0300
-	je .mouse_init2
+	je  .mouse_init2
 	cmp ax, 0x0400
-	je .mouse_init2
+	je  .mouse_init2
 
 	;keyboards
 	cmp ax, 0xFFFE
-	je .KB_init2
+	je  .KB_init2
 	cmp ax, 0xAB83
-	je .KB_init2
+	je  .KB_init2
 	cmp ax, 0xABC1
-	je .KB_init2
+	je  .KB_init2
 	cmp ax, 0xAB84
-	je .KB_init2
+	je  .KB_init2
 	cmp ax, 0xAB85
-	je .KB_init2
+	je  .KB_init2
 	cmp ax, 0xAB86
-	je .KB_init2
+	je  .KB_init2
 	cmp ax, 0xAB90
-	je .KB_init2
+	je  .KB_init2
 	cmp ax, 0xAB91
-	je .KB_init2
+	je  .KB_init2
 	cmp ax, 0xAB92
-	je .KB_init2
+	je  .KB_init2
 	cmp ax, 0xACA1
-	je .KB_init2
+	je  .KB_init2
 	jmp .end_init_port2 ;unsupported device
 
 .mouse_init2:
 	jmp .end_init_port2 ;not supported yet, no driver
 
 .KB_init2:
-	mov rdi, 1
+	mov  rdi, 1
 	call PS2KB_init
 .end_init_port2:
 	;todo: call the init driver functions for each port
@@ -401,141 +401,141 @@ global PS2_init:function
 
 	ret
 .error_controller_test:
-	mov rdi, 0x1
-	call set_color
+	mov  dil, 0x01      ; some kind of blue
+	call clear_screen_c ; clear_screen_c(blue_01);
 
-	call clear_screen
+	mov rdi, error_init_controller_error
+	xor si,  si
+	xor dx,  dx
 
-	mov rdi, 0
-	mov rsi, 0
-	mov rdx, error_init_controller_error
-	call draw_text
-	jmp $
+	call draw_text ; draw_text(error_init_controller_error, 0, 0);
+
+	jmp $ ; halt due to error
 
 .error_port1_failed:
-	mov rdi, 0x1
-	call set_color
+	mov  dil, 0x01      ; some kind of blue
+	call clear_screen_c ; clear_screen_c(blue_01);
 
-	call clear_screen
+	mov rdi, error_port1_check
+	xor si,  si
+	xor dx,  dx
 
-	mov rdi, 0
-	mov rsi, 0
-	mov rdx, error_port1_check
-	call draw_text
-	jmp $
+	call draw_text ; draw_text(error_port1_check, 0, 0);
+
+	jmp $ ; halt due to error
 
 .error_port2_failed:
-	mov rdi, 0x1
-	call set_color
+	mov  dil, 0x01      ; some kind of blue
+	call clear_screen_c ; clear_screen_c(blue_01);
 
-	call clear_screen
+	mov rdi, error_port2_check
+	xor si,  si
+	xor dx,  dx
 
-	mov rdi, 0
-	mov rsi, 0
-	mov rdx, error_port2_check
-	call draw_text
-	jmp $
+	call draw_text ; draw_text(error_port2_check, 0, 0);
+
+	jmp $ ; halt due to error
 
 .error_port1_id:
-	mov rdi, 0x1
-	call set_color
+	mov  dil, 0x01      ; some kind of blue
+	call clear_screen_c ; clear_screen_c(blue_01);
 
-	call clear_screen
+	mov rdi, error_port1_id_reception
+	xor si,  si
+	xor dx,  dx
 
-	mov rdi, 0
-	mov rsi, 0
-	mov rdx, error_port1_id_reception
-	call draw_text
-	jmp $
+	call draw_text ; draw_text(error_port1_id_reception, 0, 0);
+
+	jmp $ ; halt due to error
 
 .error_port2_id:
-	mov rdi, 0x1
-	call set_color
+	mov  dil, 0x01      ; some kind of blue
+	call clear_screen_c ; clear_screen_c(blue_01);
 
-	call clear_screen
+	mov rdi, error_port2_id_reception
+	xor si,  si
+	xor dx,  dx
 
-	mov rdi, 0
-	mov rsi, 0
-	mov rdx, error_port2_id_reception
-	call draw_text
-	jmp $
+	call draw_text ; draw_text(error_port2_id_reception, 0, 0);
+
+	jmp $ ; halt due to error
 
 PS2_get_devices_ID:	
-	mov dil, PS2_DEVICE_COMMAND_DISABLE_SCAN
+	mov  dil, PS2_DEVICE_COMMAND_DISABLE_SCAN
 	call PS2_send_command_to_port1
-	cmp rax, -1
-	je .port1_not_populated
+	cmp  rax, -1
+	je   .port1_not_populated
 
-	mov dil, PS2_DEVICE_COMMAND_IDENTIFY
+	mov  dil, PS2_DEVICE_COMMAND_IDENTIFY
 	call PS2_send_command_to_port1
-	cmp rax, -1
-	je .error_port_prolly_not_populated_port1
+	cmp  rax, -1
+	je   .error_port_prolly_not_populated_port1
 
 	call PS2_wait_for_response
-	cmp rax, -1
-	je .no_code_port1
+	cmp  rax, -1
+	je   .no_code_port1
 
-	in al, PS2_DATA
-	xor ah, ah
+	in   al,  PS2_DATA
+	xor  ah,  ah
 	push rax
 	call PS2_wait_for_response
-	cmp rax, -1
-	pop rax
-	je .end_code_port1
-	mov ah, al
-	in al, PS2_DATA
-	jmp .end_code_port1
+	cmp  rax, -1
+	pop  rax
+	je   .end_code_port1
+	mov  ah,  al
+	in   al,  PS2_DATA
+	jmp  .end_code_port1
 .no_code_port1:
 	mov ax, 0xFFFE
 	jmp .end_code_port1
 .port1_not_populated:
-	mov ax, 0xFFFF
+	mov ax,                       0xFFFF
 	mov word [PS2_port_1_device], ax
 	jmp .try_port2
 .end_code_port1:
 	mov word [PS2_port_1_device], ax
 
-	mov dil, PS2_DEVICE_COMMAND_ENABLE_SCAN
+	mov  dil, PS2_DEVICE_COMMAND_ENABLE_SCAN
 	call PS2_send_command_to_port1
 
 	;todo: check if port2 exists, if not, skip the code below with a good old 0xFFFF for device 2
 
 .try_port2:
-	mov dil, PS2_DEVICE_COMMAND_DISABLE_SCAN
+	mov  dil, PS2_DEVICE_COMMAND_DISABLE_SCAN
 	call PS2_send_command_to_port2
-	cmp rax, -1
-	je .port2NotPopulated
+	cmp  rax, -1
+	je   .port2NotPopulated
 
-	mov dil, PS2_DEVICE_COMMAND_IDENTIFY
+	mov  dil, PS2_DEVICE_COMMAND_IDENTIFY
 	call PS2_send_command_to_port2
-	cmp rax, -1
-	je .error_port_prolly_not_populated_port2
+	cmp  rax, -1
+	je   .error_port_prolly_not_populated_port2
 
 	call PS2_wait_for_response
-	cmp rax, -1
-	je .nocodePort2
+	cmp  rax, -1
+	je   .nocodePort2
 
-	in al, PS2_DATA
-	xor ah, ah
+	in   al,  PS2_DATA
+	xor  ah,  ah
 	push rax
 	call PS2_wait_for_response
-	cmp rax, -1
-	pop rax
-	je .endcodePort2
-	mov ah, al
-	in al, PS2_DATA
-	jmp .endcodePort2
+	cmp  rax, -1
+	pop  rax
+	je   .endcodePort2
+	mov  ah,  al
+	in   al,  PS2_DATA
+	jmp  .endcodePort2
 .nocodePort2:
 	mov ax, 0xFFFE
 	jmp .endcodePort2
 .port2NotPopulated:
-	mov ax, 0xFFFF
+	mov ax,                       0xFFFF
 	mov word [PS2_port_2_device], ax
 	jmp .end
 .endcodePort2:
 	mov word [PS2_port_2_device], ax
 
-	mov dil, PS2_DEVICE_COMMAND_ENABLE_SCAN
+	mov  dil, PS2_DEVICE_COMMAND_ENABLE_SCAN
 	call PS2_send_command_to_port2
 .end:
 
@@ -548,108 +548,108 @@ PS2_get_devices_ID:
 	cmp ax, 0xFFFF
 	jne .end_check
 
-	mov rdi, 0x1
-	call set_color
+mov  dil, 0x01      ; some kind of blue
+call clear_screen_c ; clear_screen_c(blue_01);
 
-	call clear_screen
+	mov rdi, warning_no_PS2_devices
+	xor si,  si
+	xor dx,  dx
 
-	mov rdi, 0
-	mov rsi, 0
-	mov rdx, warning_no_PS2_devices
-	call draw_text
-	jmp $
+	call draw_text ; draw_text(warning_no_PS2_devices, 0, 0);
+
+	jmp $ ; halt due to error
 .end_check:
 
 	ret
 
 .error_disable_scan_port1:
-	mov rdi, 0x1
-	call set_color
+	mov  dil, 0x01      ; some kind of blue
+	call clear_screen_c ; clear_screen_c(blue_01);
 
-	call clear_screen
+	mov rdi, error_disable_scan_port1
+	xor si,  si
+	xor dx,  dx
 
-	mov rdi, 0
-	mov rsi, 0
-	mov rdx, error_disable_scan_port1
-	call draw_text
-	jmp $
+	call draw_text ; draw_text(error_disable_scan_port1, 0, 0);
+
+	jmp $ ; halt due to error
 .error_disable_scan_port2:
-	mov rdi, 0x1
-	call set_color
+	mov  dil, 0x01      ; some kind of blue
+	call clear_screen_c ; clear_screen_c(blue_01);
 
-	call clear_screen
+	mov rdi, error_disable_scan_port2
+	xor si,  si
+	xor dx,  dx
 
-	mov rdi, 0
-	mov rsi, 0
-	mov rdx, error_disable_scan_port2
-	call draw_text
-	jmp $
+	call draw_text ; draw_text(error_disable_scan_port2, 0, 0);
+
+	jmp $ ; halt due to error
 .error_enable_scan_port1:
-	mov rdi, 0x1
-	call set_color
+	mov  dil, 0x01      ; some kind of blue
+	call clear_screen_c ; clear_screen_c(blue_01);
 
-	call clear_screen
+	mov rdi, error_enable_scan_port1
+	xor si,  si
+	xor dx,  dx
 
-	mov rdi, 0
-	mov rsi, 0
-	mov rdx, error_enable_scan_port1
-	call draw_text
-	jmp $
+	call draw_text ; draw_text(error_enable_scan_port1, 0, 0);
+
+	jmp $ ; halt due to error
 .error_enable_scan_port2:
-	mov rdi, 0x1
-	call set_color
+	mov  dil, 0x01      ; some kind of blue
+	call clear_screen_c ; clear_screen_c(blue_01);
 
-	call clear_screen
+	mov rdi, error_enable_scan_port2
+	xor si,  si
+	xor dx,  dx
 
-	mov rdi, 0
-	mov rsi, 0
-	mov rdx, error_enable_scan_port2
-	call draw_text
-	jmp $
+	call draw_text ; draw_text(error_enable_scan_port2, 0, 0);
+
+	jmp $ ; halt due to error
 .error_port_prolly_not_populated_port1:
-	mov rdi, 0x1
-	call set_color
+	mov  dil, 0x01      ; some kind of blue
+	call clear_screen_c ; clear_screen_c(blue_01);
 
-	call clear_screen
+	mov rdi, error_port_not_populated_maybe_port1
+	xor si,  si
+	xor dx,  dx
 
-	mov rdi, 0
-	mov rsi, 0
-	mov rdx, error_port_not_populated_maybe_port1
-	call draw_text
-	jmp $
+	call draw_text ; draw_text(error_port_not_populated_maybe_port1, 0, 0);
+
+	jmp $ ; halt due to error
 .error_port_prolly_not_populated_port2:
-	mov rdi, 0x1
-	call set_color
+	mov  dil, 0x01      ; some kind of blue
+	call clear_screen_c ; clear_screen_c(blue_01);
 
-	call clear_screen
+	mov rdi, error_port_not_populated_maybe_port1
+	xor si,  si
+	xor dx,  dx
 
-	mov rdi, 0
-	mov rsi, 0
-	mov rdx, error_port_not_populated_maybe_port1
-	call draw_text
-	jmp $
+	call draw_text ; draw_text(error_port_not_populated_maybe_port1, 0, 0);
+
+	jmp $ ; halt due to error
 
 PS2_send_command_to_port1:
 	xor rcx, rcx
 .resend:
-	mov al, dil
-	out PS2_DATA, al
+	mov  al,       dil
+	out  PS2_DATA, al
 	call PS2_wait_for_sending
 	call PS2_wait_for_response
-	cmp rax, -1
-	je .timeout
+	cmp  rax,      -1
+	je   .timeout
 
-	in al, PS2_DATA
-	cmp al, RESPONSE_RESEND
-	je .resend_handler
-	cmp al, RESPONSE_ACK
+	in  al,  PS2_DATA
+	cmp al,  RESPONSE_RESEND
+	je  .resend_handler
+	cmp al,  RESPONSE_ACK
 	mov rax, 0
-	je .end
+	je  .end
 	jmp .error
 .resend_handler:
 	inc rcx
 	cmp rcx, 3
-	jl .resend
+	jl  .resend
 	jmp .error
 
 .timeout:
@@ -662,26 +662,26 @@ PS2_send_command_to_port1:
 PS2_send_command_to_port2:
 	xor rcx, rcx
 .resend:
-	mov al, PS2_COMMAND_WRITE_BYTE_PORT2
-	out PS2_COMMAND, al
-	mov al, dil
-	out PS2_DATA, al
+	mov  al,          PS2_COMMAND_WRITE_BYTE_PORT2
+	out  PS2_COMMAND, al
+	mov  al,          dil
+	out  PS2_DATA,    al
 	call PS2_wait_for_sending
 	call PS2_wait_for_response
-	cmp rax, -1
-	je .timeout
+	cmp  rax,         -1
+	je   .timeout
 
-	in al, PS2_DATA
-	cmp al, RESPONSE_RESEND
-	je .resend_handler
-	cmp al, RESPONSE_ACK
+	in  al,  PS2_DATA
+	cmp al,  RESPONSE_RESEND
+	je  .resend_handler
+	cmp al,  RESPONSE_ACK
 	mov rax, 0
-	je .end
+	je  .end
 	jmp .error
 .resend_handler:
 	inc rcx
 	cmp rcx, 3
-	jl .resend
+	jl  .resend
 	jmp .error
 	
 .timeout:
@@ -694,19 +694,19 @@ PS2_send_command_to_port2:
 PS2_wait_for_response:
 static PS2_wait_for_response:function
 	call create_timer
-	cmp rax, -1
-	je .error
-	mov qword [PS2_timeout_timer], rax
+	cmp  rax,                       -1
+	je   .error
+	mov  qword [PS2_timeout_timer], rax
 .loop:
-	mov rdi, qword [PS2_timeout_timer]
+	mov  rdi, qword [PS2_timeout_timer]
 	call get_timer_ms
-	shr rax, 32
-	cmp rax, 5
-	jge .timeout
+	shr  rax, 32
+	cmp  rax, 5
+	jge  .timeout
 
-	in al, PS2_STATUS
+	in  al, PS2_STATUS
 	and al, PS2_STATUS_INPUT_BUFFER_FULL
-	jz .loop
+	jz  .loop
 
 	mov rax, 0
 	jmp .end
@@ -715,9 +715,9 @@ static PS2_wait_for_response:function
 	mov rax, -1
 .end:
 	push rax
-	mov rdi, qword [PS2_timeout_timer]
+	mov  rdi, qword [PS2_timeout_timer]
 	call remove_timer
-	pop rax
+	pop  rax
 	ret
 .error:
 	jmp $ ;timer creation failed
@@ -725,25 +725,25 @@ static PS2_wait_for_response:function
 PS2_wait_for_sending:
 static PS2_wait_for_sending:function
 	call create_timer
-	cmp rax, -1
-	je .error
-	mov qword [PS2_timeout_timer], rax
+	cmp  rax,                       -1
+	je   .error
+	mov  qword [PS2_timeout_timer], rax
 .loop:
-	mov rdi, qword [PS2_timeout_timer]
+	mov  rdi, qword [PS2_timeout_timer]
 	call get_timer_ms
-	shr rax, 32
-	cmp rax, 5
-	jge .timeout
+	shr  rax, 32
+	cmp  rax, 5
+	jge  .timeout
 
-	in al, PS2_STATUS
-	and al, PS2_STATUS_OUTPUT_BUFFER_FULL
+	in  al,  PS2_STATUS
+	and al,  PS2_STATUS_OUTPUT_BUFFER_FULL
 	jnz .loop
 	mov rax, 0
 	jmp .end
 .timeout:
-	mov rdi, qword [PS2_timeout_timer]
+	mov  rdi, qword [PS2_timeout_timer]
 	call remove_timer
-	mov rax, -1
+	mov  rax, -1
 .end:
 	ret
 .error:
@@ -751,10 +751,10 @@ static PS2_wait_for_sending:function
 
 PS2_flush:
 static PS2_flush:function
-	in al, PS2_STATUS
+	in  al, PS2_STATUS
 	and al, PS2_STATUS_INPUT_BUFFER_FULL
-	je .end
-	in al, PS2_DATA
+	je  .end
+	in  al, PS2_DATA
 	jmp PS2_flush
 	.end:
 	ret
@@ -764,37 +764,37 @@ static PS2_flush:function
 PS2_IRQ_update:
 	mov ax, [PS2_device_array + rdi * 2]
 	cmp ax, 0xFFFF
-	je .end
+	je  .end
 
 	;mices
 	cmp ax, 0x0000
-	je .mouse_support
+	je  .mouse_support
 	cmp ax, 0x0300
-	je .mouse_support
+	je  .mouse_support
 	cmp ax, 0x0400
-	je .mouse_support
+	je  .mouse_support
 
 	;keyboards
 	cmp ax, 0xFFFE
-	je .KB_support
+	je  .KB_support
 	cmp ax, 0xAB83
-	je .KB_support
+	je  .KB_support
 	cmp ax, 0xABC1
-	je .KB_support
+	je  .KB_support
 	cmp ax, 0xAB84
-	je .KB_support
+	je  .KB_support
 	cmp ax, 0xAB85
-	je .KB_support
+	je  .KB_support
 	cmp ax, 0xAB86
-	je .KB_support
+	je  .KB_support
 	cmp ax, 0xAB90
-	je .KB_support
+	je  .KB_support
 	cmp ax, 0xAB91
-	je .KB_support
+	je  .KB_support
 	cmp ax, 0xAB92
-	je .KB_support
+	je  .KB_support
 	cmp ax, 0xACA1
-	je .KB_support
+	je  .KB_support
 
 	;unknown device
 	jmp .end
