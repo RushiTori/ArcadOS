@@ -53,19 +53,19 @@ func(global, put_pixel_c)
 	cmp rsi, DISPLAY_HEIGHT
 	jae .end                ; if (y >= DISPLAY_HEIGHT) return;
 
-	mov rax, DISPLAY_WIDTH
-	mul rsi                ; rax = y * DISPLAY_WIDTH
-	add rdi, rax           ; rdi = y * DISPLAY_WIDTH + x
+	push rdx                ; preserve col
+	mov  rax, DISPLAY_WIDTH
+	mul  rsi                ; rax = y * DISPLAY_WIDTH
+	add  rdi, rax           ; rdi = y * DISPLAY_WIDTH + x
 
 	push rdi    ; preserve display_buffer_offset
-	push rdx    ; preserve col
 	sub  rsp, 8 ; to re-align the stack
 
 	call get_display_buffer
 	
 	add rsp, 8 ; to re-align the stack
-	pop rsi    ; restore col
 	pop rdi    ; restore display_buffer_offset
+	pop rsi    ; restore col
 
 	add rdi, rax ; rdi = display_buffer + y * DISPLAY_WIDTH + x
 	
