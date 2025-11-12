@@ -34,7 +34,7 @@ func(static, main_display)
 	sub rsp, 8 ; to re-align the stack
 
 	mov  dil, 0x02
-	call clear_screen ; green screen
+	call clear_screen_c ; green screen
 
 	call display_kb_buffer ; display_kb_buffer();
 
@@ -52,12 +52,12 @@ func(global, main)
 		mov cr4, rax
 
 	; Activating timer
-		mov  rdi, 0
-		call maskin_irq_pic64
+		;mov  rdi, 0
+		;call maskin_irq_pic64
 
 	; Setting up the display buffer
-		mov  rdi, VGA_MEMORY_ADDR
-		call set_display_buffer   ; set_display_buffer(VGA_MEMORY_ADDR);
+		mov rbx, 0
+		div rbx
 
 	.main_loop:
 		call main_update
