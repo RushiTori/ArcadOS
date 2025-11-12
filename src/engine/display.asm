@@ -41,6 +41,7 @@ func(global, put_pixel)
 	add rsp, 8      ; to re-align the stack
 	pop rsi         ; restore y
 	pop rdi         ; restore x
+	mov rdx, rax	; put the display color into the col argument
 	jmp put_pixel_c
 
 ; void put_pixel_c(uint16_t x, uint16_t y, uint8_t col);
