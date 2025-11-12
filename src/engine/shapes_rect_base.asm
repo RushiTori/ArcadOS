@@ -44,8 +44,18 @@ func(global, rect_fill_algo_base)
 
 	mov r12w, di  ; r12w = lX
 	mov r13w, si  ; r13w = tY
-	mov r14w, dx  ; r14w = rX
-	mov r15w, cx  ; r15w = bY
+				  ; (r12w, r13w) = top left corner
+
+	mov r14w, dx  ; r14w = w
+	add r14w, di  ; r14w += x
+	sub r14w, di  ; r14w -= 1
+				  ; r14w = x + w - 1 = rX
+	mov r15w, cx  ; r15w = h
+	add r15w, si  ; r15w += y
+	sub r15w, 1   ; r15w -= 1
+				  ; r15w = y + h - 1 = bY
+				  ; (r14w, r15w) = bottom right corner
+				  
 	mov rbx,  r8  ; rbx = call
 	mov bpl,  r9b ; bpl = isCond
 
@@ -58,9 +68,9 @@ func(global, rect_fill_algo_base)
 		mov  r9b,  bpl      ; isCond
 		call line_algo_base ; line_algo_base(lX, tY, rX, tY, call, isCond);
 		check_for_fail_pos
-		inc  r13w
-		cmp  r13w, r15w
-		jle  .scan_loop
+		inc  r13w ;tY++
+		cmp  r13w, r15w 
+		jle  .scan_loop ;while(tY <= bY)
 	
 	.restore_end:
 		add rsp, 8 ; to re-align the stack
