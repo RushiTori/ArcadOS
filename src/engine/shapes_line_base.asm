@@ -34,13 +34,16 @@ func(global, line_algo_base)
 
 	mov r14w, di    ; r14w = aX
 	sub r14w, dx    ; r14w = aX - bX
-	jg  .skip_abs_x
+	;jg  .skip_abs_x
+	jns .skip_abs_x ;you wanna jump if not negative, not if you have a carry, a carry can still lead to a positive number when you got an overflow or something like that
+				   ;jns checks for not(sign flag), which is modified by sub
 		neg r14w ; if (r14w < 0) r14w = -r14w
 	.skip_abs_x: ; r14w = distX
 
 	mov r15w, si    ; r15w = aY
 	sub r15w, cx    ; r15w = aY - bY
-	jg  .skip_abs_y
+	;jg  .skip_abs_y
+	jns .skip_abs_y 
 		neg r15w ; if (r15w < 0) r15w = -r15w
 	.skip_abs_y: ; r15w = distY
 
@@ -48,8 +51,8 @@ func(global, line_algo_base)
 	mov bp, 1 ; bp = dirX or dirY
 
 	cmp r14w, r15w
-	jle line_algo_base_horizontal
-	jmp line_algo_base_vertical
+	jle line_algo_base_vertical ;they were swapped
+	jmp line_algo_base_horizontal
 
 func(static, line_algo_base_end)
 	.with_fail:
