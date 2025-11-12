@@ -85,6 +85,9 @@ global  make_idt_64: function
 
 	call memory_mover_start ;we need to set up memory mover before initializing other stuff
 
+	mov  rdi, VGA_MEMORY_ADDR
+	call set_display_buffer   ; set_display_buffer(VGA_MEMORY_ADDR);
+
 	call init_PIT
 	call PS2_init        ;automatically initializes the drivers for the devices plugged in
 	mov  rdi, 0b11111001 ;enable slave and enable IRQ1
@@ -401,9 +404,7 @@ static idt64_regdump_gfx_mode:function
 	push rsi
 
 	mov  rdi, 0x01
-	call set_display_color
-
-	call clear_screen
+	call clear_screen_c
 
 	mov  rdi, 0x0F
 	call set_display_color
