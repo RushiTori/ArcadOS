@@ -1,6 +1,7 @@
 %ifndef MAIN_INC
 %define MAIN_INC
 
+%include "engine/display.inc"
 %include "engine/font.inc"
 %include "engine/PS2keyboard.inc"
 %include "engine/timer.inc"
