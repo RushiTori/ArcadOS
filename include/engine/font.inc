@@ -27,6 +27,7 @@
 %define FONT_WIDTH              16
 %define FONT_HEIGHT             16
 
+%define GLYPH_SIZE              SCREEN_TILE_SIZE
 %define FONT_TILE_WIDTH         SCREEN_TILE_WIDTH
 %define FONT_TILE_HEIGHT        SCREEN_TILE_HEIGHT
 

@@ -1,4 +1,5 @@
 bits        64
+default     rel
 
 %include "engine/shapes_algo_base.inc"
 
@@ -45,9 +46,9 @@ func(global, triangle_fill_algo_base)
 	mov r13d,                 esi                 ; r13d = b
 	mov r14d,                 edx                 ; r14d = c
 	lea r15,                  [triangle_fill_fan] ; r15 = triangle_fill_fan
-	mov bl,                   r9b                 ; bl = isCond
+	mov bl,                   r8b                 ; bl = isCond
 	mov pointer_p [sub_call], rcx                 ; preserve call
-	mov bool_p [is_cond],     r9b                 ; preserve isCond
+	mov bool_p [is_cond],     r8b                 ; preserve isCond
 
 	; mov  edi,                   r12d ; edi = a
 	; mov  esi,                   r13d ; esi = b
@@ -91,28 +92,28 @@ func(global, triangle_line_algo_base)
 	push r15 ; preserve r15
 	push rbx ; preserve rbx
 
-	mov r12w, di  ; r12w = a
-	mov r13w, si  ; r13w = b
-	mov r14w, dx  ; r14w = c
+	mov r12d, edi ; r12d = a
+	mov r13d, esi ; r13d = b
+	mov r14d, edx ; r14d = c
 	mov r15,  rcx ; r15 = call
-	mov bl,   r9b ; bl = isCond
+	mov bl,   r8b ; bl = isCond
 
-	; mov  di,  r12w          ; di = a
-	; mov  si,  r13w          ; si = b
+	; mov  edi,  r12d          ; edi = a
+	; mov  esi,  r13d          ; esi = b
 	mov  rdx, r15           ; rdx = call
 	mov  cl,  bl            ; cl = isCond
 	call line_algo_vec_base ; line_algo_vec_base(a, b, call, isCond);
 	check_for_fail_pos
 
-	mov  di,  r13w          ; di = b
-	mov  si,  r14w          ; si = c
+	mov  edi, r13d          ; edi = b
+	mov  esi, r14d          ; esi = c
 	mov  rdx, r15           ; rdx = call
 	mov  cl,  bl            ; cl = isCond
 	call line_algo_vec_base ; line_algo_vec_base(b, c, call, isCond);
 	check_for_fail_pos
 
-	mov  di,  r14w          ; di = c
-	mov  si,  r12w          ; si = a
+	mov  edi, r14d          ; edi = c
+	mov  esi, r12d          ; esi = a
 	mov  rdx, r15           ; rdx = call
 	mov  cl,  bl            ; cl = isCond
 	call line_algo_vec_base ; line_algo_vec_base(c, a, call, isCond);

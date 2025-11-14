@@ -1,4 +1,5 @@
 bits    64
+default rel
 
 %include "engine/font.inc"
 
@@ -168,7 +169,7 @@ func(static, draw_glyph_shadow_base)
 	inc si ; x++
 	inc dx ; y++
 
-	prepare_drawing_glyph_and_jump_to draw_tiled_bitmap_inverse_indexed
+	prepare_drawing_glyph_and_jump_to draw_tiled_bitmap_indexed
 
 ; void draw_glyph_shadow(uint8_t glyph, uint16_t x, uint16_t y);
 func(global, draw_glyph_shadow)

@@ -1,4 +1,5 @@
 bits        64
+default     rel
 
 %include "engine/shapes_algo_base.inc"
 
@@ -11,14 +12,14 @@ res(static, bool_t,    circle_fill_is_cond)
 section     .text
 
 %macro safe_sub_call 1
-	cmp r9b, false
+	cmp r8b, false
 	je  %%simple_call
 
 	push rdi ; preserve x
 	push rsi ; preserve y
-	push r9  ; preserve isCond
+	push r8  ; preserve isCond
 	call %1  ; call(x, y);
-	pop  r9  ; restore isCond
+	pop  r8  ; restore isCond
 	pop  rsi ; restore y
 	pop  rdi ; restore x
 
@@ -42,9 +43,9 @@ section     .text
 
 ; bool circle_fill_algo_base_work(uint16_t x, uint16_t y);
 func(static, circle_fill_algo_base_work)
-	mov pointer_p [circle_fill_sub_call], r8  ; restore call
-	mov uint16_p  [circle_fill_cx],       dx  ; restore x
-	mov bool_p    [circle_fill_is_cond],  r9b ; restore isCond
+	mov r8,  pointer_p [circle_fill_sub_call] ; restore call
+	mov dx,  uint16_p [circle_fill_cx]        ; restore x
+	mov r9b, bool_p [circle_fill_is_cond]     ; restore isCond
 	
 	mov cx, si         ; cx = y
 	jmp line_algo_base
@@ -89,21 +90,22 @@ func(global, circle_line_algo_base)
 	push rbp ; preserve rbp
 
 	;
-	; uint16_t cX = x;
-	; uint16_t cY = y;
-	; uint16_t xOff = 0;
-	; uint16_t yOff = -r;
-	; uint16_t p = -r;
+	; int16_t cX = x;
+	; int16_t cY = y;
+	; int16_t xOff = 0;
+	; int16_t yOff = -r;
+	; int16_t p = -r;
 	;
 
-	neg r8b ; r8b = -r
+	neg   dl     ; dl = -r
+	movsx dx, dl
 
-	mov   r12w, di   ; r12w = cX
-	mov   r13w, si   ; r13w = cY
-	xor   r14w, r14w ; r14w = xOff
-	movzx r15w, r8b  ; r15w = yOff
-	movzx bx,   r8b  ; bx = p
-	mov   rbp,  rcx  ; rbp = call
+	mov r12w, di   ; r12w = cX
+	mov r13w, si   ; r13w = cY
+	xor r14w, r14w ; r14w = xOff
+	mov r15w, dx   ; r15w = yOff
+	mov bx,   dx   ; bx = p
+	mov rbp,  rcx  ; rbp = call
 
 	.algo_loop:
 		mov al, false
@@ -115,19 +117,18 @@ func(global, circle_line_algo_base)
 		
 		neg r15w ; r15w = yOff
 
+		.check_error:
 		cmp bx, 0
 		jle .skip_adjust_y_offset
 			inc r15w ; yOff++;
 
-			shl r15w, 1    ; r15w = yOff * 2
-			add bx,   r15w ; p += 2 * yOff
-			shr r15w, 1    ; r15w = yOff
+			add bx, r15w
+			add bx, r15w ; p += 2 * yOff
 		.skip_adjust_y_offset:
 
-		shl r14w, 1    ; r14w = xOff * 2
-		add bx,   r14w ; p += 2 * xOff
-		shr r14w, 1    ; r14w = xOff
-		inc bx         ; p++;
+		add bx, r14w
+		add bx, r14w ; p += 2 * xOff
+		inc bx       ; p++;
 
 		mov           di, r12w ; di = cX
 		add           di, r14w ; di = cX + xOff
@@ -177,7 +178,8 @@ func(global, circle_line_algo_base)
 		sub           si, r14w ; si = cY - xOff
 		safe_sub_call rbp      ; call(cX - yOff, cY - xOff);
 
-		inc r14w ; xOff++
+		inc r14w       ; xOff++
+		jmp .algo_loop
 	.end_algo_loop:
 
 	.end:
@@ -195,7 +197,6 @@ func(static, plot_circle_as_point)
 	safe_sub_call r8
 	.end:
 	ret
-
 
 ; bool circle_line_algo_base(ScreenVec2 pos, uint8_t r, ShapeAlgoCall call, bool isCond);
 func(global, circle_line_algo_vec_base)

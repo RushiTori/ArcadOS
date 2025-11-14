@@ -1,4 +1,5 @@
 bits    64
+default rel
 
 %include "engine/shapes_algo_base.inc"
 
@@ -17,10 +18,10 @@ func(global, rect_fill_algo_base)
 	mov al, false
 
 	cmp dx, 0
-	je  .end
+	je  .end  ; if (w == 0) return;
 
 	cmp cx, 0
-	je  .end
+	je  .end  ; if (h == 0) return;
 
 	;
 	; uint16_t lX = x;
@@ -42,17 +43,24 @@ func(global, rect_fill_algo_base)
 	push rbp    ; preserve rbp
 	sub  rsp, 8 ; to re-align the stack
 
-	mov r12w, di  ; r12w = lX
-	mov r13w, si  ; r13w = tY
-	mov r14w, dx  ; r14w = rX
-	mov r15w, cx  ; r15w = bY
-	mov rbx,  r8  ; rbx = call
-	mov bpl,  r9b ; bpl = isCond
+	mov r12w, di ; r12w = lX
+	mov r13w, si ; r13w = tY
+
+	mov r14w, di ; r14w = x
+	add r14w, dx ; r14w = x + w
+	dec r14w     ; r14w = x + w - 1
+
+	mov r15w, si ; r15w = y
+	add r15w, cx ; r15w = y + h
+	dec r15w     ; r15w = y + h - 1
+
+	mov rbx, r8  ; rbx = call
+	mov bpl, r9b ; bpl = isCond
 
 	.scan_loop:
 		mov  di,   r12w     ; lX
-		mov  dx,   r14w     ; rX
 		mov  si,   r13w     ; tY
+		mov  dx,   r14w     ; rX
 		mov  cx,   r13w     ; tY
 		mov  r8,   rbx      ; call
 		mov  r9b,  bpl      ; isCond
@@ -60,7 +68,7 @@ func(global, rect_fill_algo_base)
 		check_for_fail_pos
 		inc  r13w
 		cmp  r13w, r15w
-		jle  .scan_loop
+		jle  .scan_loop     ; while (bY <= tY);
 	
 	.restore_end:
 		add rsp, 8 ; to re-align the stack
@@ -141,16 +149,23 @@ func(global, rect_line_algo_base)
 	push rbp    ; preserve rbp
 	sub  rsp, 8 ; to re-align the stack
 
-	mov r12w, di  ; r12w = lX
-	mov r13w, si  ; r13w = tY
-	mov r14w, dx  ; r14w = rX
-	mov r15w, cx  ; r15w = bY
-	mov rbx,  r8  ; rbx = call
-	mov bpl,  r9b ; bpl = isCond
+	mov r12w, di ; r12w = lX
+	mov r13w, si ; r13w = tY
+
+	mov r14w, di ; r14w = x
+	add r14w, dx ; r14w = x + w
+	dec r14w     ; r14w = x + w - 1
+
+	mov r15w, si ; r15w = y
+	add r15w, cx ; r15w = y + h
+	dec r15w     ; r15w = y + h - 1
+
+	mov rbx, r8  ; rbx = call
+	mov bpl, r9b ; bpl = isCond
 
 	; mov  di, r12w       ; di = lX
 	; mov  si, r13w       ; si = tY
-	; mov  dx, r14w       ; dx = rX
+	mov  dx, r14w       ; dx = rX
 	mov  cx, r13w       ; cx = tY
 	; mov  r8,  rbx       ; r8 = call
 	; mov  r9b, bpl       ; r9b = isCond

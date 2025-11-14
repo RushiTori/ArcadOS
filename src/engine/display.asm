@@ -1,4 +1,5 @@
 bits         64
+default      rel
 
 %include "engine/display.inc"
 
@@ -41,7 +42,8 @@ func(global, put_pixel)
 	add rsp, 8      ; to re-align the stack
 	pop rsi         ; restore y
 	pop rdi         ; restore x
-	jmp put_pixel_c
+	mov dl,  al     ; col
+	jmp put_pixel_c ; put_pixel_c(x, y, get_display_color());
 
 ; void put_pixel_c(uint16_t x, uint16_t y, uint8_t col);
 func(global, put_pixel_c)
@@ -316,38 +318,38 @@ func(global, draw_triangle_line_ex)
 	cmp cl, 1
 	je  draw_triangle_line
 
-	push rbp      ; setting up the stack frame
-	mov  rbp, rsp
+	push r12    ; preserve r12
+	push r13    ; preserve r13
+	push r14    ; preserve r14
+	push r15    ; preserve r15
+	sub  rsp, 8 ; to re-align the stack
 
-	push r12 ; preserve r12
-	push r13 ; preserve r13
-	push r14 ; preserve r14
-	push r15 ; preserve r15
-
-	mov r12, rdi ; r12 = a
-	mov r13, rsi ; r13 = b
-	mov r14, rdx ; r14 = c
-	mov r15, rcx ; r15 = thickness
+	mov r12d, edi ; r12 = a
+	mov r13d, esi ; r13 = b
+	mov r14d, edx ; r14 = c
+	mov r15,  rcx ; r15 = thickness
 	
-	mov  rdx, r15     ; rdx = thickness
-	call draw_line_ex ; draw_line_ex(a, b, thickness);
+	; mov  edi, r12d    ; edi = a
+	; mov  esi, r13d    ; esi = b
+	mov  edx, r15d        ; edx = thickness
+	call draw_line_ex_vec ; draw_line_ex_vec(a, b, thickness);
 
-	mov  rdi, r13     ; rdi = b
-	mov  rsi, r14     ; rsi = c
-	mov  rdx, r15     ; rdx = thickness
-	call draw_line_ex ; draw_line_ex(b, c, thickness);
+	mov  edi, r13d        ; edi = b
+	mov  esi, r14d        ; esi = c
+	mov  edx, r15d        ; edx = thickness
+	call draw_line_ex_vec ; draw_line_ex_vec(b, c, thickness);
 
-	mov  rdi, r12     ; rdi = a
-	mov  rsi, r14     ; rsi = c
-	mov  rdx, r15     ; rdx = thickness
-	call draw_line_ex ; draw_line_ex(b, c, thickness);
+	mov  edi, r12d        ; edi = a
+	mov  esi, r14d        ; esi = c
+	mov  edx, r15d        ; edx = thickness
+	call draw_line_ex_vec ; draw_line_ex_vec(b, c, thickness);
 
-	pop r15 ; restore r15
-	pop r14 ; restore r14
-	pop r13 ; restore r13
-	pop r12 ; restore r12
+	add rsp, 8 ; to re-align the stack
+	pop r15    ; restore r15
+	pop r14    ; restore r14
+	pop r13    ; restore r13
+	pop r12    ; restore r12
 
-	pop rbp ; exiting the stack frame
 	.nothing_to_draw:
 	ret
 

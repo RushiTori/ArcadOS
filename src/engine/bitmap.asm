@@ -1,4 +1,5 @@
 bits        64
+default     rel
 
 %include "engine/bitmap.inc"
 
@@ -77,11 +78,11 @@ func(static, put_bitmap_bit)
     sub si, uint16_p [map_pos.y]    ; si = y - map_pos.y
     add si, uint16_p [screen_pos.y] ; si = y - map_pos.y + screen_pos.y
 
-    mov rdx,               pointer_p [map]           ; rdx = map
-    mov dl,                [rdx + Bitmap.main_color] ; dl = map->main_color
+    mov rax,               pointer_p [map]           ; rax = map
+    mov dl,                [rax + Bitmap.main_color] ; dl = map->main_color
     cmp bool_p [inversed], false
     je  .skip_load_inverse_col
-        mov dl, [rdx + Bitmap.inverse_color] ; if (inversed) dl = map->inverse_color
+        mov dl, [rax + Bitmap.inverse_color] ; if (inversed) dl = map->inverse_color
     .skip_load_inverse_col:
 
     jmp put_pixel_c ; put_pixel_c(screenX, screenY, col);

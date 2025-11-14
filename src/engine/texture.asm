@@ -1,4 +1,5 @@
 bits        64
+default     rel
 
 %include "engine/texture.inc"
 
@@ -59,6 +60,13 @@ func(static, put_texture_pixel)
     mov  si,  di              ; si = x
     mov  rdi, pointer_p [tex] ; rdi = tex
     call texture_get_pixel    ; texture_get_pixel(tex, x, y);
+
+    mov rdi,                              pointer_p [tex] ; rdi = tex
+    cmp bool_p [rdi + Texture.has_blank], false
+    je  .skip_check_for_blank
+        cmp al, uint8_p [rdi + Texture.blank]
+        je  .end                              ; if (tex->has_blank && texCol == tex->blank) return;
+    .skip_check_for_blank:
 
     mov di,  uint16_p [rsp]     ; restore x
     mov si,  uint16_p [rsp + 2] ; restore y

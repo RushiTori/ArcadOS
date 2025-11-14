@@ -1,4 +1,5 @@
 bits        64
+default     rel
 
 %include "engine/font.inc"
 
@@ -54,7 +55,7 @@ section     .text
 	mov  rdi, rsi
 	call screenvec2_unpack ; screenvec2_unpack(pos);
 
-	sub rsp, 8  ; to re-align the stack
+	add rsp, 8  ; to re-align the stack
 	pop rdi     ; restore glyphs
 	mov si,  ax ; pos.x
 	; mov dx, dx    ; pos.y
@@ -182,7 +183,7 @@ func(static, draw_text_algo)
 		cmp al, FONT_HORIZONTAL_TAB
 		je  .handle_horizontal_tab
 
-		; jmp handle_drawing_glyph
+		; jmp .handle_drawing_glyph
 
 		.handle_drawing_glyph:
 			mov  dil,  al                 ; currGlyph
@@ -192,15 +193,15 @@ func(static, draw_text_algo)
 			mov  r8b,  uint8_p [color_b]  ; r8b = color_b
 			mov  r9b,  uint8_p [color_c]  ; r9b = color_c
 			call rbx                      ; call(currGlyph, currX, currY, color_a?, color_b?, color_c?);
-			add  r13w, FONT_TILE_WIDTH    ; currX += FONT_TILE_WIDTH
+			add  r13w, GLYPH_SIZE         ; currX += GLYPH_SIZE
 			jmp  .finished_handling_glyph
 
 		.handle_line_feed:
-			add r14w, FONT_TILE_HEIGHT ; currY += FONT_TILE_HEIGHT
+			add r14w, GLYPH_SIZE ; currY += GLYPH_SIZE
 
 			call get_make_nl_as_crnl      ; get_make_nl_as_crnl();
 			cmp  al, false
-			jne  .finished_handling_glyph ; if (!get_make_nl_as_crnl()) continue
+			je   .finished_handling_glyph ; if (!get_make_nl_as_crnl()) continue
 
 			mov r13w, r15w ; currX = startX
 
@@ -211,20 +212,22 @@ func(static, draw_text_algo)
 
 			call get_make_cr_as_crnl      ; get_make_cr_as_crnl();
 			cmp  al, false
-			jne  .finished_handling_glyph ; if (!get_make_cr_as_crnl()) continue
+			je   .finished_handling_glyph ; if (!get_make_cr_as_crnl()) continue
 
-			add r14w, FONT_TILE_HEIGHT ; currY += FONT_TILE_HEIGHT
+			add r14w, GLYPH_SIZE ; currY += GLYPH_SIZE
 
 			jmp .finished_handling_glyph
 
 		.handle_horizontal_tab:
 			call get_tab_space            ; get_tab_space();
 			and  ax,   0xFF               ; ax = (uint16_t)get_tab_space();
-			imul ax, ax, FONT_TILE_WIDTH ; ax = get_tab_space() * FONT_TILE_WIDTH
-			add  r13w, ax                 ; currX += get_tab_space() * FONT_TILE_WIDTH
+			imul ax, ax, GLYPH_SIZE ; ax = get_tab_space() * GLYPH_SIZE
+			add  r13w, ax                 ; currX += get_tab_space() * GLYPH_SIZE
 			jmp  .finished_handling_glyph
 
 		.finished_handling_glyph:
+			inc r12 ; glyphs++
+
 			jmp .algo_loop
 	.algo_loop_end:
 
@@ -253,7 +256,7 @@ func(global, draw_text_c_vec)
 
 ; void draw_text_shadow(const uint8_t* glyphs, uint16_t x, uint16_t y);
 func(global, draw_text_shadow)
-	__one_color_base_body(get_font_color, draw_glyph_shadow_c)
+	__one_color_base_body(get_font_shadow_color, draw_glyph_shadow_c)
 
 ; void draw_text_shadow_vec(const uint8_t* glyphs, ScreenVec2 pos);
 func(global, draw_text_shadow_vec)
@@ -269,7 +272,7 @@ func(global, draw_text_shadow_c_vec)
 
 ; void draw_text_background(const uint8_t* glyphs, uint16_t x, uint16_t y);
 func(global, draw_text_background)
-	__one_color_base_body(get_font_color, draw_glyph_background_c)
+	__one_color_base_body(get_font_background_color, draw_glyph_background_c)
 
 ; void draw_text_background_vec(const uint8_t* glyphs, ScreenVec2 pos);
 func(global, draw_text_background_vec)
@@ -376,7 +379,7 @@ func(global, draw_text_all_c_vec)
 	mov  rdi, rsi
 	call screenvec2_unpack ; screenvec2_unpack(pos);
 
-	sub rsp, 8          ; to re-align the stack
+	add rsp, 8          ; to re-align the stack
 	pop rdi             ; restore glyphs
 	mov si,  ax         ; pos.x
 	; mov dx,  dx         ; pos.y

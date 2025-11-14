@@ -1,4 +1,5 @@
 bits        64
+default     rel
 
 %include "engine/shapes_algo.inc"
 
@@ -11,32 +12,24 @@ res(global, ScreenVec2_t, shapes_algo_base_fail_pos)
 section     .text
 
 %macro screenvec2_unpack2_and_jump_to 1
-	push rbp      ; setting up the stack frame
-	mov  rbp, rsp
+	push rdx    ; preserve call
+	push rsi    ; preserve vecB
+	sub  rsp, 8 ; to re-align the stack
 
-	mov r8, rdx ; r8 = call
+	call screenvec2_unpack ; screenvec2_unpack(vecA);
+	
+	add  rsp, 8 ; to re-align the stack
+	pop  rdi    ; vecB
+	push rdx    ; vecA.y
+	push rax    ; vecA.x
 
-	push rsi               ; push b
-	push r8                ; push call
-	call screenvec2_unpack ; screenvec2_unpack(a);
-	pop  r8                ; r8 = call
-	pop  rdi               ; edi = b
-
-	push r8  ; push call
-	push rax ; push a.x
-	push rdx ; push a.y
-
-	sub  rsp, 8            ; to re-align the stack
-	call screenvec2_unpack ; screenvec2_unpack(b);
-	add  rsp, 8
-
-	mov cx, dx ; cx = b.y
-	mov dx, ax ; dx = b.x
-	pop rsi    ; si = a.y
-	pop rdi    ; di = a.x
-	pop r8     ; r8 = call
-
-	pop rbp ; exiting the stack frame
+	call screenvec2_unpack ; screenvec2_unpack(vecB);
+	
+	pop rdi    ; vecA.x
+	pop rsi    ; vecA.x
+	mov cx, dx ; vecB.y
+	mov dx, ax ; vecB.x
+	pop r8     ; call
 
 	jmp %1
 %endmacro
@@ -73,7 +66,26 @@ func(global, line_algo_cond)
 
 ; void line_algo_vec(ScreenVec2 a, ScreenVec2 b, ShapeAlgoCall call);
 func(global, line_algo_vec)
-	screenvec2_unpack2_and_jump_to line_algo
+	; screenvec2_unpack2_and_jump_to line_algo
+	push rdx    ; preserve call
+	push rsi    ; preserve vecB
+	sub  rsp, 8 ; to re-align the stack
+
+	call screenvec2_unpack ; screenvec2_unpack(vecA);
+	
+	add  rsp, 8 ; to re-align the stack
+	pop  rdi    ; vecB
+	push rdx    ; vecA.y
+	push rax    ; vecA.x
+
+	call screenvec2_unpack ; screenvec2_unpack(vecB);
+	
+	pop rdi       ; vecA.x
+	pop rsi       ; vecA.x
+	mov cx, dx    ; vecB.y
+	mov dx, ax    ; vecB.x
+	pop r8        ; call
+	jmp line_algo
 
 ; ScreenVec2 line_algo_cond_vec(ScreenVec2 a, ScreenVec2 b, ShapeAlgoCondCall call);
 func(global, line_algo_cond_vec)
@@ -117,32 +129,32 @@ func(global, rect_line_algo_cond_vec)
 
 ; void triangle_fill_algo_vec(ScreenVec2 a, ScreenVec2 b, ScreenVec2 c, ShapeAlgoCall call);
 func(global, triangle_fill_algo_vec)
-	mov r9b, false
+	mov r8b, false
 	jmp triangle_fill_algo_base
 
 ; ScreenVec2 triangle_fill_algo_cond_vec(ScreenVec2 a, ScreenVec2 b, ScreenVec2 c, ShapeAlgoCondCall call);
 func(global, triangle_fill_algo_cond_vec)
-	mov r9b, true
+	mov r8b, true
 	jmp triangle_fill_algo_base
 
 ; void triangle_line_algo_vec(ScreenVec2 a, ScreenVec2 b, ScreenVec2 c, ShapeAlgoCall call);
 func(global, triangle_line_algo_vec)
-	mov r9b, false
+	mov r8b, false
 	jmp triangle_line_algo_base
 
 ; ScreenVec2 triangle_line_algo_cond_vec(ScreenVec2 a, ScreenVec2 b, ScreenVec2 c, ShapeAlgoCondCall call);
 func(global, triangle_line_algo_cond_vec)
-	mov r9b, true
+	mov r8b, true
 	jmp triangle_line_algo_base
 
 ; void circle_fill_algo(uint16_t x, uint16_t y, uint8_t r, ShapeAlgoCall call);
 func(global, circle_fill_algo)
-	mov r9b, false
+	mov r8b, false
 	jmp circle_fill_algo_base
 
 ; ScreenVec2 circle_fill_algo_cond(uint16_t x, uint16_t y, uint8_t r, ShapeAlgoCondCall call);
 func(global, circle_fill_algo_cond)
-	mov r9b, true
+	mov r8b, true
 	jmp circle_fill_algo_base
 
 ; void circle_fill_algo_vec(ScreenVec2 pos, uint8_t r, ShapeAlgoCall call);
@@ -155,12 +167,12 @@ func(global, circle_fill_algo_cond_vec)
 
 ; void circle_line_algo(uint16_t x, uint16_t y, uint8_t r, ShapeAlgoCall call);
 func(global, circle_line_algo)
-	mov r9b, false
+	mov r8b, false
 	jmp circle_line_algo_base
 
 ; ScreenVec2 circle_line_algo_cond(uint16_t x, uint16_t y, uint8_t r, ShapeAlgoCondCall call);
 func(global, circle_line_algo_cond)
-	mov r9b, true
+	mov r8b, true
 	jmp circle_line_algo_base
 
 ; void circle_line_algo_vec(ScreenVec2 pos, uint8_t r, ShapeAlgoCall call);

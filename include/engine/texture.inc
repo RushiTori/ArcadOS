@@ -22,7 +22,7 @@ struc Texture
 	struc_member(bool_t, has_blank, 1)
 
 	; This color will be treated as "blank" (not displayed) if 'has_blank' is true 
-	; uint8_t has_blank;
+	; uint8_t blank;
 	struc_member(uint8_t, blank, 1)
 
     .padding: resb 2 ; Padding to make the struct 16 bytes

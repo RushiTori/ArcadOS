@@ -1,4 +1,5 @@
 bits    64
+default rel
 
 %include "engine/tiled_bitmap.inc"
 
@@ -46,9 +47,9 @@ func(global, tiled_bitmap_get_tile_vec)
 
 ; uint64_t tiled_bitmap_get_tile_indexed(const TiledBitmap* tile_map, uint32_t idx);
 func(global, tiled_bitmap_get_tile_indexed)
-    mov rdi, pointer_p [rdi + TiledBitmap.tiles] ; rdi = tile_map->tiles
-    mov esi, esi                                 ; rsi = (uint64_t)idx
-    mov rax, uint64_p [rdi + rsi]                ; return tile_map->tiles[idx];
+    mov rdi, pointer_p [rdi + TiledBitmap.tiles]     ; rdi = tile_map->tiles
+    mov esi, esi                                     ; rsi = (uint64_t)idx
+    mov rax, uint64_p [rdi + rsi * sizeof(uint64_s)] ; return tile_map->tiles[idx];
     ret
 
 ; void tiled_bitmap_set_tile(const TiledBitmap* tile_map, uint16_t x, uint16_t y, uint64_t tile);

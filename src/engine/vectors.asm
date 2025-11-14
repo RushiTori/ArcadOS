@@ -1,4 +1,5 @@
-bits 64
+bits    64
+default rel
 
 %include "engine/vectors.inc"
 
