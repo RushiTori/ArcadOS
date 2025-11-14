@@ -14,7 +14,7 @@ bits 64
 %include "memory_mover.inc"
 
 %include "engine/PS2.inc"
-%include "engine/timer.inc"
+%include "engine/PIT_timer.inc"
 
 %define STACK_START                   0x0009FFFF                                                ;lotsa memory to grow down from here
 %define TEXT_ADDR_START               0xB8000

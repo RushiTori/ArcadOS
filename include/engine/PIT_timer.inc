@@ -1,14 +1,14 @@
-%ifndef TIMER_INC
-%define TIMER_INC
+%ifndef PIT_TIMER_INC
+%define PIT_TIMER_INC
 
 %include "standard.inc"
 %include "bootloader/pic.inc"
 
 %define MAX_TIMER_COUNT 256
 
-%define FRAME_TIME 0x00000010aaaaaaab ; 16.666666666744277 ms in 32.32 fixed point
+%define FRAME_TIME      0x00000010aaaaaaab ; 16.666666666744277 ms in 32.32 fixed point
 
-%define IRQ0_FREQUENCY 600
+%define IRQ0_FREQUENCY  600
 
 ; This initializes the PIT to fire an IRQ0 at roughly 600 hz
 extern init_PIT
@@ -46,4 +46,4 @@ extern reset_timer
 ; notes : ms should be in 32.32 fixed point format.
 extern sleep_ms
 
-%endif ; TIMER_INC
+%endif ; PIT_TIMER_INC
