@@ -55,7 +55,19 @@ func(global, main)
 		;mov  rdi, 0
 		;call maskin_irq_pic64
 
-	; Setting up the display buffer
+
+		mov rdi, 0x05
+		call set_display_color
+
+		mov rdi, 0x10
+		mov rsi, 0x20
+		mov rdx, 0x40
+		mov rcx, 0x10
+		call draw_rect
+
+		jmp $
+
+	;error test
 		mov rbx, 0
 		div rbx
 

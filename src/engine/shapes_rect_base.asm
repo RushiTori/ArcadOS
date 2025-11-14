@@ -66,9 +66,9 @@ func(global, rect_fill_algo_base)
 		mov  r9b,  bpl      ; isCond
 		call line_algo_base ; line_algo_base(lX, tY, rX, tY, call, isCond);
 		check_for_fail_pos
-		inc  r13w
+		inc  r13w           ;tY++
 		cmp  r13w, r15w
-		jle  .scan_loop     ; while (bY <= tY);
+		jle  .scan_loop     ; while(tY <= bY);
 	
 	.restore_end:
 		add rsp, 8 ; to re-align the stack
