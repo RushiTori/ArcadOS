@@ -4,13 +4,18 @@ default rel
 %include "engine/rtc_timer.inc"
 %include "bootloader/idt64.inc"
 
-%define CMOS_OUT   0x70
-%define CMOS_IN    0x71
-%define CMOS_REG_A 0x8A
-%define CMOS_REG_B 0x8B
-%define CMOS_REG_C 0x0C
+%define CMOS_OUT                    0x70
+%define CMOS_IN                     0x71
+%define CMOS_REG_A                  0x8A
+%define CMOS_REG_B                  0x8B
+%define CMOS_REG_C                  0x0C
 
-%define RTC_TICKS_TO_NANOSECONDS
+; 1second / 8192hertz = 0.000122070312500seconds
+; s ms  us  ns  ps  fs
+; 0 000 122 070 312 500
+%define RTC_TICKS_TO_FEMTOSECONDS   122070312500 ; multiplier
+%define FEMTOSECONDS_TO_NANOSECONDS 1000000      ; divider
+%define NANOSECONDS_TO_SECONDS      1000000000   ; divider
 
 section     .bss
 
@@ -109,11 +114,35 @@ func(global, init_rtc)
 	mov dil, 0x03
 	jmp set_cmos_frequency ; set_cmos_frequency(0x03);
 
+; Technique for dividing RDX:RAX by RDI
+; source: https://stackoverflow.com/a/76086966
+%macro div128 1
+	mov  rdi, %1
+	mov  rcx, rax ; Temporarily store LowDividend in RCX
+    mov  rax, rdx ; First divide the HighDividend
+    xor  edx, edx ; Setup for division RDX:RAX / RDI
+    div  rdi      ; -> RAX is HighQuotient, Remainder is re-used
+    xchg rax, rcx ; Temporarily move HighQuotient to RCX restoring LowDividend to RAX
+    div  rdi      ; -> RAX is LowQuotient, Remainder RDX
+    xchg rdx, rcx ; Build true 128-bit quotient in RDX:RAX
+%endmacro
+
 ; RTCTime rtc_get_time(void);
 ;
 ; Return: The time since init_rtc().
 func(global, rtc_get_time)
-	; WIP
+	mov rdi, RTC_TICKS_TO_FEMTOSECONDS
+	mov rax, uint64_p [rtc_ticks]
+
+	mul rdi ; rdx:rax = rtc_ticks * RTC_TICKS_TO_FEMTOSECONDS
+
+	div128 FEMTOSECONDS_TO_NANOSECONDS
+	div128 NANOSECONDS_TO_SECONDS
+	
+	; Convert to RTCTime struct
+	shl rax, 33  ; RTCTime.sec = low 32 of rax and eliminate sign bit
+	shr rax, 1
+	or  rax, rcx ; RTCTime.nsec = rcx ; rcx is always less than 1e9 due to division
 	ret
 
 ; RTCTime rtc_time_diff(RTCTime lhs, RTCTime rhs);
