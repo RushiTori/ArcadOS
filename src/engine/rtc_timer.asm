@@ -14,12 +14,17 @@ default rel
 ; s ms  us  ns  ps  fs
 ; 0 000 122 070 312 500
 %define RTC_TICKS_TO_FEMTOSECONDS   122070312500 ; multiplier
+%define NANOSECONDS_TO_FEMTOSECONDS 1000000      ; multiplier
+%define SECONDS_TO_NANOSECONDS      1000000000   ; multiplier
+
+%define FEMTOSECONDS_TO_RTC_TICKS   122070312500 ; divider
 %define FEMTOSECONDS_TO_NANOSECONDS 1000000      ; divider
 %define NANOSECONDS_TO_SECONDS      1000000000   ; divider
 
 section     .bss
 
 res(static, uint64_t, rtc_ticks)
+res(static, uint64_t, rtc_sleep_ticks)
 
 section     .text
 
@@ -145,31 +150,202 @@ func(global, rtc_get_time)
 	or  rax, rcx ; RTCTime.nsec = rcx ; rcx is always less than 1e9 due to division
 	ret
 
+; uint128_t rtctime_to_nanoseconds(RTCTime time);
+func(static, rtctime_to_nanoseconds)
+	mov esi, edi ; preserve time.nsec
+	shr rdi, 32  ; edi = time.sec
+	
+	mov rax, SECONDS_TO_NANOSECONDS
+	mul rdi                         ; rdx:rax = time.sec * SECONDS_TO_NANOSECONDS
+	
+	add rax, rsi ; rdx:rax = time.sec * SECONDS_TO_NANOSECONDS + time.nsec
+	adc rdx, 0
+	ret
+
 ; RTCTime rtc_time_diff(RTCTime lhs, RTCTime rhs);
 ;
 ; Return: lhs - rhs.
 func(global, rtc_time_diff)
-	; WIP
+	push rsi ; preserve rhs
+
+	call rtctime_to_nanoseconds ; rtctime_to_nanoseconds(lhs);
+
+	pop rdi ; restore rhs
+
+	push rdx    ; preserve high 64 bits
+	push rax    ; preserve low 64 bits
+	sub  rsp, 8 ; to re-align the stack
+
+	call rtctime_to_nanoseconds ; rtctime_to_nanoseconds(rhs);
+
+	add rsp, 8 ; to re-align the stack
+
+	pop rsi ; restore low 64 bits
+	pop rdi ; restore high 64 bits
+
+	; rdi:rsi - rdx:rax
+	sub rsi, rax
+	sbb rdi, rdx
+
+	mov    rax, rsi
+	mov    rdx, rdi
+	div128 NANOSECONDS_TO_SECONDS
+	
+	; Convert to RTCTime struct
+	shl rax, 32  ; RTCTime.sec = low 32 bits of rax
+	or  rax, rcx ; RTCTime.nsec = rcx ; rcx is always less than 1e9 due to division
+	ret
+
+; uint128_t mul128(uint128_t a, uint128_t b);
+func(static, mul128)
+	;
+	; uint128_t mul128(uint128_t a, uint128_t b) {
+	;     return a * b;
+	; }
+	;
+	; Godbolt gcc 15.2 with -O3 flag output
+    imul rsi, rdx ; rsi = hi_a * lo_b
+    mov  rax, rdi ; rax = lo_a
+    imul rcx, rdi ; rcx = hi_b * lo_a
+    mul  rdx      ; rdx:rax = lo_a * lo_b
+    add  rsi, rcx ; rsi = hi_a * lo_b + hi_b * lo_a
+    add  rdx, rsi ; rdx:rax = a * b
 	ret
 
 ; void rtc_sleep(RTCTime time);
 ;
 ; Will sleep for at least time, if time is too small or not exactly in line with the ticks, it'll sleep for an extra tick.
 func(global, rtc_sleep)
-	; WIP
+	sub rsp, 8 ; to re-align the stack
+
+	call rtctime_to_nanoseconds ; rtctime_to_nanoseconds(time);
+
+	mov  rdi, NANOSECONDS_TO_FEMTOSECONDS ; lo_a
+	xor  rsi, rsi                         ; hi_a
+	mov  rcx, rdx                         ; hi_b
+	mov  rdx, rax                         ; lo_b
+	call mul128                           ; mul128(NANOSECONDS_TO_FEMTOSECONDS, rtctime_to_nanoseconds(time));
+
+	div128 FEMTOSECONDS_TO_RTC_TICKS
+	cmp    rcx, 0
+	je     .skip_off_by_one_correction
+		inc rax
+	.skip_off_by_one_correction:
+
+	mov uint64_p [rtc_sleep_ticks], rax
+
+	add rsp, 8 ; to re-align the stack
 	ret
 
 ; int64_t rtc_snprint(RTCTime time, char* buffer, uint64_t n);
 ;
 ; Equivalent to rtc_snprint_ex(time, buffer, n, RTC_PRECISION_MIN, RTC_PRECISION_MAX);
 func(global, rtc_snprint)
-	; WIP
-	ret
+	mov cl,  RTC_PRECISION_MIN
+	mov r8b, RTC_PRECISION_MAX
+	jmp rtc_snprint_ex         ; rtc_snprint_ex(time, buffer, n, RTC_PRECISION_MIN, RTC_PRECISION_MAX);
+
+%macro put_char_in_buffer %1
+	mov uint8_t [r12 + r11], %1 ; buffer[bufferIdx] = %1;
+	inc r11
+	mov uint8_t [r12 + r11], 0  ; buffer[bufferIdx] = '\0';
+
+	cmp r11, r13
+	jae .end_with_cleanup ; if (bufferIdx >= n) goto end_with_cleanup;
+%endmacro
 
 ; int64_t rtc_snprint_ex(RTCTime time, char* buffer, uint64_t n, RTCPrecision min, RTCPrecision max);
 ;
 ; Like your usual snprintf(...), will write up-to n-1 characters to buffer and will take care of the nul terminator.
 ; Return: strlen(buffer) on success, and any negative value on falure.
 func(global, rtc_snprint_ex)
-	; WIP
+	mov r11, -1
+
+	cmp rsi, NULL
+	je  .end      ; if (!buffer) return -1;
+
+	cmp rdx, 0
+	je  .end   ; if (!n) return -1;
+
+	cmp cl, RTC_PRECISION_MAX
+	ja  .end                  ; if (min > RTC_PRECISION_MAX) return -1;
+
+	cmp r8b, RTC_PRECISION_MAX
+	ja  .end                   ; if (max > RTC_PRECISION_MAX) return -1;
+
+	xor r11,           r11
+	mov uint8_t [rsi], 0   ; *buffer = '\0';
+
+	cmp rdx, 1
+	je  .end   ; if (n == 1) return 0;
+
+	cmp cl, r8b
+	jbe .skip_swap
+		xchg cl, r8b ; if (min > max) swap(min, max);
+	.skip_swap:
+
+	push r12 ; preserve r12
+	push r13 ; preserve r13
+	push r14 ; preserve r14
+	push r15 ; preserve r15
+	push r8  ; preserve max
+
+	mov r12, rsi ; buffer
+	mov r13, rdx ; n
+	mov r14, rcx ; min
+
+	call rtctime_to_nanoseconds ; rtctime_to_nanoseconds(time);
+
+	mov r15, rax ; timeInNanos
+	pop r8       ; restore max
+	xor r11, r11 ; bufferIdx
+
+	.put_days:
+		; WIP
+		.end_put_days:
+
+	.put_hours:
+		; WIP
+		.end_put_hours:
+
+	.put_minutes:
+		; WIP
+		.end_put_minutes:
+
+	.put_seconds:
+		; WIP
+		.end_put_seconds:
+
+	.put_millis:
+		; WIP
+		.end_put_millis:
+
+	.put_micros:
+		; WIP
+		.end_put_micros:
+
+	.put_nanos:
+		; WIP
+		.end_put_nanos:
+
+	.end_with_cleanup:
+		pop r15 ; restore r15
+		pop r14 ; restore r14
+		pop r13 ; restore r13
+		pop r12 ; restore r12
+
+	.end:
+	mov rax, r11
 	ret
+
+section .rodata
+
+rtc_snprint_ex_jump_table:
+static  rtc_snprint_ex_jump_table:data
+	dq rtc_snprint_ex.put_days
+	dq rtc_snprint_ex.put_hours
+	dq rtc_snprint_ex.put_minutes
+	dq rtc_snprint_ex.put_seconds
+	dq rtc_snprint_ex.put_millis
+	dq rtc_snprint_ex.put_micros
+	dq rtc_snprint_ex.put_nanos

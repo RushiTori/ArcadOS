@@ -21,7 +21,7 @@ endstruc
 ; Real Time Clock Precision
 ; NOTE: Used by rtc_print() function to control the output's precision
 ;
-; enum RTCPrecision
+; enum RTCPrecision: uint8_t
 	reset_enum_value(0)
 
 	; Nanoseconds
