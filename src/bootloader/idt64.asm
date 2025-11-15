@@ -15,6 +15,7 @@ bits 64
 
 %include "engine/PS2.inc"
 %include "engine/PIT_timer.inc"
+%include "engine/rtc_timer.inc"
 
 %define STACK_START                   0x0009FFFF                                                ;lotsa memory to grow down from here
 %define TEXT_ADDR_START               0xB8000
@@ -76,6 +77,8 @@ global  make_idt_64: function
 	mov rax,                   IDT_START
 	mov qword[IDTR_START + 2], rax
 
+	call init_rtc ; calling it here to start using the idt properly..
+
 	lidt [IDTR_START]
 	sti
 
@@ -91,7 +94,7 @@ global  make_idt_64: function
 	call init_PIT
 	call PS2_init        ;automatically initializes the drivers for the devices plugged in
 	mov  rdi, 0b11111001 ;enable slave and enable IRQ1
-	mov  rsi, 0b11101111 ;enable IRQ12
+	mov  rsi, 0b11101110 ;enable IRQ12 and IRQ8
 	call mask_pic64
 
 
@@ -102,6 +105,7 @@ global  make_idt_64: function
 ;rsi = handlerPointer
 ;rax = gate type and flags
 idt64_set_gate:
+global idt64_set_gate: function
 	shl rdi, 1 ;multiply by 2 so that indexing is correct (want *16 instead of *8)
 
 	mov rdx,                         rsi
