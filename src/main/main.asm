@@ -26,6 +26,17 @@ func(static, main_update)
 
 	call update_kb_buffer ; update_kb_buffer();
 
+	mov rdi, 128
+	shl rdi, 32
+
+	lea rsi, [text_buffer]
+
+	mov rdx, TEXT_BUFFER_LEN - 1
+
+	call rtc_snprint ; rtc_snprint()
+
+	mov byte [text_buffer + TEXT_BUFFER_LEN - 1], 0
+
 	add rsp, 8 ; to re-align the stack
 	ret
 
@@ -37,13 +48,6 @@ func(static, main_display)
 	call clear_screen_c ; green screen
 
 	call display_kb_buffer ; display_kb_buffer();
-
-	mov rdi, 128
-	shl rdi, 32
-
-	lea rsi, [text_buffer]
-
-	call rtc_snprint ; rtc_snprint()
 
 	add rsp, 8 ; to re-align the stack
 	ret
@@ -57,22 +61,6 @@ func(global, main)
 		mov rax, cr4
 		or  ax,  3 << 9 ;set CR4.OSFXSR and CR4.OSXMMEXCPT at the same time
 		mov cr4, rax
-
-	; Activating timer
-		;mov  rdi, 0
-		;call maskin_irq_pic64
-
-
-		mov  rdi, 0x05
-		call set_display_color
-
-		mov  rdi, 0x10
-		mov  rsi, 0x20
-		mov  rdx, 0x40
-		mov  rcx, 0x10
-		call draw_rect
-
-		jmp $
 
 	;error test
 		mov rbx, 0
@@ -141,9 +129,11 @@ func(static, update_kb_buffer)
 func(static, display_kb_buffer)
 	sub rsp, 8 ; to re-align the stack
 
-	lea  rdi, [text_buffer]
-	xor  rsi, rsi
-	xor  rdx, rdx
+	lea rdi, [text_buffer]
+	xor rsi, rsi
+	xor rdx, rdx
+
+	mov  rdx, 16
 	call draw_text_and_shadow
 
 	add rsp, 8 ; to re-align the stack
