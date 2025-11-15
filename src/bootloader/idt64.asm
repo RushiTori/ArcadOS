@@ -382,7 +382,7 @@ idt64_signature_string:
 .end:	
 %define idt64_signature_string_len (idt64_signature_string.end - idt64_signature_string)
 idt64_errorcode_string:
-	db "Error Code", 0
+	db "Error Code:", 0
 .end:	
 %define idt64_errorcode_string_len (idt64_errorcode_string.end - idt64_errorcode_string)
 idt64_noerrorcode_string:
@@ -412,6 +412,7 @@ static idt64_regdump_gfx_mode:function
 
 	mov  rdi, 0x0F
 	call set_display_color
+
 
 	mov  rdi, 0
 	mov  rsi, 0
@@ -565,19 +566,23 @@ static idt64_regdump_gfx_mode:function
 
 		jmp .endErrorCode
 	.noErrorCode:
+
 		mov  rdi, 0
 		mov  rsi, 160
 		mov  rdx, idt64_errorcode_string
-		call draw_text
+		call idt64_draw_text_and_shadow
 
 		mov  rdi, idt64_errorcode_string
 		call strlen
+
+		add rax, 2 ;space
+		shl rax, 3 ;mul by 8
 
 		mov  rdi, 0
 		add  rdi, rax
 		mov  rsi, 160
 		mov  rdx, idt64_noerrorcode_string
-		call draw_text
+		call idt64_draw_text_and_shadow
 	.endErrorCode:
 	
 	ret
@@ -643,6 +648,7 @@ static idt64_trap64:function
 	mov qword [reg_RIP_bank], rax
 
 	mov  rdi, false
+	mov  rsi, NULL
 	call idt64_regdump_gfx_mode
 
 	jmp $
