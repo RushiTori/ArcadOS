@@ -38,6 +38,13 @@ func(static, main_display)
 
 	call display_kb_buffer ; display_kb_buffer();
 
+	mov rdi, 128
+	shl rdi, 32
+
+	lea rsi, [text_buffer]
+
+	call rtc_snprint ; rtc_snprint()
+
 	add rsp, 8 ; to re-align the stack
 	ret
 
@@ -56,13 +63,13 @@ func(global, main)
 		;call maskin_irq_pic64
 
 
-		mov rdi, 0x05
+		mov  rdi, 0x05
 		call set_display_color
 
-		mov rdi, 0x10
-		mov rsi, 0x20
-		mov rdx, 0x40
-		mov rcx, 0x10
+		mov  rdi, 0x10
+		mov  rsi, 0x20
+		mov  rdx, 0x40
+		mov  rcx, 0x10
 		call draw_rect
 
 		jmp $

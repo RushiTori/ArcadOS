@@ -5,6 +5,7 @@
 %include "engine/font.inc"
 %include "engine/PS2keyboard.inc"
 %include "engine/PIT_timer.inc"
+%include "engine/rtc_timer.inc"
 
 %include "bootloader/pic.inc"
 
