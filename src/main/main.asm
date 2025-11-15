@@ -5,7 +5,7 @@ default rel
 
 section .data
 
-%define TEXT_BUFFER_LEN 4096
+%define TEXT_BUFFER_LEN 1024
 
 text_buffer:
 static text_buffer:
