@@ -45,8 +45,8 @@ func(static, recv_cmos_register)
 func(static, send_cmos_register)
 	select_cmos_reg dil
 
-	mov al,       sil ; data
-	out CMOS_OUT, al
+	mov al,      sil ; data
+	out CMOS_IN, al
 	ret
 
 ; void turn_on_cmos_irq(void);
