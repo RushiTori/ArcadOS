@@ -82,21 +82,21 @@ global  make_idt_64: function
 	lidt [IDTR_START]
 	sti
 
-	mov  rdi, 0b11111110
-	mov  rsi, 0b11111111
-	call mask_pic64
-
 	call memory_mover_start ;we need to set up memory mover before initializing other stuff
+
+	call init_PIT
 
 	mov  rdi, VGA_MEMORY_ADDR
 	call set_display_buffer   ; set_display_buffer(VGA_MEMORY_ADDR);
 
-	call init_PIT
+	mov  rdi, 0b11111110
+	mov  rsi, 0b11111111
+	call mask_pic64
 	call PS2_init        ;automatically initializes the drivers for the devices plugged in
+
 	mov  rdi, 0b11111001 ;enable slave and enable IRQ1
 	mov  rsi, 0b11101110 ;enable IRQ12 and IRQ8
 	call mask_pic64
-
 
 	jmp main
 	;jmp find_RSDP

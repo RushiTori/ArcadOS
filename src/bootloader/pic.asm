@@ -6,10 +6,12 @@ bits 32
 ;esi: mask slave
 mask_pic32:
 global mask_pic32:function
+	cli
 	mov ax, di
 	out PIC1_DATA, al
 	mov ax, si
 	out PIC2_DATA, al
+	sti
 	ret
 
 ;edi: offset of master PIC
@@ -78,15 +80,18 @@ bits 64
 ;rsi: mask slave
 mask_pic64:
 global mask_pic64:function
+	cli
 	mov ax, di
 	out PIC1_DATA, al
 	mov ax, si
 	out PIC2_DATA, al
+	sti
 	ret
 
 ;rdi: irq number
 maskout_irq_pic64:
 global maskout_irq_pic64:function
+	cli
 	cmp rdi, 16
 	jae .error
 	cmp rdi, 8
@@ -100,6 +105,7 @@ global maskout_irq_pic64:function
 	mov al, ah
 	out PIC1_DATA, al
 
+	sti
 	ret
 .slaveHandle:
 	sub rdi, 8
@@ -110,12 +116,16 @@ global maskout_irq_pic64:function
 	or ah, al
 	mov al, ah
 	out PIC1_DATA, al
+
+	sti
 	ret
 .error:
+	sti
 	ret
 ;rdi: irq number
 maskin_irq_pic64:
 global maskin_irq_pic64:function
+	cli
 	cmp rdi, 16
 	jae .error
 	cmp rdi, 8
@@ -130,6 +140,7 @@ global maskin_irq_pic64:function
 	mov al, ah
 	out PIC1_DATA, al
 
+	sti
 	ret
 .slaveHandle:
 	sub rdi, 8
@@ -141,12 +152,16 @@ global maskin_irq_pic64:function
 	and ah, al
 	mov al, ah
 	out PIC1_DATA, al
+	sti
 	ret
 .error:
+	sti
 	ret
 
+;keeps interrupts disabled
 remap_pic64:
 global remap_pic64:function
+	cli
 	in al, PIC1_DATA
 	mov dl, al
 	in al, PIC2_DATA
