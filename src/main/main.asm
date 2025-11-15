@@ -1,4 +1,5 @@
 bits    64
+default rel
 
 %include "main/main.inc"
 
@@ -63,8 +64,8 @@ func(global, main)
 		mov cr4, rax
 
 	;error test
-		mov rbx, 0
-		div rbx
+	;mov rcx, 0
+	;div rcx
 
 	.main_loop:
 		call main_update
