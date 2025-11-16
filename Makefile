@@ -1,95 +1,145 @@
-COMP:=nasm
-COMP_FLAGS:=-f elf64 -g -F dwarf
-LINK:=ld
-LINK_FLAGS:=-Tlinkerscript.ld -Map=symbols.map
+# Makefile by RushiTori - November 15th 2025
+# ====== Everything Makefile internal related ======
+
+rwildcard=$(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))
+MAKEFLAGS+=--no-print-directory
+RM:=rm -rvf
+DEBUG:=0
+RELEASE:=0
+
+# ========= Everything project related =========
 
 NAME:=ArcadOS
 
-INC_DIR:=include
+CC:=nasm
+LD:=ld
+MIN_IMAGE_SIZE:=33280
+
+# ========== Everything files related ==========
+
+HDS_DIR:=include
+HDS_PATHS:=$(HDS_DIR)
+HDS_PATHS:=$(addprefix -I,$(HDS_PATHS))
+
+SRC_EXT:=asm
 SRC_DIR:=src
-OBJ_DIR:=objs
+BOOTLOADER_SRC_DIR:=$(SRC_DIR)/bootloader
+ENGINE_SRC_DIR:=$(SRC_DIR)/engine
 
-MIN_FILE_SIZE:=33280
+FIRST_SRC_FILENAME:=bootloader
+FIRST_SRC_FILE:=$(BOOTLOADER_SRC_DIR)/$(FIRST_SRC_FILENAME).$(SRC_EXT)
 
-BOOTLOADER_SRC_FILES:=  $(SRC_DIR)/bootloader/bootloader.asm \
-						$(SRC_DIR)/bootloader/memmap.asm \
-						$(SRC_DIR)/bootloader/lineA20.asm \
-						$(SRC_DIR)/bootloader/gdt32.asm \
-						$(SRC_DIR)/bootloader/pic.asm \
-						$(SRC_DIR)/bootloader/idt32.asm \
-						$(SRC_DIR)/bootloader/paging.asm \
-						$(SRC_DIR)/bootloader/idt64.asm \
-						$(SRC_DIR)/bootloader/rsdp.asm \
+LAST_SRC_FILENAME:=memory_mover
+LAST_SRC_FILE:=$(SRC_DIR)/$(LAST_SRC_FILENAME).$(SRC_EXT)
 
-ENGINE_SRC_FILES:=$(wildcard $(SRC_DIR)/engine/*.asm)
+BOOTLOADER_SRC_FILES:=$(call rwildcard,$(BOOTLOADER_SRC_DIR),*.$(SRC_EXT))
+ENGINE_SRC_FILES:=$(call rwildcard,$(ENGINE_SRC_DIR),*.$(SRC_EXT))
 
-SRC_FILES:=$(wildcard $(SRC_DIR)/*.asm) $(wildcard $(SRC_DIR)/**/*.asm)
+SRC_FILES:=$(call rwildcard,$(SRC_DIR),*.$(SRC_EXT))
 SRC_FILES:=$(filter-out $(BOOTLOADER_SRC_FILES), $(SRC_FILES))
 SRC_FILES:=$(filter-out $(ENGINE_SRC_FILES), $(SRC_FILES))
-SRC_FILES:=$(filter-out $(SRC_DIR)/memory_mover.asm, $(SRC_FILES))
-SRC_FILES:=$(BOOTLOADER_SRC_FILES) $(ENGINE_SRC_FILES) $(SRC_FILES) $(SRC_DIR)/memory_mover.asm
 
-OBJ_FILES:=$(SRC_FILES:$(SRC_DIR)/%.asm=$(OBJ_DIR)/%.obj)
-DEP_FILES:=$(SRC_FILES:$(SRC_DIR)/%.asm=$(OBJ_DIR)/%.dep)
+SRC_FILES:=$(BOOTLOADER_SRC_FILES) $(ENGINE_SRC_FILES) $(SRC_FILES)
+SRC_FILES:=$(filter-out $(FIRST_SRC_FILE), $(SRC_FILES))
+SRC_FILES:=$(filter-out $(LAST_SRC_FILE), $(SRC_FILES))
 
-build:$(NAME)
+SRC_FILES:=$(FIRST_SRC_FILE) $(SRC_FILES) $(LAST_SRC_FILE)
 
-$(NAME):$(OBJ_FILES)
-	@echo Linking $@.elf
-	@$(LINK) $(LINK_FLAGS) $^ -o $@.elf
+OBJ_DIR:=objs
+OBJ_EXT:=obj
+DEP_EXT:=dep
+OBJ_FILES:=$(SRC_FILES:$(SRC_DIR)/%.$(SRC_EXT)=$(OBJ_DIR)/%.$(OBJ_EXT))
+DEP_FILES:=$(SRC_FILES:$(SRC_DIR)/%.$(SRC_EXT)=$(OBJ_DIR)/%.$(DEP_EXT))
 
-	@echo Extracting raw code, section .text, into $@.text
-	@rm -f $@.text
-	@touch $@.text
-	@objcopy --dump-section .text=$@.text     $@.elf
+TARGET_ELF:=$(OBJ_DIR)/$(NAME).elf
+TARGET_IMAGE:=$(NAME).img
+TARGET_TEXT:=$(OBJ_DIR)/$(NAME).text
+TARGET_DATA:=$(OBJ_DIR)/$(NAME).data
+TARGET_RODATA:=$(OBJ_DIR)/$(NAME).rodata
+TARGET_SYMBOLS:=$(OBJ_DIR)/$(NAME).symbols
 
-	@echo Extracting data, section .data, into $@.data
-	@rm -f $@.data
-	@touch $@.data
-	@objcopy --dump-section .data=$@.data     $@.elf
-	@stat -c %s $@.data | xargs printf "0x%08X" | xxd -r >> $@.text
+# ========== Everything flags related ==========
 
-	@echo Extracting rodata, section .rodata, into $@.rodata
-	@rm -f $@.rodata
-	@touch $@.rodata
-	@objcopy --dump-section .rodata=$@.rodata $@.elf
-	@stat -c %s $@.rodata | xargs printf "0x%08X" | xxd -r >> $@.text
+CCFLAGS:=-felf64
+ifeq ($(DEBUG), 1)
+	CCFLAGS+=-gdwarf
+endif
+CCFLAGS+=$(HDS_PATHS)
 
-	@echo Linking $@.text $@.data and $@.rodata into $@.img
-	@cat $@.text $@.data $@.rodata > $@.img
+LDFLAGS:=-Tlinkerscript.ld -Map=$(TARGET_SYMBOLS)
 
-	@echo truncating $@.img to minimum of $(MIN_FILE_SIZE) bytes
-	@truncate $@.img --size=">$(MIN_FILE_SIZE)"
+# =========== Every usable functions ===========
+
+build_debug:
+	@$(MAKE) DEBUG=1 build
+
+release:
+	@$(MAKE) RELEASE=1 build
+
+build: $(TARGET_IMAGE)
+
+$(TARGET_ELF):$(OBJ_FILES)
+	@echo Linking $@
+	@$(LD) $(LDFLAGS) $^ -o $@
+
+$(TARGET_TEXT):
+	@echo Extracting raw code, section .text, into $@
+	@$(RM) $@
+	@touch $@
+	@objcopy --dump-section .text=$@ $(TARGET_ELF)
+
+$(TARGET_DATA):
+	@echo Extracting data, section .data, into $@
+	@$(RM) $@
+	@touch $@
+	@objcopy --dump-section .data=$@ $(TARGET_ELF)
+	@stat -c %s $@ | xargs printf "0x%08X" | xxd -r >> $(TARGET_TEXT)
+
+$(TARGET_RODATA):
+	@echo Extracting rodata, section .rodata, into $@
+	@$(RM) $@
+	@touch $@
+	@objcopy --dump-section .rodata=$@ $(TARGET_ELF)
+	@stat -c %s $@ | xargs printf "0x%08X" | xxd -r >> $(TARGET_TEXT)
+
+$(TARGET_IMAGE):$(TARGET_ELF)
+	@$(MAKE) $(TARGET_TEXT) 
+	@$(MAKE) $(TARGET_DATA) 
+	@$(MAKE) $(TARGET_RODATA)
+	@echo Linking $(TARGET_TEXT) $(TARGET_DATA) and $(TARGET_RODATA) into $@
+	@cat $(TARGET_TEXT) $(TARGET_DATA) $(TARGET_RODATA) > $@
+	@echo truncating $@ to minimum of $(MIN_IMAGE_SIZE) bytes
+	@truncate $@ --size=">$(MIN_IMAGE_SIZE)"
 
 -include $(DEP_FILES)
-$(OBJ_DIR)/%.obj:$(SRC_DIR)/%.asm
+$(OBJ_DIR)/%.$(OBJ_EXT): $(SRC_DIR)/%.$(SRC_EXT)
 	@echo Compiling $< into $@
 	@mkdir -p $(dir $@)
-	@$(COMP) $(COMP_FLAGS) -i $(INC_DIR)/ $< -M -MF $(@:.obj=.dep) -MT $@
-	@$(COMP) $(COMP_FLAGS) -i $(INC_DIR)/ $< -o $@
+	@$(CC) $(CCFLAGS) $< -o $@ -MD $(@:.obj=.dep)
 
-burn:
-	sudo dd if=$(NAME).img of=/dev/sda
-
-start:
-	qemu-system-x86_64 -drive file=$(NAME).img,format=raw -no-reboot -no-shutdown
-
-restart: build start
+run: $(TARGET_IMAGE)
+	qemu-system-x86_64 -drive file=$(TARGET_IMAGE),format=raw -no-reboot -no-shutdown
 
 debug:
-	qemu-system-x86_64 -drive file=$(NAME).img,format=raw -M accel=tcg,smm=off -d int -no-reboot -no-shutdown -monitor stdio
-
-redebug: build debug
+	qemu-system-x86_64 -drive file=$(TARGET_IMAGE),format=raw -M accel=tcg,smm=off -d int -no-reboot -no-shutdown -monitor stdio
 
 clean:
-	rm -rf $(OBJ_DIR)
+	@$(RM) $(OBJ_DIR)
 
-cleanAll: clean
-	rm -rf $(NAME).*
+wipe: clean
+	@$(RM) $(NAME).*
 
-rebuild: cleanAll build
+rebuild: wipe build
 
-show:
-	@echo $(SRC_FILES)
+redebug: wipe debug 
 
-.PHONY:build start restart debug redebug clean cleanAll rebuild show
+rerelease: wipe release
+
+rerun: build run
+
+.PHONY: build rebuild
+.PHONY: debug redebug
+.PHONY: release rerelease
+.PHONY: run rerun
+.PHONY: install uninstall
+.PHONY: clean wipe
