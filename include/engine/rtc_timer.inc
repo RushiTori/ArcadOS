@@ -61,6 +61,12 @@ extern init_rtc
 ; Return: The time since init_rtc().
 extern rtc_get_time
 
+; uint64_t rtc_get_ticks(void);
+;
+; Return: The number of rtc_ticks since init_rtc().
+; Note: A rtc_tick is roughly 122 microseconds.
+extern rtc_get_ticks
+
 ; RTCTime rtc_time_diff(RTCTime lhs, RTCTime rhs);
 ;
 ; Return: lhs - rhs.
@@ -70,6 +76,12 @@ extern rtc_time_diff
 ;
 ; Will sleep for at least time, if time is too small or not exactly in line with the ticks, it'll sleep for an extra tick.
 extern rtc_sleep
+
+; void rtc_sleep_ticks(uint64_t ticks);
+;
+; Like rtc_sleep but with rtc_tick precision.
+; Note: A rtc_tick is roughly 122 microseconds.
+extern rtc_sleep_ticks
 
 ; int64_t rtc_snprint(RTCTime time, char* buffer, uint64_t n);
 ;

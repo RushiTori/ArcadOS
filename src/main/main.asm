@@ -3,26 +3,49 @@ default rel
 
 %include "main/main.inc"
 
+%define TITLE_COLOR_OFFSET 0x38
+
 section .data
 
 %define TEXT_BUFFER_LEN 1024
 
 text_buffer:
-static text_buffer:
-	db                         "debug"
-	times TEXT_BUFFER_LEN-5 db 0
+static text_buffer: data
+	times TEXT_BUFFER_LEN db 0
 
 var(static, uint64_t, text_index, 0)
+
+anchor:
+static anchor: data
+	istruc ScreenVec2
+		at ScreenVec2.x, .x: dw 0
+		at ScreenVec2.y, .y: dw 0
+	iend
 
 section      .rodata
 
 string(static, ArcadOSTitle, "ArcadOS", 0)
+var(static, uint8_t, title_main_color, 0)
+var(static, uint8_t, title_shadow_color, 0)
+var(static, uint8_t, title_back_color, 0)
 
 section      .text
 
 ; void main_update(void);
 func(static, main_update)
 	sub rsp, 8 ; to re-align the stack
+
+
+	mov cl, uint8_p [title_main_color]
+	inc cl
+	and cl, 31
+
+	add cl,                           TITLE_COLOR_OFFSET
+	mov uint8_p [title_main_color],   cl
+	add cl,                           0x48
+	mov uint8_p [title_shadow_color], cl
+	add cl,                           0x48
+	mov uint8_p [title_back_color],   cl
 
 	call PS2KB_update ; PS2KB_update();
 
@@ -35,10 +58,30 @@ func(static, main_update)
 func(static, main_display)
 	sub rsp, 8 ; to re-align the stack
 
-	mov  dil, 0x02
+	mov dil, 0
+	
 	call clear_screen_c ; green screen
 
 	call display_kb_buffer ; display_kb_buffer();
+
+	mov  dil, 0x12         ; uint8_p [title_back_color]
+	call set_display_color
+
+	mov  di, (((40 - sizeof(ArcadOSTitle)) / 2) * 8) - 4
+	mov  si, 0
+	mov  dx, (sizeof(ArcadOSTitle)) * 8
+	mov  cx, 16
+	call draw_rect
+
+	mov cl,  uint8_p [title_main_color]
+	mov r8b, uint8_p [title_shadow_color]
+	mov r9b, uint8_p [title_back_color]
+
+	lea rdi, [ArcadOSTitle]
+	mov si,  ((40 - sizeof(ArcadOSTitle)) / 2) * 8
+	mov dx,  4
+
+	call draw_text_all_c
 
 	add rsp, 8 ; to re-align the stack
 	ret
@@ -61,10 +104,15 @@ func(global, main)
 		call main_update
 		call main_display
 
-		.waitForFrameTime:
-			mov  rdi, 16
-			shl  rdi, 32  ; literal 16 as 32.32 fixed point
-			call sleep_ms ; sleep_ms(16.0);
+		; mov  rdi, 8192 ; 1 second in rtc_ticks
+		; call rtc_sleep_ticks
+
+		mov  rdi, 0               ; seconds
+		shl  rdi, 32
+		add  rdi, 100 * 1_000_000 ; milliseconds
+		add  rdi, 0 * 1_000       ; microseconds
+		add  rdi, 0 * 1           ; nanoseconds
+		call rtc_sleep
 
 		jmp .main_loop
 
@@ -99,36 +147,31 @@ func(static, update_kb_buffer)
 	cmp  rax, true
 	je   .handle_backspace
 
-	jmp .skipBackspace
+	jmp .skip_handle_backspace
 
 	.handle_backspace:
 		; if (!text_index) goto skip_handle_backspace;
 		mov rdi, uint64_p [text_index]
 		cmp rdi, 0
-		je  .skipBackspace
+		je  .skip_handle_backspace
 
 		; text_buffer[--text_index] = '\0';
-		dec qword[text_index]
-		mov byte [text_buffer + rdi], 0
+		dec uint64_p [text_index]
+		mov al,                              uint8_p [text_buffer + rdi]
+		mov uint8_p [text_buffer + rdi - 1], 0
 
-	.skipBackspace:
+	.skip_handle_backspace:
 
 	add rsp, 8 ; to re-align the stack
 	ret
-
-extern       rtc_pos
 
 ; void display_kb_buffer(void);
 func(static, display_kb_buffer)
 	sub rsp, 8 ; to re-align the stack
 
-	lea rdi, [text_buffer]
-	xor rsi, rsi
-	xor rdx, rdx
-
-	mov  rdx, uint64_p [rtc_pos]
-	shr rdx, 10 ;divided by 1024
-	call draw_text_and_shadow
+	lea  rdi, [text_buffer]
+	xor  rsi, rsi
+	call draw_text_and_shadow_vec
 
 	add rsp, 8 ; to re-align the stack
 	ret
