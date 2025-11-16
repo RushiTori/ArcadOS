@@ -17,6 +17,8 @@ bits 64
 %include "engine/PIT_timer.inc"
 %include "engine/rtc_timer.inc"
 
+%include "bootloader/VGA.inc"
+
 %define STACK_START                   0x0009FFFF                                                ;lotsa memory to grow down from here
 %define TEXT_ADDR_START               0xB8000
 
@@ -97,6 +99,8 @@ global  make_idt_64: function
 	mov  rdi, 0b11111000 ;enable slave and enable IRQ1
 	mov  rsi, 0b11101110 ;enable IRQ12 and IRQ8
 	call mask_pic64
+
+	call set_graphics_mode
 
 	jmp main
 	;jmp find_RSDP
