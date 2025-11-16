@@ -114,7 +114,7 @@ $(OBJ_DIR)/%.$(OBJ_EXT): $(SRC_DIR)/%.$(SRC_EXT)
 run: $(TARGET_IMAGE)
 	qemu-system-x86_64 -drive file=$(TARGET_IMAGE),format=raw -no-reboot -no-shutdown
 
-debug:
+debug: build_debug
 	qemu-system-x86_64 -drive file=$(TARGET_IMAGE),format=raw -M accel=tcg,smm=off -d int -no-reboot -no-shutdown -monitor stdio
 
 clean:
