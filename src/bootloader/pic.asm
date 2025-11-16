@@ -61,14 +61,15 @@ sendEOI_pic32:
 global sendEOI_pic32:function
 	cmp edi, 0x16
 	jae .errorRet
-	mov al, PIC_EOI
 	cmp edi, 0x8
+	mov al, PIC_EOI
 	jae .handleSlaveIrq
+.end:
 	out PIC1_COMMAND, al
 	ret
 .handleSlaveIrq:
 	out PIC2_COMMAND, al
-	ret
+	jmp .end
 .errorRet:
 	mov eax, -1
 	ret
@@ -205,14 +206,15 @@ sendEOI_pic64:
 global sendEOI_pic64:function
 	cmp rdi, 0x16
 	jae .errorRet
-	mov al, PIC_EOI
 	cmp rdi, 0x8
+	mov al, PIC_EOI
 	jae .handleSlaveIrq
+.end:
 	out PIC1_COMMAND, al
 	ret
 	.handleSlaveIrq:
 		out PIC2_COMMAND, al
-		ret
+		jmp .end
 	.errorRet:
 		mov rax, -1
 	ret
