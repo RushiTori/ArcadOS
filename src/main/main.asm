@@ -126,7 +126,8 @@ func(static, display_kb_buffer)
 	xor rsi, rsi
 	xor rdx, rdx
 
-	mov  dx, uint16_p [rtc_pos]
+	mov  rdx, uint64_p [rtc_pos]
+	shr rdx, 10 ;divided by 1024
 	call draw_text_and_shadow
 
 	add rsp, 8 ; to re-align the stack
