@@ -58,9 +58,8 @@ func(static, main_update)
 func(static, main_display)
 	sub rsp, 8 ; to re-align the stack
 
-	mov dil, 0
-	
-	call clear_screen_c ; green screen
+	mov dil, 0xFF
+	call clear_screen_c
 
 	call display_kb_buffer ; display_kb_buffer();
 
@@ -95,10 +94,6 @@ func(global, main)
 		mov rax, cr4
 		or  ax,  3 << 9 ;set CR4.OSFXSR and CR4.OSXMMEXCPT at the same time
 		mov cr4, rax
-
-	;error test
-	;mov rcx, 0
-	;div rcx
 
 	.main_loop:
 		call main_update
