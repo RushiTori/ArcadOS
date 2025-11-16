@@ -9,7 +9,8 @@ section .data
 
 text_buffer:
 static text_buffer:
-	times TEXT_BUFFER_LEN db 0
+	db                         "debug"
+	times TEXT_BUFFER_LEN-5 db 0
 
 var(static, uint64_t, text_index, 0)
 
@@ -26,17 +27,6 @@ func(static, main_update)
 	call PS2KB_update ; PS2KB_update();
 
 	call update_kb_buffer ; update_kb_buffer();
-
-	mov rdi, 128
-	shl rdi, 32
-
-	lea rsi, [text_buffer]
-
-	mov rdx, TEXT_BUFFER_LEN - 1
-
-	call rtc_snprint ; rtc_snprint()
-
-	mov byte [text_buffer + TEXT_BUFFER_LEN - 1], 0
 
 	add rsp, 8 ; to re-align the stack
 	ret
@@ -126,6 +116,8 @@ func(static, update_kb_buffer)
 	add rsp, 8 ; to re-align the stack
 	ret
 
+extern       rtc_pos
+
 ; void display_kb_buffer(void);
 func(static, display_kb_buffer)
 	sub rsp, 8 ; to re-align the stack
@@ -134,7 +126,7 @@ func(static, display_kb_buffer)
 	xor rsi, rsi
 	xor rdx, rdx
 
-	mov  rdx, 16
+	mov  dx, uint16_p [rtc_pos]
 	call draw_text_and_shadow
 
 	add rsp, 8 ; to re-align the stack

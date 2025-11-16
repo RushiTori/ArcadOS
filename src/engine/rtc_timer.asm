@@ -26,6 +26,7 @@ section     .bss
 
 res(static, uint64_t, rtc_ticks)
 res(static, uint64_t, rtc_sleep_ticks)
+res(global, uint16_t, rtc_pos)
 
 section     .text
 
@@ -88,6 +89,11 @@ func(static, set_cmos_frequency)
 	jmp send_cmos_register ; send_cmos_register(CMOS_REG_A, (prev & 0xF0) | rate);
 
 func(static, rtc_irq)
+	inc uint16_p [rtc_pos]      ; debug
+	cmp uint16_p [rtc_pos], 200
+	jle .skip_pos
+		mov uint16_p [rtc_pos], 0
+	.skip_pos:
 	inc uint64_p [rtc_ticks] ; rtc_ticks++;
 
 	sub rsp, 8 ; to re-align the stack
