@@ -87,16 +87,10 @@ func(static, set_cmos_frequency)
 	mov sil, al
 	jmp send_cmos_register ; send_cmos_register(CMOS_REG_A, (prev & 0xF0) | rate);
 
-extern       draw_text_all_vec
-
 func(static, rtc_irq)
 	inc uint64_p [rtc_ticks] ; rtc_ticks++;
 
 	sub rsp, 8 ; to re-align the stack
-
-	lea  rdi, [hey_str]
-	xor  esi, esi
-	call draw_text_all_vec ; draw_text_all_vec(hey_str, (ScreenVec2){0});
 
 	mov  rdi, 8        ; IRQ8
 	call sendEOI_pic64 ; sendEOI_pic64(IRQ8);
@@ -468,5 +462,3 @@ static rtc_time_names: data
 	.minutes: db "m", 0
 	.hours:   db "h", 0
 	.days:    db "d", 0
-
-string(static, hey_str, "Hey from the rtc timer !", 0)
