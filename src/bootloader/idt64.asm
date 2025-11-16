@@ -94,7 +94,7 @@ global  make_idt_64: function
 	call mask_pic64
 	call PS2_init        ;automatically initializes the drivers for the devices plugged in
 
-	mov  rdi, 0b11111001 ;enable slave and enable IRQ1
+	mov  rdi, 0b11111000 ;enable slave and enable IRQ1
 	mov  rsi, 0b11101110 ;enable IRQ12 and IRQ8
 	call mask_pic64
 
