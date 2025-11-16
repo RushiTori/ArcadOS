@@ -14,6 +14,9 @@ static text_buffer:
 
 var(static, uint64_t, text_index, 0)
 
+var(static,  uint16_t, pos, 150)
+var(static, uint16_t, line_count, 1)
+
 section      .rodata
 
 string(static, ArcadOSTitle, "ArcadOS", 0)
@@ -27,6 +30,17 @@ func(static, main_update)
 	call PS2KB_update ; PS2KB_update();
 
 	call update_kb_buffer ; update_kb_buffer();
+
+	mov dx, uint16_p [line_count]
+	shl dx, 3
+	neg dx
+
+	mov ax, uint16_p [pos]
+	inc ax
+
+	cmp    ax,             200
+	cmovge ax,             dx
+	mov    uint16_p [pos], ax
 
 	add rsp, 8 ; to re-align the stack
 	ret
@@ -61,10 +75,15 @@ func(global, main)
 		call main_update
 		call main_display
 
-		.waitForFrameTime:
-			mov  rdi, 16
-			shl  rdi, 32  ; literal 16 as 32.32 fixed point
-			call sleep_ms ; sleep_ms(16.0);
+		; mov  rdi, 8192 ; 1 second in rtc_ticks
+		; call rtc_sleep_ticks
+
+		mov  rdi, 0              ; seconds
+		shl  rdi, 32
+		add  rdi, 20 * 1_000_000 ; milliseconds
+		add  rdi, 0 * 1_000      ; microseconds
+		add  rdi, 0 * 1          ; nanoseconds
+		call rtc_sleep
 
 		jmp .main_loop
 
@@ -86,6 +105,10 @@ func(static, update_kb_buffer)
 		mov uint8_p [text_buffer + rdi], al
 		inc uint64_p [text_index]
 
+		cmp al, FONT_LINE_FEED
+		jne .add_to_buffer_loop
+		inc uint16_p [line_count]
+
 		jmp .add_to_buffer_loop
 	.add_to_buffer_loop_end:
 
@@ -99,35 +122,36 @@ func(static, update_kb_buffer)
 	cmp  rax, true
 	je   .handle_backspace
 
-	jmp .skipBackspace
+	jmp .skip_handle_backspace
 
 	.handle_backspace:
 		; if (!text_index) goto skip_handle_backspace;
 		mov rdi, uint64_p [text_index]
 		cmp rdi, 0
-		je  .skipBackspace
+		je  .skip_handle_backspace
 
 		; text_buffer[--text_index] = '\0';
-		dec qword[text_index]
-		mov byte [text_buffer + rdi], 0
+		dec uint64_p [text_index]
+		mov al,                              uint8_p [text_buffer + rdi]
+		mov uint8_p [text_buffer + rdi - 1], 0
 
-	.skipBackspace:
+		cmp al, FONT_LINE_FEED
+		jne .skip_handle_backspace
+		dec uint16_p [line_count]
+
+	.skip_handle_backspace:
 
 	add rsp, 8 ; to re-align the stack
 	ret
-
-extern       rtc_pos
 
 ; void display_kb_buffer(void);
 func(static, display_kb_buffer)
 	sub rsp, 8 ; to re-align the stack
 
-	lea rdi, [text_buffer]
-	xor rsi, rsi
-	xor rdx, rdx
-
-	mov  rdx, uint64_p [rtc_pos]
-	shr rdx, 10 ;divided by 1024
+	lea  rdi, [text_buffer]
+	xor  rsi, rsi
+	xor  rdx, rdx
+	mov  dx,  uint16_p [pos]
 	call draw_text_and_shadow
 
 	add rsp, 8 ; to re-align the stack
