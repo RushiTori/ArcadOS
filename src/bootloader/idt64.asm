@@ -591,6 +591,7 @@ static idt64_regdump_gfx_mode:function
 idt64_trap64_error_code:
 static idt64_trap64_error_code:function
 	; TODO: Bank RIP, RSP and RBP(?) correctly
+	cli
 
 	mov qword [reg_RAX_bank], rax
 	mov qword [reg_RBX_bank], rbx
@@ -628,6 +629,7 @@ static idt64_trap64_error_code:function
 idt64_trap64:
 static idt64_trap64:function
 	; TODO: Bank RIP, RSP and RBP(?) correctly
+	cli
 
 	mov qword [reg_RAX_bank], rax
 	mov qword [reg_RBX_bank], rbx
@@ -658,6 +660,7 @@ static idt64_trap64:function
 idt64_PF:
 static idt64_PF:function
 	; TODO: Bank RIP, RSP and RBP(?) correctly
+	cli
 
 	mov qword [reg_RAX_bank], rax
 	mov qword [reg_RBX_bank], rbx
@@ -689,6 +692,7 @@ static idt64_PF:function
 idt64_GPF:
 static idt64_GPF:function
 	; TODO: Bank RIP, RSP and RBP(?) correctly
+	cli
 
 	mov qword [reg_RAX_bank], rax
 	mov qword [reg_RBX_bank], rbx
