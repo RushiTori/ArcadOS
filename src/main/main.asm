@@ -15,26 +15,45 @@ static text_buffer: data
 
 var(static, uint64_t, text_index, 0)
 
-anchor:
-static anchor: data
+title_pos:
+static title_pos: data
 	istruc ScreenVec2
 		at ScreenVec2.x, .x: dw 0
 		at ScreenVec2.y, .y: dw 0
 	iend
 
-section      .rodata
-
-string(static, ArcadOSTitle, "ArcadOS", 0)
 var(static, uint8_t, title_main_color, 0)
 var(static, uint8_t, title_shadow_color, 0)
 var(static, uint8_t, title_back_color, 0)
 
-section      .text
+section .rodata
+
+string(static, ArcadOSTitle, "ArcadOS", 0)
+
+section .text
+
+; Had to implement it with PS2KB_get_char because PS2KB_is_key_pressed never worked for some reason
+; Tried with arrow keys at first
+; Tried with PS2KB_is_key_down, but it was false for half a second, then true for 1 frame then false until released and pressed again
+%macro check_for_key_pressed_and_do 3
+	cmp al, %1
+	jne %%skip_action
+		%2, %3
+	%%skip_action:
+%endmacro
 
 ; void main_update(void);
 func(static, main_update)
 	sub rsp, 8 ; to re-align the stack
 
+	call PS2KB_update ; PS2KB_update();
+
+	call PS2KB_get_char
+
+	check_for_key_pressed_and_do 'z', sub uint16_p [title_pos.y], 4
+	check_for_key_pressed_and_do 's', add uint16_p [title_pos.y], 4
+	check_for_key_pressed_and_do 'q', sub uint16_p [title_pos.x], 4
+	check_for_key_pressed_and_do 'd', add uint16_p [title_pos.x], 4
 
 	mov cl, uint8_p [title_main_color]
 	inc cl
@@ -47,7 +66,6 @@ func(static, main_update)
 	add cl,                           0x48
 	mov uint8_p [title_back_color],   cl
 
-	call PS2KB_update ; PS2KB_update();
 
 	call update_kb_buffer ; update_kb_buffer();
 
@@ -66,20 +84,22 @@ func(static, main_display)
 	mov  dil, 0x12         ; uint8_p [title_back_color]
 	call set_display_color
 
-	mov  di, (((40 - sizeof(ArcadOSTitle)) / 2) * 8) - 4
-	mov  si, 0
+	mov  di, uint16_p [title_pos.x]
+	add  di, (((40 - sizeof(ArcadOSTitle)) / 2) * 8) - 4
+	mov  si, uint16_p [title_pos.y]
 	mov  dx, (sizeof(ArcadOSTitle)) * 8
 	mov  cx, 16
 	call draw_rect
 
-	mov cl,  uint8_p [title_main_color]
-	mov r8b, uint8_p [title_shadow_color]
-	mov r9b, uint8_p [title_back_color]
 
-	lea rdi, [ArcadOSTitle]
-	mov si,  ((40 - sizeof(ArcadOSTitle)) / 2) * 8
-	mov dx,  4
-
+	lea  rdi, [ArcadOSTitle]
+	mov  si,  uint16_p [title_pos.x]
+	add  si,  ((40 - sizeof(ArcadOSTitle)) / 2) * 8
+	mov  dx,  uint16_p [title_pos.y]
+	add  dx,  4
+	mov  cl,  uint8_p [title_main_color]
+	mov  r8b, uint8_p [title_shadow_color]
+	mov  r9b, uint8_p [title_back_color]
 	call draw_text_all_c
 
 	add rsp, 8 ; to re-align the stack
@@ -99,14 +119,14 @@ func(global, main)
 		call main_update
 		call main_display
 
-		; mov  rdi, 8192 ; 1 second in rtc_ticks
+		; mov  rdi, 1024       ; 1 second in rtc_ticks
 		; call rtc_sleep_ticks
 
-		mov  rdi, 0               ; seconds
+		mov  rdi, 0              ; seconds
 		shl  rdi, 32
-		add  rdi, 100 * 1_000_000 ; milliseconds
-		add  rdi, 0 * 1_000       ; microseconds
-		add  rdi, 0 * 1           ; nanoseconds
+		add  rdi, 10 * 1_000_000 ; milliseconds
+		add  rdi, 0 * 1_000      ; microseconds
+		add  rdi, 0 * 1          ; nanoseconds
 		call rtc_sleep
 
 		jmp .main_loop
