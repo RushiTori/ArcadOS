@@ -3,57 +3,42 @@
 %include "engine/font.inc"
 %include "engine/PIT_timer.inc"
 
-section .data
+section .rodata
 
-error_init_controller_error:
-	db "PS/2 error: controller self test", 0xA, "failed!", 0
+string(static, error_init_controller_error, "PS/2 error: controller self test", 0xA, "failed!", 0)
 
-error_port1_check:
-	db "PS/2 error: port 1 test failed!", 0
-error_port2_check:
-	db "PS/2 error: port 2 test failed!", 0
+string(static, error_port1_check, "PS/2 error: port 1 test failed!", 0)
+string(static, error_port2_check, "PS/2 error: port 2 test failed!", 0)
 
-error_port1_id_reception:
-	db "PS/2 error: could not obtain", 0xA, "port 1 device id!", 0
-error_port2_id_reception:
-	db "PS/2 error: could not obtain", 0xA, "port 2 device id!", 0
+string(static, error_port1_id_reception, "PS/2 error: could not obtain", 0xA, "port 1 device id!", 0)
+string(static, error_port2_id_reception, "PS/2 error: could not obtain", 0xA, "port 2 device id!", 0)
 
-error_disable_scan_port1:
-	db "PS/2 error: could not disable", 0xA, "scanning on port 1!", 0
-error_disable_scan_port2:
-	db "PS/2 error: could not disable", 0xA, "scanning on port 2!", 0
+string(static, error_disable_scan_port1, "PS/2 error: could not disable", 0xA, "scanning on port 1!", 0)
+string(static, error_disable_scan_port2, "PS/2 error: could not disable", 0xA, "scanning on port 2!", 0)
 
-error_enable_scan_port1:
-	db "PS/2 error: could not enable", 0xA, "scanning on port 1!", 0
-error_enable_scan_port2:
-	db "PS/2 error: could not enable", 0xA, "scanning on port 2!", 0
+string(static, error_enable_scan_port1, "PS/2 error: could not enable", 0xA, "scanning on port 1!", 0)
+string(static, error_enable_scan_port2, "PS/2 error: could not enable", 0xA, "scanning on port 2!", 0)
 
-error_port_not_populated_maybe_port1:
-	db "PS/2 error: no ID fetch on port 1!", 0
-error_port_not_populated_maybe_port2:
-	db "PS/2 error: no ID fetch on port 2!", 0
+string(static, error_port_not_populated_maybe_port1, "PS/2 error: no ID fetch on port 1!", 0)
+string(static, error_port_not_populated_maybe_port2, "PS/2 error: no ID fetch on port 2!", 0)
 
-warning_no_PS2_devices:
-	db "no PS/2 devices were detected", 0xA, "by the driver!", 0xA, "the OS will not proceed, please shut down the computer, plug in a PS/2 keyboard", 0xA, "and start it up again.", 0
+string(static, warning_no_PS2_devices, "no PS/2 devices were detected", 0xA, "by the driver!", 0xA, "the OS will not proceed, please shut down the computer, plug in a PS/2 keyboard", 0xA, "and start it up again.", 0)
 
 section .bss
 
-PS2_port_2:
-	resb 1 ;true
+res(static, bool_t, PS2_port_2)
 
-PS2_port_1_state:
-	resb 1 ;success
-PS2_port_2_state:
-	resb 1 ;successs
+res(static, uint8_t, PS2_port_1_state)
+res(static, uint8_t, PS2_port_2_state)
 
 PS2_device_array:
+static PS2_device_array: data
 PS2_port_1_device:
-	resw 1 ;MF2 keyboard
+	resw 1
 PS2_port_2_device:
-	resw 1 ;mouse
+	resw 1
 
-PS2_timeout_timer:
-	resq 1
+res(static, uint64_t, PS2_timeout_timer)
 
 section .text
 
