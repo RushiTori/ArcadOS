@@ -7,8 +7,8 @@ section .text
 
 boot_sector_3_start:
 	; change the vga mode to 320x200 8bpp graphics
-	mov ax, 0x0013
-	int 0x10
+	;mov ax, 0x0013
+	;int 0x10
 
 	mov ax, 0
 	mov ds, ax
