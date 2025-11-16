@@ -82,23 +82,17 @@ $(TARGET_ELF):$(OBJ_FILES)
 	@echo Linking $@
 	@$(LD) $(LDFLAGS) $^ -o $@
 
-$(TARGET_TEXT):
+$(TARGET_TEXT):$(TARGET_ELF)
 	@echo Extracting raw code, section .text, into $@
-	@$(RM) $@
-	@touch $@
 	@objcopy --dump-section .text=$@ $(TARGET_ELF)
 
-$(TARGET_DATA):
+$(TARGET_DATA):$(TARGET_ELF)
 	@echo Extracting data, section .data, into $@
-	@$(RM) $@
-	@touch $@
 	@objcopy --dump-section .data=$@ $(TARGET_ELF)
 	@stat -c %s $@ | xargs printf "0x%08X" | xxd -r >> $(TARGET_TEXT)
 
-$(TARGET_RODATA):
+$(TARGET_RODATA):$(TARGET_ELF)
 	@echo Extracting rodata, section .rodata, into $@
-	@$(RM) $@
-	@touch $@
 	@objcopy --dump-section .rodata=$@ $(TARGET_ELF)
 	@stat -c %s $@ | xargs printf "0x%08X" | xxd -r >> $(TARGET_TEXT)
 
