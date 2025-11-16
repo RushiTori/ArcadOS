@@ -25,8 +25,7 @@ default rel
 section     .bss
 
 res(static, uint64_t, rtc_ticks)
-res(static, uint64_t, rtc_sleep_ticks)
-res(global, uint64_t, rtc_pos)
+res(static, uint64_t, rtc_sleep_ticks_count)
 
 section     .text
 
@@ -92,11 +91,11 @@ func(static, rtc_irq)
 	push rax
 	push rdi
 
-	inc uint64_p [rtc_pos]      ; debug
-	cmp uint64_p [rtc_pos], 200 * 1024
-	jle .skip_pos
-		mov uint64_p [rtc_pos], 0
-	.skip_pos:
+	cmp uint64_p [rtc_sleep_ticks_count], 0
+	je  .skip_sleep_ticks
+		dec uint64_p [rtc_sleep_ticks_count] ; if (rtc_sleep_ticks_count) rtc_sleep_ticks_count--;
+	.skip_sleep_ticks:
+
 	inc uint64_p [rtc_ticks] ; rtc_ticks++;
 
 	sub rsp, 8 ; to re-align the stack
@@ -160,6 +159,14 @@ func(global, rtc_get_time)
 	shl rax, 33  ; RTCTime.sec = low 32 of rax and eliminate sign bit
 	shr rax, 1
 	or  rax, rcx ; RTCTime.nsec = rcx ; rcx is always less than 1e9 due to division
+	ret
+
+; uint64_t rtc_get_ticks(void);
+;
+; Return: The number of rtc_ticks since init_rtc().
+; Note: A rtc_tick is roughly 122 microseconds.
+func(global, rtc_get_ticks)
+	mov rax, uint64_p [rtc_ticks]
 	ret
 
 ; uint128_t rtctime_to_nanoseconds(RTCTime time);
@@ -244,9 +251,27 @@ func(global, rtc_sleep)
 		inc rax
 	.skip_off_by_one_correction:
 
-	mov uint64_p [rtc_sleep_ticks], rax
-
 	add rsp, 8 ; to re-align the stack
+
+	mov rdi, rax
+	jmp rtc_sleep_ticks
+
+; void rtc_sleep_ticks(uint64_t ticks);
+;
+; Like rtc_sleep but with rtc_tick precision.
+; Note: A rtc_tick is roughly 122 microseconds.
+func(global, rtc_sleep_ticks)
+	cmp rdi, 0
+	je  .end
+
+	mov uint64_p [rtc_sleep_ticks_count], rdi ; rtc_sleep_ticks_count = ticks
+
+	.wait_loop:
+		hlt
+		cmp uint64_p [rtc_sleep_ticks_count], 0
+		jne .wait_loop
+	
+	.end:
 	ret
 
 ; int64_t rtc_snprint(RTCTime time, char* buffer, uint64_t n);
