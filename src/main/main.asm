@@ -18,13 +18,22 @@ var(static, uint64_t, text_index, 0)
 title_pos:
 static title_pos: data
 	istruc ScreenVec2
-		at ScreenVec2.x, .x: dw 0
-		at ScreenVec2.y, .y: dw 0
+		at ScreenVec2.x, .x: dw 8
+		at ScreenVec2.y, .y: dw 8
+	iend
+
+title_vel:
+static title_vel: data
+	istruc ScreenVec2
+		at ScreenVec2.x, .x: dw 4
+		at ScreenVec2.y, .y: dw 4
 	iend
 
 var(static, uint8_t, title_main_color, 0)
 var(static, uint8_t, title_shadow_color, 0)
 var(static, uint8_t, title_back_color, 0)
+
+var(static, bool_t, title_manual, false)
 
 section .rodata
 
@@ -50,10 +59,50 @@ func(static, main_update)
 
 	call PS2KB_get_char
 
-	check_for_key_pressed_and_do 'z', sub uint16_p [title_pos.y], 4
-	check_for_key_pressed_and_do 's', add uint16_p [title_pos.y], 4
-	check_for_key_pressed_and_do 'q', sub uint16_p [title_pos.x], 4
-	check_for_key_pressed_and_do 'd', add uint16_p [title_pos.x], 4
+	check_for_key_pressed_and_do ' ', xor bool_p [title_manual], 1
+
+	cmp bool_p [title_manual], false
+	je  .auto_move
+
+	.manual_move:
+		check_for_key_pressed_and_do 'z', sub uint16_p [title_pos.y], 4
+		check_for_key_pressed_and_do 's', add uint16_p [title_pos.y], 4
+		check_for_key_pressed_and_do 'q', sub uint16_p [title_pos.x], 4
+		check_for_key_pressed_and_do 'd', add uint16_p [title_pos.x], 4
+	.skip_manual_move:
+	jmp .skip_auto_move
+
+	.auto_move:
+		mov ax, uint16_p [title_pos.x]
+		add ax, uint16_p [title_vel.x]
+
+		mov uint16_p [title_pos.x], ax
+
+		cmp ax, 0
+		je  .flip_vel_x
+
+		cmp ax, 320 - sizeof(ArcadOSTitle) * 8
+		jne .skip_flip_vel_x
+
+		.flip_vel_x:
+			neg uint16_p [title_vel.x]
+		.skip_flip_vel_x:
+
+		mov ax, uint16_p [title_pos.y]
+		add ax, uint16_p [title_vel.y]
+
+		mov uint16_p [title_pos.y], ax
+
+		cmp ax, 0
+		je  .flip_vel_y
+
+		cmp ax, 200 - 2 * 8
+		jne .skip_flip_vel_y
+
+		.flip_vel_y:
+		neg uint16_p [title_vel.y]
+		.skip_flip_vel_y:
+	.skip_auto_move:
 
 	mov cl, uint8_p [title_main_color]
 	inc cl
@@ -76,16 +125,15 @@ func(static, main_update)
 func(static, main_display)
 	sub rsp, 8 ; to re-align the stack
 
-	mov dil, 0xFF
+	mov  dil, 0xFF
 	call clear_screen_c
 
 	call display_kb_buffer ; display_kb_buffer();
 
-	mov  dil, 0x12         ; uint8_p [title_back_color]
+	mov  dil, 0x12
 	call set_display_color
 
 	mov  di, uint16_p [title_pos.x]
-	add  di, (((40 - sizeof(ArcadOSTitle)) / 2) * 8) - 4
 	mov  si, uint16_p [title_pos.y]
 	mov  dx, (sizeof(ArcadOSTitle)) * 8
 	mov  cx, 16
@@ -94,7 +142,7 @@ func(static, main_display)
 
 	lea  rdi, [ArcadOSTitle]
 	mov  si,  uint16_p [title_pos.x]
-	add  si,  ((40 - sizeof(ArcadOSTitle)) / 2) * 8
+	add  si,  4
 	mov  dx,  uint16_p [title_pos.y]
 	add  dx,  4
 	mov  cl,  uint8_p [title_main_color]
