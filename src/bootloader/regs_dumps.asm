@@ -5,8 +5,65 @@
 
 section .text
 
-regs_names_32:
-static  regs_names_32: data
+flag_reg_name:
+static  flag_reg_name: data
+    db "FLGS"
+
+flag_reg_bank:
+static flag_reg_bank: data
+    dd 0
+
+segment_regs_names:
+static segment_regs_names: data
+    .cs: db " CS "
+    .ds: db " DS "
+    .ss: db " SS "
+    .es: db " ES "
+    .fs: db " FS "
+    .gs: db " GS "
+
+segment_regs_banks:
+static segment_regs_banks: data
+    .cs: dw 0
+    .ds: dw 0
+    .ss: dw 0
+    .es: dw 0
+    .fs: dw 0
+    .gs: dw 0
+
+control_regs_names:
+static control_regs_names: data
+    .cr0: db "CR0 "
+    .cr2: db "CR2 "
+    .cr3: db "CR3 "
+    .cr4: db "CR4 "
+    .cr8: db "CR8 "
+
+control_regs_banks:
+static control_regs_banks: data
+    .cr0: dq 0
+    .cr2: dq 0
+    .cr3: dq 0
+    .cr4: dq 0
+    .cr8: dq 0
+
+table_regs_names:
+static table_regs_names: data
+    .gdtr: db "GDTR"
+    .idtr: db "IDTR"
+
+gdtr_reg_bank:
+static gdtr_reg_bank: data
+    .limit: dw 0
+    .base:  dq 0
+
+idtr_reg_bank:
+static idtr_reg_bank: data
+    .limit: dw 0
+    .base:  dq 0
+
+ap_regs_names_32:
+static ap_regs_names_32: data
     .eip: db "EIP "
     .eax: db "EAX "
     .ebx: db "EBX "
@@ -16,15 +73,9 @@ static  regs_names_32: data
     .edi: db "EDI "
     .esp: db "ESP "
     .ebp: db "EBP "
-    .cs:  db " CS "
-    .ds:  db " DS "
-    .ss:  db " SS "
-    .es:  db " ES "
-    .fs:  db " FS "
-    .gs:  db " GS "
 
-regs_names_64:
-static regs_names_64: data
+ap_regs_names_64:
+static ap_regs_names_64: data
     .rip: db "RIP "
     .rax: db "RAX "
     .rbx: db "RBX "
@@ -43,8 +94,8 @@ static regs_names_64: data
     .r14: db "R14 "
     .r15: db "R15 "
 
-regs_banks:
-static regs_banks: data
+ap_regs_banks:
+static ap_regs_banks: data
     .eip:
     .rip: dq 0
     .eax:
@@ -69,13 +120,19 @@ static regs_banks: data
     .r13: dq 0
     .r14: dq 0
     .r15: dq 0
-    .cs:  dq 0
-    .ds:  dq 0
-    .ss:  dq 0
-    .es:  dq 0
-    .fs:  dq 0
-    .gs:  dq 0
 
 convert_buffer:
 static convert_buffer: data
     times CONVERT_BUFFER_LEN db 0
+
+convert_digits:
+static convert_digits: data
+    db "0123456789ABCDEF"
+
+;
+; const char* convert_bin_32(uint32_t n);
+; const char* convert_hex_32(uint32_t n);
+;
+; const char* convert_bin_64(uint32_t n);
+; const char* convert_hex_64(uint32_t n);
+;
