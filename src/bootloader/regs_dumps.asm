@@ -121,6 +121,10 @@ static ap_regs_banks: data
     .r14: dq 0
     .r15: dq 0
 
+error_code_bank:
+static error_code_bank: data
+    dq 0
+
 convert_buffer:
 static convert_buffer: data
     times CONVERT_BUFFER_LEN db 0
@@ -132,7 +136,9 @@ static convert_digits: data
 ;
 ; const char* convert_bin_32(uint32_t n);
 ; const char* convert_hex_32(uint32_t n);
+; void save_regs_32(void);
 ;
-; const char* convert_bin_64(uint32_t n);
-; const char* convert_hex_64(uint32_t n);
+; const char* convert_bin_64(uint64_t n);
+; const char* convert_hex_64(uint64_t n);
+; void save_regs_64(void);
 ;
