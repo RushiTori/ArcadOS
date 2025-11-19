@@ -29,6 +29,10 @@ extern set_error_code_32
 ; void set_error_code_64(uint64_t value);
 extern set_error_code_64
 
+;
+; The main dump functions, prepare your registers and error code (if any) beforehand
+;
+
 ; void dump_regs_text_32(bool_t useErrorCode);
 extern dump_regs_text_32
 
