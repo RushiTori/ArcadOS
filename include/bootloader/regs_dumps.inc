@@ -1,6 +1,8 @@
 %ifndef REGS_DUMPS_INC
 %define REGS_DUMPS_INC
 
+%include "LuLib/lutypes.inc"
+
 ;
 ; These setters do NOT modify any registers, and are safe to call without backing up anything
 ;
