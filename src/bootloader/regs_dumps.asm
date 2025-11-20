@@ -124,18 +124,20 @@ error_code_bank:
 static error_code_bank: data
     dq 0
 
+
+
 convert_buffer:
 static convert_buffer: data
     times CONVERT_BUFFER_LEN db 0
 
-convert_digits:
-static convert_digits: data
-    db "0123456789ABCDEF"
+string(static, convert_digits, "0123456789ABCDEF")
+string(static, bin_header,     "0b")
+string(static, hex_header,     "0x")
 
-bits         32
+bits           32
 
 ; const char* convert_bin_32(uint32_t n);
-func(static, convert_bin_32)
+func(static,   convert_bin_32)
     ; WIP
     ret
 
@@ -236,16 +238,41 @@ func(global, dump_regs_text_32)
     ; WIP
     ret
 
-bits         64
+bits 64
+
+%macro __convert_base_64 4
+    mov ax, uint16_p [%1]
+
+    mov uint16_p [convert_buffer], ax ; memcpy(conver_buffer, %1, 2);
+
+    lea rsi, [convert_buffer + sizeof(%1)]
+    lea rdi, [convert_digits]
+
+    xor rax, rax
+    mov rcx, %4  ; len
+    .cvt_loop:
+        mov al,  dil ; get lowest part of n
+        and al,  %2  ; n % mod_mask
+        shr rdi, %3  ; n / div_mask
+
+        ; *convert_buffer++ = convert_digits[n % mod_mask];
+        mov al,            uint8_p [rdi + rax]
+        mov uint8_p [rsi], al
+        inc rsi
+
+        loop .cvt_loop
+%endmacro
+
+%define convert_base_64(header, mod_mask, div_mask, len) __convert_base_64 header, mod_mask, div_mask, len
 
 ; const char* convert_bin_64(uint64_t n);
 func(static, convert_bin_64)
-    ; WIP
+    convert_base_64(bin_header, 1, 1, 64)
     ret
 
 ; const char* convert_hex_64(uint64_t n);
 func(static, convert_hex_64)
-    ; WIP
+    convert_base_64(hex_header, 0xF, 4, 16)
     ret
 
 ; void save_regs_64(void);
