@@ -14,42 +14,42 @@ static flag_reg_bank: data
 
 segment_regs_names:
 static segment_regs_names: data
-    .cs: db " CS "
-    .ds: db " DS "
-    .ss: db " SS "
-    .es: db " ES "
-    .fs: db " FS "
-    .gs: db " GS "
+    ._cs: db " CS "
+    ._ds: db " DS "
+    ._ss: db " SS "
+    ._es: db " ES "
+    ._fs: db " FS "
+    ._gs: db " GS "
 
 segment_regs_banks:
 static segment_regs_banks: data
-    .cs: dw 0
-    .ds: dw 0
-    .ss: dw 0
-    .es: dw 0
-    .fs: dw 0
-    .gs: dw 0
+    ._cs: dw 0
+    ._ds: dw 0
+    ._ss: dw 0
+    ._es: dw 0
+    ._fs: dw 0
+    ._gs: dw 0
 
 control_regs_names:
 static control_regs_names: data
-    .cr0: db "CR0 "
-    .cr2: db "CR2 "
-    .cr3: db "CR3 "
-    .cr4: db "CR4 "
-    .cr8: db "CR8 "
+    ._cr0: db "CR0 "
+    ._cr2: db "CR2 "
+    ._cr3: db "CR3 "
+    ._cr4: db "CR4 "
+    ._cr8: db "CR8 "
 
 control_regs_banks:
 static control_regs_banks: data
-    .cr0: dq 0
-    .cr2: dq 0
-    .cr3: dq 0
-    .cr4: dq 0
-    .cr8: dq 0
+    ._cr0: dq 0
+    ._cr2: dq 0
+    ._cr3: dq 0
+    ._cr4: dq 0
+    ._cr8: dq 0
 
 table_regs_names:
 static table_regs_names: data
-    .gdtr: db "GDTR"
-    .idtr: db "IDTR"
+    ._gdtr: db "GDTR"
+    ._idtr: db "IDTR"
 
 gdtr_reg_bank:
 static gdtr_reg_bank: data
@@ -146,7 +146,45 @@ func(static, convert_hex_32)
 
 ; void save_regs_32(void);
 func(static, save_regs_32)
-    ; WIP
+    ; All Purpose Registers
+        ; mov uint32_p [ap_regs_banks._eip], eip
+        mov uint32_p [ap_regs_banks._eax], eax
+        mov uint32_p [ap_regs_banks._ebx], ebx
+        mov uint32_p [ap_regs_banks._ecx], ecx
+        mov uint32_p [ap_regs_banks._edx], edx
+        mov uint32_p [ap_regs_banks._esi], esi
+        ; mov uint32_p [ap_regs_banks._edi], edi
+        ; mov uint32_p [ap_regs_banks._esp], esp
+        mov uint32_p [ap_regs_banks._ebp], ebp
+
+    ; Table Registers
+        sidt [idtr_reg_bank]
+        sgdt [gdtr_reg_bank]
+
+    ; Flags Register
+        pushf
+        pop uint32_p [flag_reg_bank]
+
+    ; Control Registers
+        mov eax,                                cr0
+        mov uint32_p [control_regs_banks._cr0], eax
+        mov eax,                                cr2
+        mov uint32_p [control_regs_banks._cr2], eax
+        mov eax,                                cr3
+        mov uint32_p [control_regs_banks._cr3], eax
+        mov eax,                                cr4
+        mov uint32_p [control_regs_banks._cr4], eax
+        mov eax,                                cr8
+        mov uint32_p [control_regs_banks._cr8], eax
+
+    ; Segment Registers
+        mov uint16_p [segment_regs_banks._cs], cs
+        mov uint16_p [segment_regs_banks._ds], ds
+        mov uint16_p [segment_regs_banks._ss], ss
+        mov uint16_p [segment_regs_banks._es], es
+        mov uint16_p [segment_regs_banks._fs], fs
+        mov uint16_p [segment_regs_banks._gs], gs
+
     ret
 
 ; void set_eip_bank(uint32_t value);
@@ -212,23 +250,51 @@ func(static, convert_hex_64)
 
 ; void save_regs_64(void);
 func(static, save_regs_64)
-    ; WIP
+    ; All Purpose Registers
+        ; mov uint64_p [ap_regs_banks._rip], rip
+        mov uint64_p [ap_regs_banks._rax], rax
+        mov uint64_p [ap_regs_banks._rbx], rbx
+        mov uint64_p [ap_regs_banks._rcx], rcx
+        mov uint64_p [ap_regs_banks._rdx], rdx
+        mov uint64_p [ap_regs_banks._rsi], rsi
+        ; mov uint64_p [ap_regs_banks._rdi], rdi
+        ; mov uint64_p [ap_regs_banks._rsp], rsp
+        mov uint64_p [ap_regs_banks._rbp], rbp
+        mov uint64_p [ap_regs_banks._r8],  r8
+        mov uint64_p [ap_regs_banks._r9],  r9
+        mov uint64_p [ap_regs_banks._r12], r12
+        mov uint64_p [ap_regs_banks._r13], r13
+        mov uint64_p [ap_regs_banks._r14], r14
+        mov uint64_p [ap_regs_banks._r15], r15
 
-    ; mov uint64_p [ap_regs_banks._rip], rip
-    mov uint64_p [ap_regs_banks._rax], rax
-    mov uint64_p [ap_regs_banks._rbx], rbx
-    mov uint64_p [ap_regs_banks._rcx], rcx
-    mov uint64_p [ap_regs_banks._rdx], rdx
-    mov uint64_p [ap_regs_banks._rsi], rsi
-    ; mov uint64_p [ap_regs_banks._rdi], rdi
-    ; mov uint64_p [ap_regs_banks._rsp], rsp
-    mov uint64_p [ap_regs_banks._rbp], rbp
-    mov uint64_p [ap_regs_banks._r8],  r8
-    mov uint64_p [ap_regs_banks._r9],  r9
-    mov uint64_p [ap_regs_banks._r12], r12
-    mov uint64_p [ap_regs_banks._r13], r13
-    mov uint64_p [ap_regs_banks._r14], r14
-    mov uint64_p [ap_regs_banks._r15], r15
+    ; Table Registers
+        sidt [idtr_reg_bank]
+        sgdt [gdtr_reg_bank]
+
+    ; Flags Register
+        pushf
+        pop uint64_p [flag_reg_bank]
+
+    ; Control Registers
+        mov rax,                                cr0
+        mov uint64_p [control_regs_banks._cr0], rax
+        mov rax,                                cr2
+        mov uint64_p [control_regs_banks._cr2], rax
+        mov rax,                                cr3
+        mov uint64_p [control_regs_banks._cr3], rax
+        mov rax,                                cr4
+        mov uint64_p [control_regs_banks._cr4], rax
+        mov rax,                                cr8
+        mov uint64_p [control_regs_banks._cr8], rax
+
+    ; Segment Registers
+        mov uint16_p [segment_regs_banks._cs], cs
+        mov uint16_p [segment_regs_banks._ds], ds
+        mov uint16_p [segment_regs_banks._ss], ss
+        mov uint16_p [segment_regs_banks._es], es
+        mov uint16_p [segment_regs_banks._fs], fs
+        mov uint16_p [segment_regs_banks._gs], gs
+
     ret
 
 ; void set_rip_bank(uint64_t value);
