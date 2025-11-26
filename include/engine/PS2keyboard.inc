@@ -2,6 +2,7 @@
 %define KEYBOARD_INC
 
 %include "standard.inc"
+%include "LuLib/lutypes.inc"
 
 %define PS2_DATA	0x60
 %define PS2_STATUS	0x64
@@ -16,36 +17,41 @@
 %define PS2_STATUS_TIMEOUT_FLAG			(1 << 6)
 %define PS2_STATUS_PARITY_FLAG			(1 << 7)
 
-extern PS2KB_init
-extern PS2KB_read
-
-extern PS2KB_update
-
-; args : u8 keycode
-; returns : true if 'keycode' is pressed, otherwise false.
-extern PS2KB_is_key_pressed
-
-; args : u8 keycode
-; returns : true if 'keycode' is down, otherwise false.
-extern PS2KB_is_key_down
-
-; args : u8 keycode
-; returns : true if 'keycode' is released, otherwise false.
-extern PS2KB_is_key_released
-
-; args : u8 keycode
-; returns : true if 'keycode' is up, otherwise false.
-extern PS2KB_is_key_up
-
-; args : u8 keycode
-; returns : true if 'keycode' is typematic pressed, otherwise false.
-extern PS2KB_is_key_pressed_typematic
-
+;uint32_t scancode
 extern scancode
+;bool scancode_complete
 extern scancode_complete
 
+;void PS2KB_init(uint8_t portID)
+extern PS2KB_init
+;void PS2KB_read(uint32_t scancode, uint8_t portID)
+extern PS2KB_read
+
+;void PS2KB_update(void)
+extern PS2KB_update
+
+;bool PS2KB_is_key_pressed(uint8_t keycode)
+extern PS2KB_is_key_pressed
+
+;bool PS2KB_is_key_down(uint8_t keycode)
+extern PS2KB_is_key_down
+
+;bool PS2KB_is_key_released(uint8_t keycode)
+extern PS2KB_is_key_released
+
+;bool PS2KB_is_key_up(uint8_t keycode)
+extern PS2KB_is_key_up
+
+;bool PS2KB_is_key_pressed_typematic(uint8_t keycode)
+extern PS2KB_is_key_pressed_typematic
+
+;void PS2KB_char_buffer_flush(void)
 extern PS2KB_char_buffer_flush
+;char PS2KB_get_char(void)
 extern PS2KB_get_char
+
+;void PS2KB_send_command_to_device(uint8_t portID, uint8_t command)
+extern PS2KB_send_command_to_device
 
 %define KB_COMMAND_SET_LEDS 0xED
 %define KB_COMMAND_ECHO 0xEE

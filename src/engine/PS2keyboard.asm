@@ -121,6 +121,7 @@ static keymap:data
 	dq 0xE074, 0xE0F074	;RIGHT:							91
 
 key_to_char:
+static key_to_char:data
 	db 0	;escape:						0
 	db 0	;F1:							1
 	db 0	;F2:							2
@@ -220,6 +221,7 @@ key_to_char:
 	db 0	;RIGHT:							91
 
 key_to_char_caps:
+static key_to_char_caps:data
 	db 0	;escape:						0
 	db 0	;F1:							1
 	db 0	;F2:							2
@@ -319,6 +321,7 @@ key_to_char_caps:
 	db  0	;RIGHT:							91
 
 key_to_char_alt_gr:
+static key_to_char_alt_gr:data
 	db 0	;escape:						0
 	db 0	;F1:							1
 	db 0	;F2:							2
@@ -418,64 +421,41 @@ key_to_char_alt_gr:
 
 section .bss
 
-scancode_complete:
-global scancode_complete:data
-	resb 1
+res(global, bool_t, scancode_complete)
 
-scancode:
-global scancode:data
-	resq 1
+res(global, uint64_t, scancode)
 
-IRQ_key_states:
-static IRQ_key_states:data
-	times KEY_COUNT resb 1
+res_array(static, uint8_t, IRQ_key_states, KEY_COUNT)
 
-key_states:
-static key_states:data
-	times KEY_COUNT resb 1
+res_array(static, uint8_t, key_states, KEY_COUNT)
 
-char_buffer:
-static char_buffer:data
-	times CHAR_BUFFER_SIZE resb 1
-char_buffer_idx:
-static char_buffer_idx:data
-	resq 1
+res_array(static, uint8_t, char_buffer, CHAR_BUFFER_SIZE)
 
-is_scroll_locked:
-static is_scroll_locked:data
-	resb 1
+res(static, uint64_t, char_buffer_idx)
 
-is_caps_locked:
-static is_caps_locked:data
-	resb 1
+res(global, bool_t, is_scroll_locked)
+res(global, bool_t, is_caps_locked)
+res(global, bool_t, is_numpad_locked)
 
-is_numpad_locked:
-static is_numpad_locked:data
-	resb 1
-
-current_port_ID:
-static current_port_ID:data
-	resb 1
+res(static, uint8_t, current_port_ID)
 
 section .text
 
-PS2KB_wait_for_response:
-static waitForResponse:function
+;void wait_for_response(void)
+func(static, PS2KB_wait_for_response)
 	in al, PS2_STATUS
 	and al, PS2_STATUS_INPUT_BUFFER_FULL
 	jz PS2KB_wait_for_response
 	ret
-
-PS2KB_wait_for_sending:
-static waitForSending:function
+;void wait_for_sending(void)
+func(static, PS2KB_wait_for_sending)
 	in al, PS2_STATUS
 	and al, PS2_STATUS_OUTPUT_BUFFER_FULL
 	jnz PS2KB_wait_for_sending
 	ret
-
-;masks all interrupt
-PS2KB_init:
-global keyboardSetScancodeTable:function
+;warning: masks all interrupt
+;void PS2KB_init(uint8_t portID)
+func(global, PS2KB_init)
 	mov byte [current_port_ID], dil ;store the port we're initializing for
 
 	mov rdi, 0xFE
@@ -520,23 +500,20 @@ global keyboardSetScancodeTable:function
 	cmp rax, -1
 	je .end
 
-.end:
+	.end:
 	ret
 
-.error:
+	.error:
 	jmp $
-
-;rax: scancode with byte 1 being MSB, and byte 3 being LSB
-;rdi: u8, port ID
-PS2KB_read:
-global PS2KB_read:function
+;void PS2KB_read(uint32_t scancode, uint8_t portID)
+func(global, PS2KB_read)
 	mov byte [current_port_ID], dil
 
 	xor rax, rax
 
 	cmp byte[scancode_complete], false
 	je .skip_reset_scancode
-	mov qword[scancode], false
+		mov qword[scancode], 0
 	.skip_reset_scancode:
 
 	in al, PS2_DATA
@@ -563,10 +540,8 @@ global PS2KB_read:function
 	
 	ret
 
-;rdi: scancode
-;return al: keycode, ah: isReleased
-PS2KB_scancode_to_keycode:
-static PS2KB_scancode_to_keycode:function
+;uint8_t PS2KB_scancode_to_keycode(uint32_t scancode)
+func(static, PS2KB_scancode_to_keycode)
 	xor rcx, rcx
 	.lookup_loop:
 		cmp rdi, qword[keymap + rcx * 8]
@@ -584,10 +559,9 @@ static PS2KB_scancode_to_keycode:function
 
 	ret
 
-;rdi: keycode
-;return 
-PS2KB_keycode_to_char:
-static PS2KB_keycode_to_char:function
+;char PS2KB_keycode_to_char(uint32_t keycode)
+func(static, PS2KB_keycode_to_char)
+
 	push rdi
 
 	mov rdi, KEY_RIGHT_ALT
@@ -616,24 +590,26 @@ static PS2KB_keycode_to_char:function
 	or rcx, rax
 	jnz .caps_handling
 
-.regular_handling:
-	pop rdi
-	movzx rax, byte[key_to_char + rdi]
-	jmp .end
+	.regular_handling:
+		pop rdi
+		movzx rax, byte[key_to_char + rdi]
+		jmp .end
 
-.caps_handling:
-	pop rdi
-	movzx rax, byte[key_to_char_caps + rdi]
-	jmp .end
+	.caps_handling:
+		pop rdi
+		movzx rax, byte[key_to_char_caps + rdi]
+		jmp .end
 
-.alt_gr_handling:
-	pop rdi
-	movzx rax, byte[key_to_char_alt_gr + rdi]
-.end:
+	.alt_gr_handling:
+		pop rdi
+		movzx rax, byte[key_to_char_alt_gr + rdi]
+	.end:
 	ret
 
-PS2KB_flush:
-static PS2KB_flush:function
+
+;warning, to update so that it uses the correct port probably
+;void PS2KB_flush(void)
+func(static, PS2KB_flush)
 	in al, PS2_STATUS
 	and al, PS2_STATUS_INPUT_BUFFER_FULL
 	je .end
@@ -642,8 +618,8 @@ static PS2KB_flush:function
 	.end:
 	ret
 
-PS2KB_IRQ_handler_update:
-static PS2KB_IRQ_handler_update:function
+;void PS2KB_IRQ_handler_update(void)
+func(static, PS2KB_IRQ_handler_update)
 	mov rdi, qword[scancode]
 	call PS2KB_scancode_to_keycode
 	cmp al, KEY_COUNT
@@ -660,28 +636,28 @@ static PS2KB_IRQ_handler_update:function
 		mov byte[IRQ_key_states + rdi], KEY_STATE_PRESSED
 	
 
-	cmp rdi, KEY_CAPS_LOCK
-	jne .skipCapsLockHandling
+		cmp rdi, KEY_CAPS_LOCK
+		jne .skipCapsLockHandling
 
-	xor byte [is_caps_locked], 1
-	call PS2KB_LEDs_update
-.skipCapsLockHandling:
+		xor byte [is_caps_locked], 1
+		call PS2KB_LEDs_update
+	.skipCapsLockHandling:
 
 	;rdi already holds keycode
-	call PS2KB_keycode_to_char
-	cmp rax, 0
-	je .skipTextWrite
-	mov rsi, [char_buffer_idx]
-	cmp rsi, CHAR_BUFFER_SIZE - 1
-	jge .skipTextWrite
-	mov byte [char_buffer + rsi], al
-	inc qword [char_buffer_idx]
-.skipTextWrite:
-
+		call PS2KB_keycode_to_char
+		cmp rax, 0
+		je .skipTextWrite
+		mov rsi, [char_buffer_idx]
+		cmp rsi, CHAR_BUFFER_SIZE - 1
+		jge .skipTextWrite
+		mov byte [char_buffer + rsi], al
+		inc qword [char_buffer_idx]
+	.skipTextWrite:
 	.end:
 	ret
 
-PS2KB_LEDs_update:
+;void PS2KB_LEDs_update(void)
+func(static, PS2KB_LEDs_update)
 	mov dil, byte [current_port_ID]
 	mov sil, 0xED
 	call PS2KB_send_command_to_device
@@ -704,13 +680,16 @@ PS2KB_LEDs_update:
 
 	ret
 
-.error:
+	.error:
 	jmp $
-PS2KB_char_buffer_flush:
+
+;void PS2KB_char_buffer_flush(void)
+func(global, PS2KB_char_buffer_flush)
 	mov qword [char_buffer_idx], 0
 	ret
 
-PS2KB_get_char:
+;char PS2KB_get_char(void)
+func(global, PS2KB_get_char)
 	mov al, 0
 	mov rsi, [char_buffer_idx]
 	cmp rsi, 0
@@ -729,11 +708,12 @@ PS2KB_get_char:
 	pop rax
 
 	mov qword [char_buffer_idx], 0
-.end:
+	.end:
 	ret
 
-PS2KB_update:
-global PS2KB_update:function
+;void PS2KB_update(void)
+func(global, PS2KB_update)
+
 	; WIP
 
 	xor rdi, rdi
@@ -795,10 +775,8 @@ global PS2KB_update:function
 		;			state = InputState::Released;
 		;	}
 
-; args : u8 keycode
-; returns : true if 'keycode' is pressed, otherwise false.
-PS2KB_is_key_pressed:
-global PS2KB_is_key_pressed:function
+;bool PS2KB_is_key_pressed(uint8_t keycode)
+func(global, PS2KB_is_key_pressed)
 	xor rax, rax
 	cmp dil, KEY_COUNT
 	jge .end
@@ -812,11 +790,8 @@ global PS2KB_is_key_pressed:function
 
 	.end:
 	ret
-
-; args : u8 keycode
-; returns : true if 'keycode' is typematic pressed, otherwise false.
-PS2KB_is_key_pressed_typematic:
-global PS2KB_is_key_pressed:function
+;bool PS2KB_is_key_pressed_typematic(uint8_t keycode)
+func(global, PS2KB_is_key_pressed_typematic)
 	xor rax, rax
 	cmp dil, KEY_COUNT
 	jge .end
@@ -831,10 +806,8 @@ global PS2KB_is_key_pressed:function
 	.end:
 	ret
 
-; args : u8 keycode
-; returns : true if 'keycode' is down, otherwise false. (note: typematic pressed state is included as down here, since it is still holding down the key physically)
-PS2KB_is_key_down:
-global PS2KB_is_key_down:function
+;bool PS2KB_is_key_down(uint8_t keycode)
+func(global, PS2KB_is_key_down)
 	xor rax, rax
 	cmp dil, KEY_COUNT
 	jge .end
@@ -846,16 +819,14 @@ global PS2KB_is_key_down:function
 	je .end
 	cmp dil, KEY_STATE_DOWN
 	jne .end
-.true:
-	inc rax
+	.true:
+		inc rax
 
 	.end:
 	ret
 
-; args : u8 keycode
-; returns : true if 'keycode' is released, otherwise false.
-PS2KB_is_key_released:
-global PS2KB_is_key_released:function
+;bool PS2KB_is_key_released(uint8_t keycode)
+func(global, PS2KB_is_key_released)
 	xor rax, rax
 	cmp dil, KEY_COUNT
 	jge .end
@@ -870,10 +841,8 @@ global PS2KB_is_key_released:function
 	.end:
 	ret
 
-; args : u8 keycode
-; returns : true if 'keycode' is up, otherwise false.
-PS2KB_is_key_up:
-global PS2KB_is_key_up:function
+;bool PS2KB_is_key_up(uint8_t keycode)
+func(global, PS2KB_is_key_up)
 	xor rax, rax
 	cmp dil, KEY_COUNT
 	jge .end
@@ -888,69 +857,70 @@ global PS2KB_is_key_up:function
 	.end:
 	ret
 
-;rdi: port of device
-;rsi: command
-PS2KB_send_command_to_device:
+;void PS2KB_send_command_to_device(uint8_t portID, uint8_t command)
+func(global, PS2KB_send_command_to_device)
 	cmp rdi, 1
 	je .handle_port2
 
 	mov rdi, rsi
 	call PS2KB_send_command_to_port1
 	jmp .end
-.handle_port2:
-	mov rdi, rsi
-	call PS2KB_send_command_to_port2
-.end:
+	.handle_port2:
+		mov rdi, rsi
+		call PS2KB_send_command_to_port2
+	.end:
 	ret
 
-PS2KB_send_command_to_port1:
+;void PS2KB_send_command_to_port1(uint8_t command)
+func(static, PS2KB_send_command_to_port1)
 	xor rcx, rcx
-.resend:
-	mov al, dil
-	out PS2_DATA, al
-	call PS2KB_wait_for_sending
-	call PS2KB_wait_for_response
+	.resend:
+		mov al, dil
+		out PS2_DATA, al
+		call PS2KB_wait_for_sending
+		call PS2KB_wait_for_response
 
-	in al, PS2_DATA
-	cmp al, RESPONSE_RESEND
-	je .resend_handler
-	cmp al, RESPONSE_ACK
-	mov rax, 0
-	je .end
-	jmp .error
-.resend_handler:
-	inc rcx
-	cmp rcx, 3
-	jl .resend
-	jmp .error
-.end:
+		in al, PS2_DATA
+		cmp al, RESPONSE_RESEND
+		je .resend_handler
+		cmp al, RESPONSE_ACK
+		mov rax, 0
+		je .end
+		jmp .error
+	.resend_handler:
+		inc rcx
+		cmp rcx, 3
+		jl .resend
+		jmp .error
+	.end:
 	ret
-.error:
+	.error:
 	jmp $
 
-PS2KB_send_command_to_port2:
+;void PS2KB_send_command_to_port2(uint8_t command)
+func(static, PS2KB_send_command_to_port2)
 	xor rcx, rcx
-.resend:
-	mov al, PS2_COMMAND_WRITE_BYTE_PORT2
-	out PS2_COMMAND, al
-	mov al, dil
-	out PS2_DATA, al
-	call PS2KB_wait_for_sending
-	call PS2KB_wait_for_response
+	.resend:
+		mov al, PS2_COMMAND_WRITE_BYTE_PORT2
+		out PS2_COMMAND, al
+		mov al, dil
+		out PS2_DATA, al
+		call PS2KB_wait_for_sending
+		call PS2KB_wait_for_response
 
-	in al, PS2_DATA
-	cmp al, RESPONSE_RESEND
-	je .resend_handler
-	cmp al, RESPONSE_ACK
-	mov rax, 0
-	je .end
-	jmp .error
-.resend_handler:
-	inc rcx
-	cmp rcx, 3
-	jl .resend
-	jmp .error
-.end:
+		in al, PS2_DATA
+		cmp al, RESPONSE_RESEND
+		je .resend_handler
+		cmp al, RESPONSE_ACK
+		mov rax, 0
+		je .end
+		jmp .error
+	.resend_handler:
+		inc rcx
+		cmp rcx, 3
+		jl .resend
+		jmp .error
+	.end:
 	ret
-.error:
+	.error:
 	jmp $

@@ -1,6 +1,7 @@
 %ifndef PS2_INC
 %define PS2_INC
 
+%include "LuLib/lutypes.inc"
 %include "string.inc"
 
 %include "bootloader/pic.inc"
@@ -59,11 +60,18 @@
 %define PORT_STATE_DATA_STUCK_LOW 3
 %define PORT_STATE_DATA_STUCK_HIGH 4
 
+;void PS2_init(void)
 extern PS2_init
 
+;returns -1 on timeout, returns 0 else, hangs if timer creation fails
+;int64_t PS2_send_command_to_port1(uint8_t data)
 extern PS2_send_command_to_port1
+;returns -1 on timeout, returns 0 else, hangs if timer creation fails
+;int64_t PS2_send_command_to_port2(uint8_t data)
 extern PS2_send_command_to_port2
 
+;handles figuring out which device's plugged in, and selects the driver depending on that
+;void PS2_IRQ_update(uint64_t port_id)
 extern PS2_IRQ_update
 
 %endif ;PS2_INC
