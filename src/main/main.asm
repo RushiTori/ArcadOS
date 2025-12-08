@@ -163,6 +163,9 @@ func(global, main)
 		or  ax,  3 << 9 ;set CR4.OSFXSR and CR4.OSXMMEXCPT at the same time
 		mov cr4, rax
 
+
+		call start_snake
+
 	.main_loop:
 		call main_update
 		call main_display
