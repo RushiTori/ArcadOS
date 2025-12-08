@@ -9,6 +9,8 @@
 
 %include "bootloader/pic.inc"
 
+%include "main/snake.inc"
+
 extern main
 
 %endif ; MAIN_INC

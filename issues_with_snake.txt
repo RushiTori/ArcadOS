@@ -1,0 +1,6 @@
+- rdrand not working
+- rtc_get_timestamp would be useful
+- is_any_key_pressed would be useful
+- screenVec2 requires unpacking and repacking for any math operation other than checking equality, which gets really messy because of the sheer amount of registers that end up being used
+- the vec variant for draw_square doesn't seem to work??? (when i unpack them to pass the fields as argument of draw_square, it works, but when passing the vec directly, it draws nothing) - fixed
+- the screenvec2 tile to screen function didn't work for some reason, applied my own fix, but that was still an issue
