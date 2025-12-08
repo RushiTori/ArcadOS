@@ -34,6 +34,10 @@ func(global, screenvec2_screen_to_tile)
 ; ScreenVec2 screenvec2_tile_to_screen(ScreenVec2 tilePos);
 func(global, screenvec2_tile_to_screen)
 	mov eax, edi
-	and eax, ~(SUB_TILE_MASK << 5) ; to make sure to not poison the lower 'y' value with the upper 'x' value
-	shl eax, 3
+	shr edi, 16
+	shl di, 3
+	shl edi, 16
+	shl ax, 3
+	mov di, ax
+	mov eax, edi
 	ret
