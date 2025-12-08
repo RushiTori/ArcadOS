@@ -132,6 +132,8 @@ func(global, draw_square)
 ; void draw_square_vec(ScreenVec2 pos, uint16_t size);
 func(global, draw_square_vec)
 	mov dx, si
+	shl esi, 16 ;shifting y into x
+	mov si, dx  ;copying x back
 	jmp draw_rect_vec
 
 ; void draw_square_line(uint16_t x, uint16_t y, uint16_t size);
@@ -142,6 +144,8 @@ func(global, draw_square_line)
 ; void draw_square_line_vec(ScreenVec2 pos, uint16_t size);
 func(global, draw_square_line_vec)
 	mov dx, si
+	shl esi, 16 ;shifting y into x
+	mov si, dx  ;copying x back
 	jmp draw_rect_line_vec
 
 ; void draw_square_line_ex(uint16_t x, uint16_t y, uint16_t size, uint8_t thickness);
