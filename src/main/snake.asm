@@ -1,7 +1,7 @@
 %include "main/snake.inc"
 
 %define FRAME_TIME 16666666
-%define FRAME_PER_UPDATE 4
+%define FRAME_PER_UPDATE 8
 
 bits 64
 
@@ -10,6 +10,8 @@ section .bss
 res(global, uint64_t, rand_val) ;temporary
 
 res(global, uint64_t, snake_size) ;temporary
+
+res(global, uint8_t, is_game_over) ;temporary
 
 snake_dir:
 global snake_dir:data
@@ -118,6 +120,8 @@ func(static, setup_snake)
     .endWait:
     
     mov uint64_p [snake_size], 1
+    mov uint8_p [is_game_over], false
+    mov uint16_p [snake_dir], 0
 
     ;get initial snake position
     call rand
@@ -272,13 +276,18 @@ func(static, update_snake)
     ;mov rdi, VGA_RED
     ;call set_font_color
 
+    mov uint8_p [is_game_over], 1
+
     lea rdi, uint8_p [gameover_text]
-    mov rsi, SCREEN_WIDTH/2 - 10*SCREEN_TILE_SIZE/2 ;get the center of the screen minus half the text screen
+    mov rsi, SCREEN_WIDTH/2 - 10*SCREEN_TILE_SIZE/2 ;get the center of the screen minus half the text size (10 glyphs)
     mov rdx, SCREEN_HEIGHT/2 - 1*SCREEN_TILE_SIZE/2 
     call draw_text ;displays the gameover text
 
-.gameover_loop:
-    jmp .gameover_loop
+    mov rdi, 2 
+    shl rdi, 32
+    call rtc_sleep ;2 seconds
+
+    ret
 
 func(static, update_input_snake)
     call PS2KB_update
@@ -347,43 +356,13 @@ func(static, run_snake)
 
         mov rdi, FRAME_TIME * FRAME_PER_UPDATE
         call rtc_sleep
-        jmp .game_loop
+        cmp uint8_p [is_game_over], true
+        jne .game_loop
+    ret
 
 
 
 func(global, start_snake)
     call init_snake
     call run_snake
-    
-
-    ;mov rdi, 0
-    ;mov rcx, 256
-    ;.loop:
-
-    ;    push rdi
-    ;    push rcx
-    ;    call set_display_color
-    ;    pop rcx
-    ;    pop rdi
-
-    ;    push rdi
-    ;    push rcx
-
-    ;    mov rdx, 0
-    ;    mov rax, rdi
-    ;    mov rbx, 16
-    ;    div rbx
-    ;    mov rdi, rdx
-    ;    shl rdi, 3 ;mul by 8
-    ;    mov rsi, rax
-    ;    shl rsi, 3 ;mul by 8
-
-    ;    mov rdx, 8
-    ;    call draw_square
-
-    ;    pop rcx
-    ;    pop rdi
-    ;    inc rdi
-    ;    loop .loop
-
-    jmp $
+    jmp start_snake
