@@ -3,6 +3,7 @@ bits 32
 %include "bootloader/boot.inc"
 %include "bootloader/paging.inc"
 %include "bootloader/memmap.inc"
+%include "bootloader/vesa.inc"
 
 section .text
 
@@ -55,10 +56,9 @@ paging_start:
 	mov edi, SYSTEM_PAGE_TABLE_ADDR ;clear page tables
 	rep stosd
 
-
 	mov edi, SYSTEM_PAGE_TABLE_ADDR + 8
 	mov ebx, SYSTEM_PAGE_ADDRESSING_START | 0x03
-	mov ecx, PAGE_COUNT
+	mov ecx, PAGE_COUNT - 1
 .setTableEntryLoop:
 	mov dword[edi], ebx
 	add ebx, PAGE_SIZE
@@ -66,6 +66,18 @@ paging_start:
 	mov dword[edi], 0
 	add edi, 4
 	loop .setTableEntryLoop
+
+	mov edi, SYSTEM_PAGE_TABLE_LFB_ADDR
+	mov ebx, [data_vbe_mode_info_structure + + vbe_mode_info_structure.framebuffer]
+	or ebx, 0x03
+	mov ecx, PAGE_COUNT
+.setTableLFBEntryLoop:
+	mov dword[edi], ebx
+	add ebx, PAGE_SIZE
+	add edi, 4
+	mov dword[edi], 0
+	add edi, 4
+	loop .setTableLFBEntryLoop
 
 	;infinite loop
 	;mov edi, SYSTEM_PAGE_TABLE_ADDR + (SYSTEM_PAGE_SKIP * 8)
