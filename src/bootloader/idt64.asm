@@ -88,8 +88,8 @@ global  make_idt_64: function
 
 	call init_PIT
 
-	mov  rdi, VGA_MEMORY_ADDR
-	call set_display_buffer   ; set_display_buffer(VGA_MEMORY_ADDR);
+	;mov  rdi, VGA_MEMORY_ADDR
+	;call set_display_buffer   ; set_display_buffer(VGA_MEMORY_ADDR);
 
 	mov  rdi, 0b11111110
 	mov  rsi, 0b11111111
@@ -100,8 +100,7 @@ global  make_idt_64: function
 	mov  rsi, 0b11101110 ;enable IRQ12 and IRQ8
 	call mask_pic64
 
-	call set_graphics_mode
-
+	;call set_graphics_mode
 	jmp main
 	;jmp find_RSDP
 
