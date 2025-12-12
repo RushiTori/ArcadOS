@@ -1,6 +1,7 @@
 bits 16
 
 %include "bootloader/boot.inc"
+%include "bootloader/vesa.inc" ;temporary
 
 section .text
 
@@ -16,6 +17,7 @@ boot_sector_2_start:
 	.skip_fail_msg:
 
 	; Here the lineA20 is enabled and we can jump to enable 32bits protected mode
+	call setup_vesa_mode 
 	jmp boot_sector_3_start
 
 A20_fail_msg:
