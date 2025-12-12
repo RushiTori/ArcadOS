@@ -427,7 +427,7 @@ res(global, uint64_t, scancode)
 
 res_array(static, uint8_t, IRQ_key_states, KEY_COUNT)
 
-res_array(static, uint8_t, key_states, KEY_COUNT)
+res_array(global, uint8_t, key_states, KEY_COUNT)
 
 res_array(static, uint8_t, char_buffer, CHAR_BUFFER_SIZE)
 
@@ -857,6 +857,58 @@ func(global, PS2KB_is_key_up)
 	.end:
 	ret
 
+;bool PS2KB_is_any_key_pressed(void)
+func(global, PS2KB_is_any_key_pressed)
+	;jmp $
+	xor rax, rax
+	mov rcx, KEY_COUNT
+	mov rdi, 0
+	.loop:
+		mov al, uint8_p [key_states + rdi - 1]
+		cmp al, 1
+		je .true
+		inc rdi
+		dec rcx
+		jne .loop
+	.false:
+		mov rax, false
+		ret
+	.true:
+		mov rax, true
+		ret
+
+;bool PS2KB_is_any_key_down(void)
+func(global, PS2KB_is_any_key_down)
+	xor rax, rax
+	mov rcx, KEY_COUNT
+	mov rdi, 0
+	.loop:
+		cmp uint8_p [key_states + rdi - 1], KEY_STATE_DOWN
+		je .true
+		dec rcx
+		jne .loop
+	.false:
+		mov rax, 0
+		ret
+	.true:
+		mov rax, 1
+		ret
+;bool PS2KB_is_any_key_released(void)
+func(global, PS2KB_is_any_key_released)
+	xor rax, rax
+	mov rcx, KEY_COUNT
+	mov rdi, 0
+	.loop:
+		cmp uint8_p [key_states + rdi - 1], KEY_STATE_RELEASED
+		je .true
+		dec rcx
+		jne .loop
+	.false:
+		mov rax, 0
+		ret
+	.true:
+		mov rax, 1
+		ret
 ;void PS2KB_send_command_to_device(uint8_t portID, uint8_t command)
 func(global, PS2KB_send_command_to_device)
 	cmp rdi, 1

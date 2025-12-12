@@ -45,6 +45,15 @@ extern PS2KB_is_key_up
 ;bool PS2KB_is_key_pressed_typematic(uint8_t keycode)
 extern PS2KB_is_key_pressed_typematic
 
+;bool PS2KB_is_any_key_pressed(void)
+extern PS2KB_is_any_key_pressed
+
+;bool PS2KB_is_any_key_down(void)
+extern PS2KB_is_any_key_down
+
+;bool PS2KB_is_any_key_released(void)
+extern PS2KB_is_any_key_released
+
 ;void PS2KB_char_buffer_flush(void)
 extern PS2KB_char_buffer_flush
 ;char PS2KB_get_char(void)
