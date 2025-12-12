@@ -96,23 +96,7 @@ func(static, setup_snake)
 
         ;press a key to finish setup
 
-        mov rdi, KEY_UP
-        call PS2KB_is_key_pressed
-        cmp rax, true
-        je .endWait
-
-        mov rdi, KEY_DOWN
-        call PS2KB_is_key_pressed
-        cmp rax, true
-        je .endWait
-
-        mov rdi, KEY_LEFT
-        call PS2KB_is_key_pressed
-        cmp rax, true
-        je .endWait
-
-        mov rdi, KEY_RIGHT
-        call PS2KB_is_key_pressed
+        call PS2KB_is_any_key_pressed
         cmp rax, true
         je .endWait
 
