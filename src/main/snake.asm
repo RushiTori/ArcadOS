@@ -85,6 +85,7 @@ func(static, init_snake)
     call srand
     ret
 
+;void setup_snake(void)
 func(static, setup_snake)
     .waitForStart:
         call PS2KB_update
@@ -132,12 +133,13 @@ func(static, setup_snake)
     call generate_fruit
     ret
 
+;void draw_board(void)
 func(static, draw_board)
     mov rdi, VGA_BLACK
     call clear_screen_c
     ret
 
-
+;void draw_snake(void)
 func(static, draw_snake)
     call draw_board
 
@@ -170,6 +172,7 @@ func(static, draw_snake)
 
     ret
 
+;void generate_fruit(void)
 func(static, generate_fruit)
     .regen:
         call rand
@@ -200,7 +203,7 @@ func(static, generate_fruit)
         mov [fruit_pos], rax
     ret
 
-
+;void update_snake(void)
 func(static, update_snake)
     call update_input_snake
     
@@ -273,10 +276,12 @@ func(static, update_snake)
 
     ret
 
+;void update_input_snake(void)
 func(static, update_input_snake)
     call PS2KB_update
+    ;priority goes as such: up then down then left then right, so if multiple keys are pressed at the same frame, up will prevail unless snake is heading down (in which case down will prevail)
 
-    cmp byte [snake_dir.y], 1
+    cmp byte [snake_dir.y], 1 ;if heading down cannot head up
     je .skip_handle_up
     mov rdi, KEY_UP
     call PS2KB_is_key_pressed
@@ -285,9 +290,10 @@ func(static, update_input_snake)
     
         mov byte [snake_dir.x], 0
         mov byte [snake_dir.y], -1
+        jmp .end
 
     .skip_handle_up:
-    cmp byte [snake_dir.y], -1
+    cmp byte [snake_dir.y], -1 ;if heading up cannot head down
     je .skip_handle_down
     mov rdi, KEY_DOWN
     call PS2KB_is_key_pressed
@@ -296,9 +302,10 @@ func(static, update_input_snake)
 
         mov byte [snake_dir.x], 0
         mov byte [snake_dir.y], 1
+        jmp .end
 
     .skip_handle_down:
-    cmp byte [snake_dir.x], 1
+    cmp byte [snake_dir.x], 1 ;if heading right cannot head left
     je .skip_handle_left
     mov rdi, KEY_LEFT
     call PS2KB_is_key_pressed
@@ -307,9 +314,10 @@ func(static, update_input_snake)
 
         mov byte [snake_dir.x], -1
         mov byte [snake_dir.y], 0
+        jmp .end
     
     .skip_handle_left:
-    cmp byte [snake_dir.x], -1
+    cmp byte [snake_dir.x], -1 ;if heading left cannot head right
     je .skip_handle_right
     mov rdi, KEY_RIGHT
     call PS2KB_is_key_pressed
@@ -318,8 +326,10 @@ func(static, update_input_snake)
 
         mov byte [snake_dir.x], 1
         mov byte [snake_dir.y], 0
+        jmp .end
 
     .skip_handle_right:
+    .end:
     ret
 
 ;void run_snake(void)
@@ -344,8 +354,7 @@ func(static, run_snake)
         jne .game_loop
     ret
 
-
-
+;void start_snake(void)
 func(global, start_snake)
     call init_snake
     call run_snake
