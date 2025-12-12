@@ -153,6 +153,42 @@ func(static, main_display)
 	add rsp, 8 ; to re-align the stack
 	ret
 
+%include "bootloader/vesa.inc"
+
+
+;void put_pixel_vesa(uint16_t x, uint16_t y, uint32_t color)
+func(global, put_pixel_vesa)
+	xor rax, rax
+	push rdx
+	mov ax, si
+	
+	mov bx, word [data_vbe_mode_info_structure + vbe_mode_info_structure.pitch] ;pitch, aka byte per pixel times width
+	mul bx
+	shl edx, 16 
+	or eax, edx ;y * pitch
+	push rax
+
+	push di
+	xor edi, edi
+	pop di
+
+	xor ebx, ebx
+	xor eax, eax
+	mov bl, byte [data_vbe_mode_info_structure + vbe_mode_info_structure.bpp]
+	shr bl, 3 ;bpp / 8
+	mov ax, di 
+	mul bx    ;x * bpp / 8
+	shl edx, 16
+	or eax, edx
+	pop rbx
+	add eax, ebx ; + x * bpp/8
+
+	add eax, 0x1000000 ; + framebuffer
+	mov edi, eax
+	pop rdx
+	mov [edi], edx ;(uint32_t*)(&framebuffer[pixel_offset]) = color;
+	ret
+
 func(global, main)
 	; Setting up the xmm registers and flloat instructions
 		mov rax, cr0
@@ -162,6 +198,41 @@ func(global, main)
 		mov rax, cr4
 		or  ax,  3 << 9 ;set CR4.OSFXSR and CR4.OSXMMEXCPT at the same time
 		mov cr4, rax
+
+
+		mov edx, 0x000000
+		.loop_start
+			mov di, 0
+			mov si, 0
+			mov ecx, 256*256
+			.loop:
+				push di
+				push si
+				push rdx
+				push rcx
+				call put_pixel_vesa
+				pop rcx
+				pop rdx
+				xor edi, edi
+				xor esi, esi
+				pop si
+				pop di
+
+				inc di
+				add edx, 1
+				cmp di, 256
+				jne .skipIncrementX
+					inc si
+					mov di, 0
+				.skipIncrementX:
+				dec ecx
+				jne .loop
+		push rdx
+		mov rdi, 16666666 
+		call rtc_sleep
+		pop rdx
+		jmp .loop_start
+
 
 
 		call start_snake
