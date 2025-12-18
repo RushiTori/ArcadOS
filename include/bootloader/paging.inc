@@ -32,7 +32,4 @@
 
 %define TOTAL_PAGES_REQUIRED				4096 * 4 + 4095	;pages needed to allocate everything
 
-%define OLD_SCREEN_MEM_ADDR					0xA0000
-%define NEW_SCREEN_MEM_ADDR					0x400000
-
 %endif ;PAGING_INC
