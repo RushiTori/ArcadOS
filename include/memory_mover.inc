@@ -8,22 +8,26 @@
 %define CODE_MEMORY_END       0x1000000
 %define CODE_MEMORY_SIZE      (CODE_MEMORY_END - CODE_MEMORY_START)         ; 16-ish megabytes
 
-; I want to keep that
-; 0x0000000 - 0x0001000 : non adressable, pagefault
-; 0x0001000 - 0x0007C00 : nothing
-; 0x0007C00 - 0x1000000 : raw ArcadOS code
-;total of 4095 pages here to allocate
+; real mode address space
+; 0x0000000 - 0x0000FFF ; not addressable, causes page fault
+; 0x0006000 - 0x0006FFF : IDT
+; 0x0007000 - 0x0007BFF : Stack
+; 0x0007C00 - 0x000FFFF : bootloader code
+; 0x0010000 - 0x001FFFF : Paging tables
+; 0x0020000 - 0x007FFFF : free memory
+; 0x0080000 - 0x009FFFF : EBDA (reserved by BIOS basically)
+; 0x00A0000 - 0x00BFFFF : VGA memory
+; 0x00C0000 - 0x00C7FFF : Video BIOS (reserved by BIOS)
+; 0x00C8000 - 0x00EFFFF : BIOS Expansions (reserved by BIOS)
+; 0x00F0000 - 0x00FFFFF : Motherboard BIOS (reserved by BIOS)
 
-
-; I want to move that elsewhere
-; 0x00A0000 - 0x00B0000 : VGA memory
-; 0x00B0000 - 0x0800000 : Stack
-; 0x0800000 - 0x0801000 : GDT64
-; 0x0801000 - 0x0802000 : IDT
-; 0x0802000 - 0x0803000 : PL4T
-; 0x0803000 - 0x0804000 : PDP
-; 0x0804000 - 0x0805000 : PD
-; 0x0805000 - 0x0845000 : Page Tables
+; extended memory (check memory map to see what is or isn't valid memory for us)
+; 0x0100000 - 0x01FFFFF : data section
+; 0x0200000 - 0x02FFFFF : bss section
+; 0x0300000 - 0x03FFFFF : rodata section
+; 0x0400000 - 0x0EFFFFF : free memory
+; 0x0F00000 - 0x0FFFFFF : ISA memory hole
+; 0x1000000 - ????????? : more free memory, gotta check using memory map
 
 ; The memory map for the .data sections
 %define DATA_MEMORY_START     0x100000	;	4096	pages
