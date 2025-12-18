@@ -19,7 +19,7 @@ bits 64
 
 %include "bootloader/VGA.inc"
 
-%define STACK_START                   0x0009FFFF                                                ;lotsa memory to grow down from here
+%define STACK_START                   0x00007C00                                                ;lotsa memory to grow down from here
 %define TEXT_ADDR_START               0xB8000
 
 
@@ -102,8 +102,9 @@ global  make_idt_64: function
 
 	call set_graphics_mode
 
+	;call find_RSDP
+
 	jmp main
-	;jmp find_RSDP
 
 ;rdi = gate index
 ;rsi = handlerPointer
