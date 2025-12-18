@@ -34,7 +34,33 @@ FADT_checksum_error_string:
 DSDT_checksum_error_string:
     db "DSDT checksum failed", 0
 
+section .data
+
+PCI_found:
+    db false
+
+PS2_found:
+    db false
+
+XHCI_found:
+    db false
+
+EHCI_found:
+    db false
+
+OHCI_found:
+    db false
+
+UHCI_found:
+    db false
+
 section .text
+
+;void rsdp_memcpy(uint8_t* dest, uint8_t* src, uint64_t len)
+rsdp_memcpy:
+    mov rcx, rdx
+    rep movsb
+    ret
 
 ;finds the rsdp/xsdp, and copies it to 0x500000
 find_RSDP:
@@ -85,12 +111,16 @@ find_RSDP:
     .success2:
         mov  rdi, RSDP_COPY_MEMORY_BOUNDARY
         mov  rdx, XSDP_size
-        call memcpy
+        push rsi
+        call rsdp_memcpy
+        pop rsi
         jmp  .end_xsdp
     .success1:
         mov  rdi, RSDP_COPY_MEMORY_BOUNDARY
         mov  rdx, RSDP_size
-        call memcpy
+        push rsi
+        call rsdp_memcpy
+        pop rsi
     .end_rsdp:
 
     call find_dsdt
@@ -101,7 +131,7 @@ find_RSDP:
     call find_dsdt_extended
     ;now that we got our dsdt where we want it, we're good
     .end:
-    jmp  main
+    ret
     .error:
         mov  dil, 0x01
         call clear_screen_c ; blue screen due to error
@@ -165,9 +195,11 @@ find_dsdt:
     cmp  rax, 0
     jnz  .error_fadt_not_valid
 
-    mov  edi, dword [rsi + ACPISDTHeader.Length]
+    mov  edi, dword FADT_COPY_MEMORY_BOUNDARY
     mov  rdx, FADT_size
-    call memcpy
+    push rsi
+    call rsdp_memcpy
+    pop rsi
 
     mov  esi, dword [rsi + FADT.Dsdt]
     mov  ecx, dword [rsi + ACPISDTHeader.Length]
@@ -177,9 +209,11 @@ find_dsdt:
 
     mov  rdi, DSDT_COPY_MEMORY_BOUNDARY
     mov  edx, dword [rsi + ACPISDTHeader.Length]
-    call memcpy
+    push rsi
+    call rsdp_memcpy
+    pop rsi
 
-    jmp $
+    ret
 
 .error_rsdt:
     mov  dil, 0x01
